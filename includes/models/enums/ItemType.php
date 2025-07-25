@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-enum ProductGroupType: string
+enum ItemType: string
 {
     case PRODUCT = 'product';
     case INGREDIENT = 'ingredient';

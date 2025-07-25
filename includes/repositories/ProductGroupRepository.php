@@ -8,7 +8,7 @@ class ProductGroupRepository
 
     public function create(array $data): int
     {
-        if (empty($data['name']) || !ProductGroupType::tryFrom($data['type'])) {
+        if (empty($data['name']) || !ItemType::tryFrom($data['type'])) {
             throw new InvalidArgumentException('Invalid ProductGroup data.');
         }
 
