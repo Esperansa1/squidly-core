@@ -167,7 +167,10 @@ class HamburgerMenuSetupTest extends WP_UnitTestCase
         $burgerId = $this->prodRepo->create([
             'name'              => 'Hamburger',
             'price'             => 29.0,
+            'discounted_price'  => 25.0,
             'description'       => 'Our signature burger, crafted with a juicy, ...',
+            'category'          => 'Burgers',
+            'tags'              => ['signature','grilled'],
             'product_group_ids' => [
                 $freeGroupId,
                 $paidGroupId,
@@ -181,15 +184,19 @@ class HamburgerMenuSetupTest extends WP_UnitTestCase
 
         /* 3 – verify */
         $burger = $this->prodRepo->get($burgerId);
-        $full   = $burger->buildProduct();
-        fwrite(STDERR,
-            "\n=== 🍔  BURGER DEBUG DUMP ===\n" .
-            print_r($full, true) . PHP_EOL
+
+        $this->assertSame(25.0,    $burger->discounted_price, 'Discounted price mismatch');
+        $this->assertSame('Burgers',$burger->category,        'Category mismatch');
+        $this->assertEqualsCanonicalizing(
+            ['signature','grilled'],
+            $burger->tags,
+            'Tags mismatch'
         );
 
         $this->assertSame(
             [$freeGroupId,$paidGroupId,$sideGroupId,$drinkGroupId,$wellGroupId],
-            $burger->product_group_ids
+            $burger->product_group_ids,
+            'Burger group linkage mismatch'
         );
 
     }
