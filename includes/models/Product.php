@@ -83,28 +83,27 @@ class Product
         foreach ($this->product_group_ids as $pgId) {
             $group = $pgRepo->get((int) $pgId);
             if (! $group) {
-                continue;            // skip deleted groups
+                continue;
             }
 
-            $resolvedItems = $group->getResolvedItems($giRepo, $prodRepo, $ingRepo);
+            $resolved = $group->getResolvedItems($giRepo, $prodRepo, $ingRepo);
 
             $groupsOut[] = [
                 'group_name' => $group->name,
                 'type'       => $group->type->value,
                 'items'      => array_map(
                     fn ($i) => ['name' => $i->name, 'price' => $i->price],
-                    $resolvedItems
+                    $resolved
                 ),
             ];
         }
 
-        return [
-            'id'          => $this->id,
-            'name'        => $this->name,
-            'base_price'  => $this->price,
-            'description' => $this->description,
-            'groups'      => $groupsOut,
-        ];
+        // start with full DTO, drop the raw IDs, add hydrated data
+        $dto = $this->toArray();
+        unset($dto['product_group_ids']);
+        $dto['groups_product_data'] = $groupsOut;
+
+        return $dto;
     }
 
 }
