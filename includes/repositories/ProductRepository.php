@@ -10,9 +10,10 @@ class ProductRepository
             throw new InvalidArgumentException('Product name is required.');
         }
 
-        if (!isset($data['price'])) {
+        if (!isset($data['price']) || $data['price'] < 0) {
             throw new InvalidArgumentException('Product price is required.');
         }
+        
 
         $post_id = wp_insert_post([
             'post_title'   => sanitize_text_field($data['name']),

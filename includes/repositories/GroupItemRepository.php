@@ -12,6 +12,9 @@ class GroupItemRepository
             throw new InvalidArgumentException("GroupItem requires item_id and item_type.");
         }
 
+        if (ItemType::tryFrom($data['item_type']) === null) {
+            throw new InvalidArgumentException('Invalid item_type; must be "product" or "ingredient".');
+        }
         $post_id = wp_insert_post([
             'post_title'  => 'Group Item',
             'post_type'   => self::POST_TYPE,
