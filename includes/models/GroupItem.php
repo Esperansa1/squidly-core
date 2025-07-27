@@ -46,29 +46,23 @@ class GroupItem
     public function getItem(
         ?ProductRepository    $prodRepo = null,
         ?IngredientRepository $ingRepo  = null
-    ): Product|Ingredient|null {
+    ) /* no return type for PHP 7.4 */ {
 
-        // Resolve the underlying object ---------------------------------------------------
-        $item = match ($this->item_type) {
-            ItemType::PRODUCT    => ($prodRepo ?? new ProductRepository())->get($this->item_id),
-            ItemType::INGREDIENT => ($ingRepo  ?? new IngredientRepository())->get($this->item_id),
-        };
+        // Select repository based on enum value
+        $item = $this->item_type->isProduct()
+            ? ($prodRepo ?? new ProductRepository())->get($this->item_id)
+            : ($ingRepo  ?? new IngredientRepository())->get($this->item_id);
+
 
         if ( ! $item ) {
-            return null;  // ID missing or deleted
+            return null;                    // ID missing
         }
 
-        // Apply price override ------------------------------------------------------------
-        if ( $this->override_price !== null ) {
+        $item = clone $item;
 
-            if ($item instanceof Product) {
-                // Respect discounted price logic if one exists
-                $item->discounted_price = null;
-                $item->price            = $this->override_price;
-
-            } elseif ($item instanceof Ingredient) {
-                $item->price = $this->override_price;
-            }
+        // Override price if requested
+        if ($this->override_price !== null) {
+            $item->price = $this->override_price;
         }
 
         return $item;

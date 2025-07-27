@@ -70,6 +70,7 @@ class ProductRepository
         $group_ids = get_post_meta($id, '_product_group_ids', true);
         $group_ids = is_array($group_ids) ? $group_ids : [];
 
+        
         $groupRepo = new ProductGroupRepository();
         $product_groups = [];
 
@@ -88,7 +89,7 @@ class ProductRepository
             'discounted_price' => $sale,
             'category'         => $category[0] ?? null,
             'tags'             => is_array($tags) ? $tags : [],
-            'product_groups'   => $product_groups,
+            'product_group_ids'=> $group_ids,
         ]);
     }
 
