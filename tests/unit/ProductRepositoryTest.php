@@ -74,6 +74,16 @@ class ProductRepositoryTest extends WP_UnitTestCase
         $this->assertNull($this->repo->get($postId));
     }
 
+    public function test_create_rejects_negative_price(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        (new ProductRepository())->create([
+            'name'  => 'Bad',
+            'price' => -5,
+        ]);
+    }
+
+
     /* ---------- getAll() ---------- */
 
     public function test_getAll_returns_only_published_and_correct_data(): void

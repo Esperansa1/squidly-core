@@ -81,4 +81,16 @@ class GroupItemRepositoryTest extends WP_UnitTestCase
         $postId = $this->factory()->post->create();           // wrong type
         $this->assertNull($this->repo->get($postId));
     }
+
+
+    public function test_create_rejects_invalid_item_type(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        (new GroupItemRepository())->create([
+            'item_id'   => 123,
+            'item_type' => 'invalid-type',   // not 'product' or 'ingredient'
+        ]);
+    }
+
 }
