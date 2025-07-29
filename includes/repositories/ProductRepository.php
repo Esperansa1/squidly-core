@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 class ProductRepository
 {
+
+    public const POST_TYPE = 'product';
+
     public function create(array $data): int
     {
         if (empty($data['name'])) {
@@ -18,7 +21,7 @@ class ProductRepository
         $post_id = wp_insert_post([
             'post_title'   => sanitize_text_field($data['name']),
             'post_content' => wp_kses_post($data['description'] ?? ''),
-            'post_type'    => 'product',
+            'post_type'    => self::POST_TYPE,
             'post_status'  => 'publish',
         ]);
 
@@ -57,7 +60,7 @@ class ProductRepository
     public function get(int $id): ?Product
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== 'product') {
+        if (!$post || $post->post_type !== self::POST_TYPE) {
             return null;
         }
 
@@ -97,7 +100,7 @@ class ProductRepository
     public function getAll(): array
     {
         $query = new WP_Query([
-            'post_type'      => 'product',
+            'post_type'      => self::POST_TYPE,
             'posts_per_page' => -1,
             'post_status'    => 'publish',
         ]);
