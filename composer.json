@@ -3,7 +3,18 @@
         "phpunit/phpunit": "^9.6",
         "yoast/phpunit-polyfills": "^4.0"
     },
+    
     "scripts": {
-        "test": "vendor/bin/phpunit --testsuite unit --colors=always"
+        "lint": "find . -type f -name '*.php' -not -path './vendor/*' -exec php -l {} +",
+        "test": [
+            "@lint",
+            "vendor/bin/phpunit --colors=always"
+        ]
+    },
+    "autoload": {
+        "classmap": [
+            "includes/"
+        ]
     }
+    
 }

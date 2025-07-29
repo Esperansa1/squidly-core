@@ -83,4 +83,152 @@ class IngredientRepository
 
         return $ingredients;
     }
+
+    /* ----------------------------------------------------------------------
+    *  update()
+    * --------------------------------------------------------------------*/
+    /**
+     * Update an existing ingredient.
+     *
+     * Accepts any subset of ['name','price'].
+     * Returns true on success, false if the post does not exist / wrong type.
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
+    public function update(int $id, array $data): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== self::POST_TYPE) {
+            return false;
+        }
+
+        // --- validations ----------------------------------------------------
+        if (isset($data['name']) && $data['name'] === '') {
+            throw new InvalidArgumentException('Ingredient name cannot be empty.');
+        }
+        if (isset($data['price']) && $data['price'] < 0) {
+            throw new InvalidArgumentException('Ingredient price cannot be negative.');
+        }
+
+        // --- update post title ---------------------------------------------
+        if (isset($data['name'])) {
+            wp_update_post([
+                'ID'         => $id,
+                'post_title' => sanitize_text_field($data['name']),
+            ]);
+        }
+
+        // --- update price meta ---------------------------------------------
+        if (array_key_exists('price', $data)) {
+            update_post_meta($id, '_price', (float) $data['price']);
+        }
+
+        return true;
+    }
+
+    /* ----------------------------------------------------------------------
+    *  delete()
+    * --------------------------------------------------------------------*/
+    /**
+     * Delete an ingredient (moves to trash by default).
+     *
+     * @param bool $force Force deletion (true = bypass trash)
+     * @return bool True if deleted, false if not found / wrong type.
+     */
+    public function delete(int $id, bool $force = false): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== self::POST_TYPE) {
+            return false;
+        }
+
+        $dependants = $this->findIngredientDependants($id);
+        if ($dependants) {
+            throw new ResourceInUseException($dependants);
+        }
+
+        $result = wp_delete_post($id, $force);
+        if (is_wp_error($result)) {
+            throw new RuntimeException(
+                'Failed to delete ingredient: '.$result->get_error_message()
+            );
+        }
+        return (bool) $result;
+    }
+
+    private function findIngredientDependants(int $iid): array
+    {
+        $names   = [];
+        $giRepo  = new GroupItemRepository();
+        $pgRepo  = new ProductGroupRepository();
+        $prodRepo= new ProductRepository();
+
+        /* 1) direct GroupItem(s) that reference the ingredient */
+        $giIds = get_posts([
+            'post_type'   => GroupItemRepository::POST_TYPE,
+            'fields'      => 'ids',
+            'nopaging'    => true,
+            'post_status' => 'publish',
+            'meta_query'  => [
+                [
+                    'key'     => '_item_id',
+                    'value'   => $iid,
+                    'compare' => '=',
+                    'type'    => 'NUMERIC',
+                ],
+                [
+                    'key'     => '_item_type',
+                    'value'   => 'ingredient',
+                    'compare' => '=',
+                ],
+            ],
+        ]);
+
+        if (!$giIds) {
+            return [];                       // ingredient unused → deletable
+        }
+
+        // Used for indeactive error message
+        
+        /* 2) product-groups that contain any of those GroupItems */
+        foreach ($giIds as $giId) {
+            $pgIds = get_posts([
+                'post_type'  => ProductGroupRepository::POST_TYPE,
+                'fields'     => 'ids',
+                'nopaging'   => true,
+                'post_status'=> 'publish',
+                'meta_query' => [[
+                    'key'     => '_group_item_ids',
+                    'value'   => 'i:' . $giId . ';',   // serialized int
+                    'compare' => 'LIKE',
+                ]],
+            ]);
+
+            foreach ($pgIds as $pgId) {
+                $pg   = $pgRepo->get((int)$pgId);
+                $names[] = $pg->name;
+
+                /* 3) products that include this product-group */
+                $productIds = get_posts([
+                    'post_type'  => ProductRepository::POST_TYPE,
+                    'fields'     => 'ids',
+                    'nopaging'   => true,
+                    'post_status'=> 'publish',
+                    'meta_query' => [[
+                        'key'     => '_product_group_ids',
+                        'value'   => 'i:' . $pgId . ';',
+                        'compare' => 'LIKE',
+                    ]],
+                ]);
+
+                foreach ($productIds as $pid) {
+                    $p = $prodRepo->get((int)$pid);
+                    $names[] = $p->name;
+                }
+            }
+        }
+
+        return array_unique($names);
+    }
 }

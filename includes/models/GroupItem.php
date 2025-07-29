@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 class GroupItem
 {
+    public int $id;
     public int $item_id;
     public ItemType $item_type;
     public ?float $override_price;
 
     public function __construct(array $data)
     {
+        if (! isset($data['id'])) {
+            throw new InvalidArgumentException('GroupItem requires its own id.');
+        }
+        $this->id = (int) $data['id'];
+
         if (!isset($data['item_id'], $data['item_type'])) {
             throw new InvalidArgumentException("GroupItem requires item_id and item_type.");
         }
@@ -27,6 +33,7 @@ class GroupItem
     public function toArray(): array
     {
         return [
+            'id'             => $this->id,
             'item_id'        => $this->item_id,
             'item_type'      => $this->item_type->value,
             'override_price' => $this->override_price,

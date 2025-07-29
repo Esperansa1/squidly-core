@@ -41,6 +41,7 @@ class GroupItemRepository
         }
 
         return new GroupItem([
+            'id'             => $id,
             'item_id'        => (int) get_post_meta($id, '_item_id', true),
             'item_type'      => (string) get_post_meta($id, '_item_type', true),
             'override_price' => ($override = get_post_meta($id, '_override_price', true)) !== '' ? (float) $override : null,

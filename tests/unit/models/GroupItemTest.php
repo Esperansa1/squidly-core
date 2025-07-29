@@ -41,6 +41,7 @@ class GroupItemTest extends TestCase
         ]);
 
         $gi = new GroupItem([
+            'id'=> 0,
             'item_id'=>7,
             'item_type'=>ItemType::PRODUCT,
             'override_price'=>8.5
@@ -61,6 +62,7 @@ class GroupItemTest extends TestCase
         ]);
 
         $gi = new GroupItem([
+            'id'=> 0,
             'item_id'=>5,
             'item_type'=>ItemType::PRODUCT
         ]);
@@ -76,11 +78,13 @@ class GroupItemTest extends TestCase
         $ing = new Ingredient(['id'=>4,'name'=>'Salt','price'=>1.0]);
 
         $giOverride = new GroupItem([
+            'id'=> 0,
             'item_id'=>4,
             'item_type'=>ItemType::INGREDIENT,
             'override_price'=>1.5
         ]);
         $giNoOverride = new GroupItem([
+            'id'=> 0,
             'item_id'=>4,
             'item_type'=>ItemType::INGREDIENT
         ]);
@@ -99,6 +103,7 @@ class GroupItemTest extends TestCase
         $stubRepo->method('get')->willReturn(null);
 
         $gi = new GroupItem([
+            'id'=> 0,
             'item_id'=>999,
             'item_type'=>ItemType::PRODUCT
         ]);
