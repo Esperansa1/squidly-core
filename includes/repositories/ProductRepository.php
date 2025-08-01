@@ -16,7 +16,6 @@ class ProductRepository implements RepositoryInterface
         if (!isset($data['price']) || $data['price'] < 0) {
             throw new InvalidArgumentException('Product price is required.');
         }
-        
 
         $post_id = wp_insert_post([
             'post_title'   => sanitize_text_field($data['name']),
@@ -24,7 +23,7 @@ class ProductRepository implements RepositoryInterface
             'post_type'    => self::POST_TYPE,
             'post_status'  => 'publish',
         ]);
-
+        
         if (is_wp_error($post_id)) {
             throw new RuntimeException('Failed to create product: ' . $post_id->get_error_message());
         }
@@ -52,6 +51,8 @@ class ProductRepository implements RepositoryInterface
         if (!empty($data['product_group_ids']) && is_array($data['product_group_ids'])) {
             $group_ids = array_map('intval', $data['product_group_ids']);
             update_post_meta($post_id, '_product_group_ids', $group_ids);
+        }else{
+            update_post_meta($post_id, '_product_group_ids', []);
         }
 
         return $post_id;
@@ -71,10 +72,9 @@ class ProductRepository implements RepositoryInterface
         $category = wp_get_object_terms($id, 'product_cat', ['fields' => 'names']);
         $tags     = wp_get_object_terms($id, 'product_tag', ['fields' => 'names']);
 
-        $group_ids = get_post_meta($id, '_product_group_ids', true);
-        $group_ids = is_array($group_ids) ? $group_ids : [];
+        $group_ids_raw = get_post_meta($id, '_product_group_ids', true);
+        $group_ids = (is_array($group_ids_raw) && !is_wp_error($group_ids_raw)) ? $group_ids_raw : [];
 
-        
         $groupRepo = new ProductGroupRepository();
         $product_groups = [];
 

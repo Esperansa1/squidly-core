@@ -158,11 +158,11 @@ class GroupItemRepository implements RepositoryInterface
     * -------------------------------------------------------------------*/
     private function findGroupItemDependants(int $giId): array
     {
-        $names  = [];
-        $pgRepo = new ProductGroupRepository();
-        $prodRepo = new ProductRepository();
+        $names   = [];
+        $pgRepo  = new ProductGroupRepository();
+        $prodRepo= new ProductRepository();
 
-        /* 1) ProductGroups whose _group_item_ids contain this GI -------*/
+        /* 1) Product-groups that embed this GroupItem -----------------------*/
         $pgIds = get_posts([
             'post_type'   => ProductGroupRepository::POST_TYPE,
             'fields'      => 'ids',
@@ -170,20 +170,21 @@ class GroupItemRepository implements RepositoryInterface
             'post_status' => 'publish',
             'meta_query'  => [[
                 'key'     => '_group_item_ids',
-                'value'   => 'i:' . $giId . ';',   // match serialized int
+                'value'   => 'i:' . $giId . ';',      // serialized int
                 'compare' => 'LIKE',
             ]],
         ]);
 
-        foreach ($pgIds as $pgId) {
-            $pg = $pgRepo->get((int)$pgId);
-            if ($pg) {
-                $names[] = $pg->name;
-            }
+        if(!$pgIds){
+            return [];
         }
 
-        /* 2) Any Product that includes those ProductGroups -------------*/
-        if ($pgIds) {
+        foreach ($pgIds as $pgId) {
+            if ($pg = $pgRepo->get((int) $pgId)) {
+                $names[] = $pg->name;
+            }
+
+            /* 2) Products that embed **this** product-group ----------------*/
             $prodIds = get_posts([
                 'post_type'   => ProductRepository::POST_TYPE,
                 'fields'      => 'ids',
@@ -191,10 +192,7 @@ class GroupItemRepository implements RepositoryInterface
                 'post_status' => 'publish',
                 'meta_query'  => [[
                     'key'     => '_product_group_ids',
-                    'value'   => array_map(
-                        fn($id) => 'i:' . $id . ';',
-                        $pgIds
-                    ),
+                    'value'   => 'i:' . $pgId . ';',  // ← single string per loop
                     'compare' => 'LIKE',
                 ]],
             ]);

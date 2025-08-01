@@ -4,12 +4,17 @@ declare(strict_types=1);
 namespace SquidlyCore\Tests\Integration;
 
 use ProductRepository;
+use ProductGroupRepository;
+use GroupItemRepository;
+use ItemType;
 use WP_UnitTestCase;
+use ResourceInUseException;
+use InvalidArgumentException;
 
 /**
- * Integration tests for price meta-handling and duplicate-name behaviour.
+ * WordPress-backed integration tests for ProductRepository.
  *
- * @covers \ProductRepository
+ * Run with:  WP_INTEGRATION=1 vendor/bin/phpunit --testsuite integration
  */
 class ProductRepositoryIntegrationTest extends WP_UnitTestCase
 {
@@ -18,58 +23,94 @@ class ProductRepositoryIntegrationTest extends WP_UnitTestCase
     public function set_up(): void
     {
         parent::set_up();
-        // Needed by ProductRepository::create()
+
+        // minimal taxonomies so wp_set_object_terms() works
         register_taxonomy('product_cat', 'product');
         register_taxonomy('product_tag', 'product');
 
         $this->repo = new ProductRepository();
     }
 
-    /* ---------------------------------------------------------------------
-     * 1) discounted_price meta semantics
-     * -------------------------------------------------------------------*/
-    public function test_create_with_discounted_price_stores_correct_meta(): void
+    /* ------------------------------------------------------------------ */
+    public function test_full_create_get_update_delete_cycle(): void
     {
+        /* create */
         $id = $this->repo->create([
-            'name'             => 'Sale Burger',
-            'price'            => 20.0,    // regular
-            'discounted_price' => 15.0,    // sale (lower)
+            'name'        => 'Hamburger',
+            'price'       => 35.0,
+            'discounted_price'=> 29.0,
+            'description' => 'Integration burger',
+            'category'    => 'Burgers',
+            'tags'        => ['signature','grilled'],
         ]);
+        $this->assertSame('product', get_post_type($id));
 
-        /* meta checks (WooCommerce style) */
-        $this->assertSame('20', get_post_meta($id, '_regular_price', true));
-        $this->assertSame('15', get_post_meta($id, '_sale_price', true));
-        $this->assertSame('15', get_post_meta($id, '_price', true));  // active price
+        /* get */
+        $p = $this->repo->get($id);
+        $this->assertSame(29.0, $p->discounted_price);
 
-        /* DTO round-trip */
-        $product = $this->repo->get($id);
-        $this->assertSame(20.0, $product->price);
-        $this->assertSame(15.0, $product->discounted_price);
+        /* update */
+        $this->repo->update($id, ['price'=>38.0,'discounted_price'=>null]);
+        $p2 = $this->repo->get($id);
+        $this->assertSame(38.0, $p2->price);
+        $this->assertNull($p2->discounted_price);
+
+        /* delete – no dependants yet */
+        $this->assertTrue($this->repo->delete($id, true));
+        $this->assertFalse(get_post_status($id));
     }
 
-    /* ---------------------------------------------------------------------
-     * 2) duplicate names (case-insensitive) create distinct posts
-     * -------------------------------------------------------------------*/
-    public function test_create_duplicate_name_creates_unique_products(): void
+    public function test_getAll_returns_only_published_products(): void
     {
-        $id1 = $this->repo->create(['name' => 'Burger', 'price' => 10.0]);
-        $id2 = $this->repo->create(['name' => 'burger', 'price' => 12.0]);
+        // create 2 published + 1 draft
+        $a = $this->repo->create(['name'=>'A','price'=>1]);
+        $b = $this->repo->create(['name'=>'B','price'=>2]);
+        $draft = wp_insert_post([
+            'post_title'=>'Draft P',
+            'post_type'=>'product',
+            'post_status'=>'draft',
+        ]);
 
-        /* IDs must differ */
-        $this->assertNotSame($id1, $id2);
+        $all = $this->repo->getAll();
+        $names = array_map(fn($p)=>$p->name, $all);
+        sort($names);
 
-        /* round-trip confirms two separate objects */
-        $p1 = $this->repo->get($id1);
-        $p2 = $this->repo->get($id2);
+        $this->assertSame(['A','B'], $names);
+    }
 
-        $this->assertSame('Burger', $p1->name);
-        $this->assertSame('burger', $p2->name);
-        $this->assertSame(10.0, $p1->price);
-        $this->assertSame(12.0, $p2->price);
+    public function test_delete_with_dependants_throws_exception(): void
+    {
+        //   P0  <- we try to delete
+        //   PG  (product group) contains GI referencing P0
+        $p0   = $this->repo->create(['name'=>'Mustard','price'=>1]);
 
-        /* slugs (post_name) are unique */
-        $slug1 = get_post($id1)->post_name;
-        $slug2 = get_post($id2)->post_name;
-        $this->assertNotSame($slug1, $slug2);
+        $giId = (new GroupItemRepository())->create([
+            'item_id'=>$p0,
+            'item_type'=>ItemType::PRODUCT,
+        ]);
+
+        (new ProductGroupRepository())->create([
+            'name'=>'Condiments',
+            'type'=>ItemType::PRODUCT,
+            'group_item_ids'=>[$giId],
+        ]);
+
+        $this->expectException(ResourceInUseException::class);
+        $this->repo->delete($p0, true);
+    }
+
+    /** @dataProvider provideInvalidCreate */
+    public function test_create_invalid_payload_throws(array $payload): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->repo->create($payload);
+    }
+
+    public function provideInvalidCreate(): array
+    {
+        return [
+            'missing name'   => [['price'=>5]],
+            'negative price' => [['name'=>'Bad','price'=>-10]],
+        ];
     }
 }

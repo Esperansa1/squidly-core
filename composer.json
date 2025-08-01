@@ -6,10 +6,16 @@
     },
     
     "scripts": {
-        "lint": "find . -type f -name '*.php' -not -path './vendor/*' -exec php -l {} +",
-        "test": [
+        "lint": "find . -type f -name \"*.php\" -not -path \"./vendor/*\" -exec php -l {} +",
+
+        "test"          : [ "@lint", "vendor/bin/phpunit --colors=always" ],
+        "test:unit"     : "vendor/bin/phpunit --testsuite unit --colors=always",
+        "test:int"      : "vendor/bin/phpunit --testsuite integration --colors=always",
+        "test:coverage" : "vendor/bin/phpunit --coverage-text --colors=always",
+
+        "ci": [
             "@lint",
-            "vendor/bin/phpunit --colors=always"
+            "set XDEBUG_MODE=coverage && vendor/bin/phpunit --coverage-clover build/coverage.xml --colors=always"
         ]
     },
     "autoload": {

@@ -23,6 +23,10 @@ class IngredientRepository implements RepositoryInterface
         $name = sanitize_text_field($data['name']);
         $price = (float) ($data['price'] ?? 0);
 
+        if($price < 0){
+            throw new InvalidArgumentException('Ingredient price is non-negative.');
+        }
+
         $post_id = wp_insert_post([
             'post_title'  => $name,
             'post_type'   => self::POST_TYPE,
@@ -159,39 +163,28 @@ class IngredientRepository implements RepositoryInterface
 
     private function findIngredientDependants(int $iid): array
     {
-        $names   = [];
-        $giRepo  = new GroupItemRepository();
-        $pgRepo  = new ProductGroupRepository();
-        $prodRepo= new ProductRepository();
+        $names    = [];
+        $pgRepo   = new ProductGroupRepository();
+        $prodRepo = new ProductRepository();
 
-        /* 1) direct GroupItem(s) that reference the ingredient */
+        /* --- 1. group-items that reference this ingredient ---------------- */
         $giIds = get_posts([
             'post_type'   => GroupItemRepository::POST_TYPE,
             'fields'      => 'ids',
             'nopaging'    => true,
             'post_status' => 'publish',
             'meta_query'  => [
-                [
-                    'key'     => '_item_id',
-                    'value'   => $iid,
-                    'compare' => '=',
-                    'type'    => 'NUMERIC',
-                ],
-                [
-                    'key'     => '_item_type',
-                    'value'   => 'ingredient',
-                    'compare' => '=',
-                ],
+                [ 'key'   => '_item_id',  'value' => $iid,           'compare' => '=', 'type' => 'NUMERIC' ],
+                [ 'key'   => '_item_type','value' => 'ingredient',   'compare' => '='                       ],
             ],
         ]);
 
-        if (!$giIds) {
-            return [];                       // ingredient unused → deletable
+        /* Every matching GroupItem itself counts as a dependant ------------- */
+        foreach ($giIds as $giId) {
+            $names[] = "GroupItem #{$giId}";
         }
 
-        // Used for indeactive error message
-        
-        /* 2) product-groups that contain any of those GroupItems */
+        /* --- 2. product-groups containing those group-items ---------------- */
         foreach ($giIds as $giId) {
             $pgIds = get_posts([
                 'post_type'  => ProductGroupRepository::POST_TYPE,
@@ -206,11 +199,13 @@ class IngredientRepository implements RepositoryInterface
             ]);
 
             foreach ($pgIds as $pgId) {
-                $pg   = $pgRepo->get((int)$pgId);
-                $names[] = $pg->name;
+                $pg = $pgRepo->get((int) $pgId);
+                if ($pg) {
+                    $names[] = $pg->name;
+                }
 
-                /* 3) products that include this product-group */
-                $productIds = get_posts([
+                /* --- 3. products that include this product-group ----------- */
+                $prodIds = get_posts([
                     'post_type'  => ProductRepository::POST_TYPE,
                     'fields'     => 'ids',
                     'nopaging'   => true,
@@ -222,9 +217,11 @@ class IngredientRepository implements RepositoryInterface
                     ]],
                 ]);
 
-                foreach ($productIds as $pid) {
-                    $p = $prodRepo->get((int)$pid);
-                    $names[] = $p->name;
+                foreach ($prodIds as $pid) {
+                    $p = $prodRepo->get((int) $pid);
+                    if ($p) {
+                        $names[] = $p->name;
+                    }
                 }
             }
         }
