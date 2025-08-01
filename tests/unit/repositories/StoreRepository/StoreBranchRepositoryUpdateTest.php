@@ -72,8 +72,8 @@ class StoreBranchRepositoryUpdateTest extends WP_UnitTestCase
     public function test_activity_time_kosher_and_accessibility_mutations(): void
     {
         /* add slots */
-        $this->branchRepo->addActivityTime($this->branchId,'Sunday', '08:00-12:00');
-        $this->branchRepo->addActivityTime($this->branchId,'Sunday', '14:00-18:00'); // second slot
+        $this->branchRepo->addActivityTime($this->branchId,'SUNDAY', '08:00-12:00');
+        $this->branchRepo->addActivityTime($this->branchId,'SUNDAY', '14:00-18:00'); // second slot
 
         /* kosher + accessibility */
         $this->branchRepo->setKosherType($this->branchId, 'Kosher Mehadrin');
@@ -82,18 +82,18 @@ class StoreBranchRepositoryUpdateTest extends WP_UnitTestCase
         $b = $this->branchRepo->get($this->branchId);
         $this->assertEqualsCanonicalizing(
             ['08:00-12:00','14:00-18:00'],
-            $b->activity_times['Sunday']
+            $b->activity_times['SUNDAY']
         );
         $this->assertSame('Kosher Mehadrin', $b->kosher_type);
         $this->assertContains('Wheelchair',  $b->accessibility_list);
 
         /* remove slot, clear kosher, remove accessibility */
-        $this->branchRepo->removeActivityTime($this->branchId,'Sunday', '08:00-12:00');
+        $this->branchRepo->removeActivityTime($this->branchId,'SUNDAY', '08:00-12:00');
         $this->branchRepo->clearKosherType($this->branchId);
         $this->branchRepo->removeAccessibility($this->branchId,'Wheelchair');
 
         $b = $this->branchRepo->get($this->branchId);
-        $this->assertSame(['14:00-18:00'], $b->activity_times['Sunday']);
+        $this->assertSame(['14:00-18:00'], $b->activity_times['SUNDAY']);
         $this->assertSame('',              $b->kosher_type);
         $this->assertNotContains('Wheelchair', $b->accessibility_list);
     }
@@ -126,5 +126,43 @@ class StoreBranchRepositoryUpdateTest extends WP_UnitTestCase
         $b = $this->branchRepo->get($this->branchId);
         $this->assertFalse($b->isProductAvailable($pid));
         $this->assertFalse($b->isIngredientAvailable($iid));
+    } 
+
+    public function test_addActivityTime_invalid_day_throws(): void
+    {
+        $branchRepo = new StoreBranchRepository();
+
+        /** minimal payload that satisfies required fields */
+        $branchId = $branchRepo->create([
+            'name'               => 'Temp',
+            'phone'              => '000',
+            'city'               => 'Nowhere',
+            'address'            => '1 Null St',
+            'is_open'            => false,
+            'activity_times'     => [],
+            'kosher_type'        => '',
+            'accessibility_list' => [],
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $branchRepo->addActivityTime($branchId, 'Funday', '10:00-12:00');
     }
+
+    /** happy-path check */
+    public function test_addActivityTime_valid_day_round_trip(): void
+    {
+        $branchRepo = new StoreBranchRepository();
+
+        $branchId = $branchRepo->create([
+            'name'=>'Temp','phone'=>'0','city'=>'X','address'=>'Y',
+            'is_open'=>true,'activity_times'=>[],
+            'kosher_type'=>'','accessibility_list'=>[],
+        ]);
+
+        $branchRepo->addActivityTime($branchId, 'saturday', '18:00-22:00');
+
+        $branch = $branchRepo->get($branchId);
+        $this->assertSame(['18:00-22:00'], $branch->activity_times['SATURDAY']);
+    }
+    
 }

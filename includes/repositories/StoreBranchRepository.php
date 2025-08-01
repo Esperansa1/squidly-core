@@ -11,6 +11,11 @@ class StoreBranchRepository
 {
     public const POST_TYPE = 'store_branch';
 
+    private const VALID_DAYS = [
+        'SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY',
+        'THURSDAY', 'FRIDAY', 'SATURDAY',
+    ];
+
     /* ---------------------------------------------------------------------
      *  create()
      * -------------------------------------------------------------------*/
@@ -255,13 +260,25 @@ class StoreBranchRepository
         update_post_meta($branchId, '_is_open', $open);
     }
 
-    /* ======================================================================
-    *  Activity times
-    * ====================================================================*/
+
+    /**
+     * Add a time-slot (e.g. “08:00-14:00”) to a specific day.
+     *
+     * @throws InvalidArgumentException When $day is not a real week-day.
+     */
     public function addActivityTime(int $branchId, string $day, string $slot): void
     {
+        $dayUC = strtoupper($day);
+
+        if (! in_array($dayUC, self::VALID_DAYS, true)) {
+            throw new InvalidArgumentException(
+                "Invalid week-day '{$day}'. Allowed: " . implode(', ', self::VALID_DAYS)
+            );
+        }
+
         $times = get_post_meta($branchId, '_activity_times', true) ?: [];
-        $times[$day] = array_unique(array_merge($times[$day] ?? [], [$slot]));
+        $times[$dayUC] = array_unique(array_merge($times[$dayUC] ?? [], [$slot]));
+
         update_post_meta($branchId, '_activity_times', $times);
     }
 
@@ -319,7 +336,7 @@ class StoreBranchRepository
         update_post_meta($branchId, '_ingredient_availability', $avail);
     }
 
-    
+
     /* ======================================================================
     *  delete()
     * ====================================================================*/
