@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class IngredientRepository
+class IngredientRepository implements RepositoryInterface
 {
     const POST_TYPE = 'ingredient';
 

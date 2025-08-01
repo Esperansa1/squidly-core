@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class ProductGroupRepository
+class ProductGroupRepository implements RepositoryInterface
 {
     const POST_TYPE = 'product_group';
 

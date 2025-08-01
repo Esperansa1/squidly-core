@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class ProductRepository
+class ProductRepository implements RepositoryInterface
 {
 
     public const POST_TYPE = 'product';

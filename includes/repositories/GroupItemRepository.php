@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class GroupItemRepository
+class GroupItemRepository implements RepositoryInterface
 {
     const POST_TYPE = 'group_item';
 

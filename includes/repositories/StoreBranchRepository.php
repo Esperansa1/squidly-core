@@ -7,7 +7,7 @@ declare(strict_types=1);
  * All WordPress DB I/O is encapsulated here; the DTO (StoreBranch) remains
  * framework-agnostic.
  */
-class StoreBranchRepository
+class StoreBranchRepository implements RepositoryInterface
 {
     public const POST_TYPE = 'store_branch';
 
