@@ -9,7 +9,6 @@ declare(strict_types=1);
  */
 class StoreBranchRepository implements RepositoryInterface
 {
-    public const POST_TYPE = 'store_branch';
 
     private const VALID_DAYS = [
         'SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY',
@@ -43,7 +42,7 @@ class StoreBranchRepository implements RepositoryInterface
 
         $post_id = wp_insert_post([
             'post_title'  => sanitize_text_field($data['name']),
-            'post_type'   => self::POST_TYPE,
+            'post_type'   => StoreBranchPostType::POST_TYPE,
             'post_status' => 'publish',
         ]);
 
@@ -77,7 +76,7 @@ class StoreBranchRepository implements RepositoryInterface
     {
         $post = get_post($id);
 
-        if ( ! $post || $post->post_type !== self::POST_TYPE) {
+        if ( ! $post || $post->post_type !== StoreBranchPostType::POST_TYPE) {
             return null;
         }
         
@@ -114,7 +113,7 @@ class StoreBranchRepository implements RepositoryInterface
     public function getAll(): array
     {
         $query = new WP_Query([
-            'post_type'      => self::POST_TYPE,
+            'post_type'      => StoreBranchPostType::POST_TYPE,
             'posts_per_page' => -1,
             'post_status'    => 'publish',
             'fields'         => 'ids',
@@ -349,7 +348,7 @@ class StoreBranchRepository implements RepositoryInterface
     public function update(int $id, array $data): bool
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== StoreBranchPostType::POST_TYPE) {
             return false;
         }
 
@@ -419,12 +418,9 @@ class StoreBranchRepository implements RepositoryInterface
     public function delete(int $id, bool $force = false): bool
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== StoreBranchPostType::POST_TYPE) {
             return false;                              // not a branch
         }
-
-        // Future: place dependency checks here
-        // -------------------------------------
 
         $result = wp_delete_post($id, $force);
         if (is_wp_error($result)) {

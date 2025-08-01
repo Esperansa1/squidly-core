@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+
 class GroupItemRepository implements RepositoryInterface
 {
-    const POST_TYPE = 'group_item';
 
     public function create(array $data): int
     {
@@ -18,7 +18,7 @@ class GroupItemRepository implements RepositoryInterface
         
         $post_id = wp_insert_post([
             'post_title'  => 'Group Item',
-            'post_type'   => self::POST_TYPE,
+            'post_type'   => GroupItemPostType::POST_TYPE,
             'post_status' => 'publish',
         ]);
 
@@ -36,7 +36,7 @@ class GroupItemRepository implements RepositoryInterface
     public function get(int $id): ?GroupItem
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== GroupItemPostType::POST_TYPE) {
             return null;
         }
 
@@ -61,7 +61,7 @@ class GroupItemRepository implements RepositoryInterface
     public function update(int $id, array $data): bool
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== GroupItemPostType::POST_TYPE) {
             return false;
         }
 
@@ -104,7 +104,7 @@ class GroupItemRepository implements RepositoryInterface
     public function getAll(): array
     {
         $query = new WP_Query([
-            'post_type'      => self::POST_TYPE,
+            'post_type'      => GroupItemPostType::POST_TYPE,
             'post_status'    => 'publish',
             'posts_per_page' => -1,
             'fields'         => 'ids',
@@ -133,7 +133,7 @@ class GroupItemRepository implements RepositoryInterface
     public function delete(int $id, bool $force = false): bool
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== GroupItemPostType::POST_TYPE) {
             return false;
         }
 
@@ -164,7 +164,7 @@ class GroupItemRepository implements RepositoryInterface
 
         /* 1) Product-groups that embed this GroupItem -----------------------*/
         $pgIds = get_posts([
-            'post_type'   => ProductGroupRepository::POST_TYPE,
+            'post_type'   => ProductGroupPostType::POST_TYPE,
             'fields'      => 'ids',
             'nopaging'    => true,
             'post_status' => 'publish',
@@ -186,7 +186,7 @@ class GroupItemRepository implements RepositoryInterface
 
             /* 2) Products that embed **this** product-group ----------------*/
             $prodIds = get_posts([
-                'post_type'   => ProductRepository::POST_TYPE,
+                'post_type'   => ProductPostType::POST_TYPE,
                 'fields'      => 'ids',
                 'nopaging'    => true,
                 'post_status' => 'publish',

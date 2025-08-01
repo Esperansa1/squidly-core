@@ -35,7 +35,7 @@ class IngredientRepositoryIntegrationTest extends WP_UnitTestCase
         $id = $this->repo->create(['name' => 'Salt', 'price' => 1.5]);
 
         // post actually exists
-        $this->assertSame(IngredientRepository::POST_TYPE, get_post_type($id));
+        $this->assertSame(\IngredientPostType::POST_TYPE, get_post_type($id));
 
         $ing = $this->repo->get($id);
         $this->assertSame('Salt', $ing->name);
@@ -116,7 +116,7 @@ class IngredientRepositoryIntegrationTest extends WP_UnitTestCase
         // Draft – should be ignored
         $draft = wp_insert_post([
             'post_title'=>'C',
-            'post_type'=>IngredientRepository::POST_TYPE,
+            'post_type'=>\IngredientPostType::POST_TYPE,
             'post_status'=>'draft',
         ]);
 

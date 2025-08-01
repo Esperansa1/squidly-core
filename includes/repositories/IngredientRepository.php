@@ -1,10 +1,8 @@
 <?php
 
 declare(strict_types=1);
-
 class IngredientRepository implements RepositoryInterface
 {
-    const POST_TYPE = 'ingredient';
 
     /**
      * Create a new Ingredient and save it to the database.
@@ -29,7 +27,7 @@ class IngredientRepository implements RepositoryInterface
 
         $post_id = wp_insert_post([
             'post_title'  => $name,
-            'post_type'   => self::POST_TYPE,
+            'post_type'   => IngredientPostType::POST_TYPE,
             'post_status' => 'publish',
         ]);
 
@@ -52,7 +50,7 @@ class IngredientRepository implements RepositoryInterface
     {
         $post = get_post($id);
 
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== IngredientPostType::POST_TYPE) {
             return null;
         }
 
@@ -71,7 +69,7 @@ class IngredientRepository implements RepositoryInterface
     public function getAll(): array
     {
         $query = new WP_Query([
-            'post_type'      => self::POST_TYPE,
+            'post_type'      => IngredientPostType::POST_TYPE,
             'posts_per_page' => -1,
             'post_status'    => 'publish',
         ]);
@@ -103,7 +101,7 @@ class IngredientRepository implements RepositoryInterface
     public function update(int $id, array $data): bool
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== IngredientPostType::POST_TYPE) {
             return false;
         }
 
@@ -143,7 +141,7 @@ class IngredientRepository implements RepositoryInterface
     public function delete(int $id, bool $force = false): bool
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== IngredientPostType::POST_TYPE) {
             return false;
         }
 
@@ -169,7 +167,7 @@ class IngredientRepository implements RepositoryInterface
 
         /* --- 1. group-items that reference this ingredient ---------------- */
         $giIds = get_posts([
-            'post_type'   => GroupItemRepository::POST_TYPE,
+            'post_type'   => GroupItemPostType::POST_TYPE,
             'fields'      => 'ids',
             'nopaging'    => true,
             'post_status' => 'publish',
@@ -187,7 +185,7 @@ class IngredientRepository implements RepositoryInterface
         /* --- 2. product-groups containing those group-items ---------------- */
         foreach ($giIds as $giId) {
             $pgIds = get_posts([
-                'post_type'  => ProductGroupRepository::POST_TYPE,
+                'post_type'  => ProductGroupPostType::POST_TYPE,
                 'fields'     => 'ids',
                 'nopaging'   => true,
                 'post_status'=> 'publish',
@@ -206,7 +204,7 @@ class IngredientRepository implements RepositoryInterface
 
                 /* --- 3. products that include this product-group ----------- */
                 $prodIds = get_posts([
-                    'post_type'  => ProductRepository::POST_TYPE,
+                    'post_type'  => ProductPostType::POST_TYPE,
                     'fields'     => 'ids',
                     'nopaging'   => true,
                     'post_status'=> 'publish',

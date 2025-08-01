@@ -1,10 +1,8 @@
 <?php
 
 declare(strict_types=1);
-
 class ProductGroupRepository implements RepositoryInterface
 {
-    const POST_TYPE = 'product_group';
 
     public function create(array $data): int
     {
@@ -14,7 +12,7 @@ class ProductGroupRepository implements RepositoryInterface
 
         $post_id = wp_insert_post([
             'post_title'  => sanitize_text_field($data['name']),
-            'post_type'   => self::POST_TYPE,
+            'post_type'   => ProductGroupPostType::POST_TYPE,
             'post_status' => 'publish',
         ]);
 
@@ -31,7 +29,7 @@ class ProductGroupRepository implements RepositoryInterface
     public function get(int $id): ?ProductGroup
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== ProductGroupPostType::POST_TYPE) {
             return null;
         }
 
@@ -50,7 +48,7 @@ class ProductGroupRepository implements RepositoryInterface
     public function update(int $id, array $data): bool
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== ProductGroupPostType::POST_TYPE) {
             return false;
         }
 
@@ -83,7 +81,7 @@ class ProductGroupRepository implements RepositoryInterface
     public function delete(int $id, bool $force = false): bool
     {
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== ProductGroupPostType::POST_TYPE) {
             return false;
         }
 
@@ -107,7 +105,7 @@ class ProductGroupRepository implements RepositoryInterface
     public function getAll(): array
     {
         $ids = get_posts([
-            'post_type'   => self::POST_TYPE,
+            'post_type'   => ProductGroupPostType::POST_TYPE,
             'post_status' => 'publish',
             'fields'      => 'ids',
             'nopaging'    => true,
@@ -129,7 +127,7 @@ class ProductGroupRepository implements RepositoryInterface
         $serializedId = 'i:' . $pgId . ';';
 
         $prodIds = get_posts([
-            'post_type'   => ProductRepository::POST_TYPE,
+            'post_type'   => ProductPostType::POST_TYPE,
             'post_status' => 'publish',
             'fields'      => 'ids',
             'nopaging'    => true,

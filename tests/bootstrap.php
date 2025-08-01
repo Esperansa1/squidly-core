@@ -5,6 +5,7 @@
  * @package Squidly_Core
  */
 
+define( 'EMPTY_TRASH_DAYS', 1 );
 
 $_tests_dir = 'C:\Users\oresp\AppData\Local\Temp/wordpress-tests-lib';
 
@@ -37,3 +38,4 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
 // Start up the WP testing environment.
 require "{$_tests_dir}/includes/bootstrap.php";
+

@@ -1,10 +1,8 @@
 <?php
 
 declare(strict_types=1);
-
 class ProductRepository implements RepositoryInterface
 {
-    public const POST_TYPE = 'product';
 
     /* ======================================================================
      *  CREATE
@@ -30,7 +28,7 @@ class ProductRepository implements RepositoryInterface
         $post_id = wp_insert_post([
             'post_title'   => $name,
             'post_content' => $description,
-            'post_type'    => self::POST_TYPE,
+            'post_type'    => ProductPostType::POST_TYPE,
             'post_status'  => 'publish',
         ]);
         
@@ -74,7 +72,7 @@ class ProductRepository implements RepositoryInterface
 
         // Get and validate post
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== ProductPostType::POST_TYPE) {
             return null;
         }
 
@@ -115,7 +113,7 @@ class ProductRepository implements RepositoryInterface
     {
         try {
             $query = new WP_Query([
-                'post_type'      => self::POST_TYPE,
+                'post_type'      => ProductPostType::POST_TYPE,
                 'posts_per_page' => -1,
                 'post_status'    => 'publish',
                 'no_found_rows'  => true,
@@ -156,7 +154,7 @@ class ProductRepository implements RepositoryInterface
         }
 
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== ProductPostType::POST_TYPE) {
             return false;
         }
 
@@ -195,7 +193,7 @@ class ProductRepository implements RepositoryInterface
         }
 
         $post = get_post($id);
-        if (!$post || $post->post_type !== self::POST_TYPE) {
+        if (!$post || $post->post_type !== ProductPostType::POST_TYPE) {
             return false;
         }
 
@@ -471,7 +469,7 @@ class ProductRepository implements RepositoryInterface
     {
         if (!taxonomy_exists($taxonomy)) {
             // Attempt to register basic taxonomy if it doesn't exist
-            register_taxonomy($taxonomy, self::POST_TYPE, [
+            register_taxonomy($taxonomy, ProductPostType::POST_TYPE, [
                 'public' => true,
                 'hierarchical' => ($taxonomy === 'product_cat'),
             ]);
@@ -531,7 +529,7 @@ class ProductRepository implements RepositoryInterface
     private function findGroupItemsReferencingProduct(int $productId): array
     {
         $posts = get_posts([
-            'post_type'   => 'group_item',
+            'post_type'   => GroupItemPostType::POST_TYPE,
             'fields'      => 'ids',
             'numberposts' => -1,
             'post_status' => 'publish',
@@ -557,7 +555,7 @@ class ProductRepository implements RepositoryInterface
     private function findProductGroupsContainingGroupItem(int $giId): array
     {
         $posts = get_posts([
-            'post_type'   => 'product_group',
+            'post_type'   => ProductGroupPostType::POST_TYPE,
             'fields'      => 'ids',
             'numberposts' => -1,
             'post_status' => 'publish',
@@ -574,7 +572,7 @@ class ProductRepository implements RepositoryInterface
     private function findProductsUsingProductGroup(int $pgId): array
     {
         $posts = get_posts([
-            'post_type'   => self::POST_TYPE,
+            'post_type'   => ProductPostType::POST_TYPE,
             'fields'      => 'ids',
             'numberposts' => -1,
             'post_status' => 'publish',
