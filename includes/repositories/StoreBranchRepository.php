@@ -338,6 +338,73 @@ class StoreBranchRepository implements RepositoryInterface
 
 
     /* ======================================================================
+     *  update()
+     * ====================================================================*/
+    /**
+     * Update a branch. Accepts any subset of the keys allowed in `create()`.
+     *
+     * @return bool  false when ID not found / wrong post-type
+     * @throws InvalidArgumentException on invalid day / bad data
+     */
+    public function update(int $id, array $data): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== self::POST_TYPE) {
+            return false;
+        }
+
+        /* ---------- scalar fields ---------- */
+        if (array_key_exists('name', $data)) {
+            wp_update_post([
+                'ID'         => $id,
+                'post_title' => sanitize_text_field($data['name']),
+            ]);
+        }
+        foreach ([
+            '_phone'  => 'phone',
+            '_city'   => 'city',
+            '_address'=> 'address',
+        ] as $metaKey => $fld) {
+            if (array_key_exists($fld, $data)) {
+                update_post_meta($id, $metaKey, sanitize_text_field($data[$fld]));
+            }
+        }
+        if (array_key_exists('is_open', $data)) {
+            update_post_meta($id, '_is_open', (bool) $data['is_open']);
+        }
+
+        /* ---------- structured arrays ------ */
+        if (array_key_exists('activity_times', $data)) {
+            // Validate weekdays
+            foreach (array_keys($data['activity_times']) as $day) {
+                if (!in_array(strtoupper($day), self::VALID_DAYS, true)) {
+                    throw new InvalidArgumentException("Invalid day: $day");
+                }
+            }
+            update_post_meta($id, '_activity_times', $data['activity_times']);
+        }
+        if (array_key_exists('kosher_type', $data)) {
+            update_post_meta($id, '_kosher_type', sanitize_text_field($data['kosher_type']));
+        }
+        if (array_key_exists('accessibility_list', $data)) {
+            update_post_meta($id, '_accessibility_list', $data['accessibility_list']);
+        }
+
+        foreach ([
+            '_products'                 => 'products',
+            '_ingredients'              => 'ingredients',
+            '_product_availability'     => 'product_availability',
+            '_ingredient_availability'  => 'ingredient_availability',
+        ] as $metaKey => $fld) {
+            if (array_key_exists($fld, $data)) {
+                update_post_meta($id, $metaKey, $data[$fld]);
+            }
+        }
+
+        return true;
+    }
+
+    /* ======================================================================
     *  delete()
     * ====================================================================*/
     /**

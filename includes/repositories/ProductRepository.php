@@ -117,6 +117,98 @@ class ProductRepository implements RepositoryInterface
         return $products;
     }
 
+
+    /* ======================================================================
+     *  update()
+     * ====================================================================*/
+    /**
+     * Update an existing product. Accepts any subset of:
+     * name, description, price, discounted_price, category, tags,
+     * product_group_ids
+     *
+     * @return bool false when the ID is missing / wrong type
+     * @throws InvalidArgumentException on bad input
+     */
+    public function update(int $id, array $data): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== self::POST_TYPE) {
+            return false;
+        }
+
+        /* ---------- validation ----------- */
+        if (isset($data['name']) && $data['name'] === '') {
+            throw new InvalidArgumentException('Product name cannot be empty.');
+        }
+        if (isset($data['price']) && $data['price'] < 0) {
+            throw new InvalidArgumentException('Product price cannot be negative.');
+        }
+        if (isset($data['discounted_price']) && $data['discounted_price'] < 0) {
+            throw new InvalidArgumentException('Discounted price cannot be negative.');
+        }
+
+        /* ---------- post fields ----------- */
+        if (isset($data['name']) || isset($data['description'])) {
+            wp_update_post([
+                'ID'           => $id,
+                'post_title'   => isset($data['name'])
+                    ? sanitize_text_field($data['name'])
+                    : $post->post_title,
+                'post_content' => array_key_exists('description', $data)
+                    ? wp_kses_post($data['description'])
+                    : $post->post_content,
+            ]);
+        }
+
+        /* ---------- prices ---------------- */
+        if (array_key_exists('price', $data)) {
+            update_post_meta($id, '_regular_price', (float) $data['price']);
+            // When regular price changes and no sale given, mirror to _price.
+            if (!array_key_exists('discounted_price', $data)) {
+                update_post_meta($id, '_price', (float) $data['price']);
+            }
+        }
+        if (array_key_exists('discounted_price', $data)) {
+            $sale = $data['discounted_price'];
+            update_post_meta($id, '_sale_price', $sale === null ? '' : (float) $sale);
+            update_post_meta($id, '_price',
+                $sale === null
+                    ? (float) get_post_meta($id, '_regular_price', true)
+                    : (float) $sale
+            );
+        }
+
+        /* ---------- taxonomy -------------- */
+        if (array_key_exists('category', $data)) {
+            wp_set_object_terms(
+                $id,
+                $data['category'] ? sanitize_text_field($data['category']) : [],
+                'product_cat',
+                false
+            );
+        }
+        if (array_key_exists('tags', $data)) {
+            wp_set_object_terms(
+                $id,
+                $data['tags'] ? array_map('sanitize_text_field', $data['tags']) : [],
+                'product_tag',
+                false
+            );
+        }
+
+        /* ---------- product groups -------- */
+        if (array_key_exists('product_group_ids', $data)) {
+            update_post_meta(
+                $id,
+                '_product_group_ids',
+                array_map('intval', $data['product_group_ids'] ?? [])
+            );
+        }
+
+        return true;
+    }
+
+
     /* ======================================================================
     *  Safe delete()
     * ====================================================================*/

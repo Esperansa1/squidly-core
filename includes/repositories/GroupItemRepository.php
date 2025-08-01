@@ -48,7 +48,163 @@ class GroupItemRepository implements RepositoryInterface
         ]);
     }
 
+    /* ---------------------------------------------------------------------
+     *  update()
+     * -------------------------------------------------------------------*/
+    /**
+     * Update an existing GroupItem.
+     * Accepts any subset of ['item_id','item_type','override_price'].
+     *
+     * @return bool false when the post is missing / wrong type
+     * @throws InvalidArgumentException on bad input
+     */
+    public function update(int $id, array $data): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== self::POST_TYPE) {
+            return false;
+        }
+
+        /* validations ---------------------------------------------------*/
+        if (isset($data['item_type']) &&
+            ItemType::tryFrom($data['item_type']) === null
+        ) {
+            throw new InvalidArgumentException(
+                'item_type must be "product" or "ingredient".'
+            );
+        }
+
+        /* meta updates --------------------------------------------------*/
+        if (array_key_exists('item_id', $data)) {
+            update_post_meta($id, '_item_id', (int) $data['item_id']);
+        }
+        if (array_key_exists('item_type', $data)) {
+            update_post_meta($id, '_item_type',
+                sanitize_text_field($data['item_type'])
+            );
+        }
+        if (array_key_exists('override_price', $data)) {
+            $val = $data['override_price'];
+            update_post_meta($id, '_override_price',
+                $val === null ? '' : (float) $val
+            );
+        }
+
+        return true;
+    }
+
+    /* ---------------------------------------------------------------------
+     *  getAll()
+     * -------------------------------------------------------------------*/
+    /**
+     * Retrieve all published GroupItems.
+     *
+     * @return GroupItem[]
+     */
+    public function getAll(): array
+    {
+        $query = new WP_Query([
+            'post_type'      => self::POST_TYPE,
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+        ]);
+
+        $out = [];
+        foreach ($query->posts as $gid) {
+            $gi = $this->get((int) $gid);
+            if ($gi) {
+                $out[] = $gi;
+            }
+        }
+        return $out;
+    }
 
 
+    /* ---------------------------------------------------------------------
+     *  delete()
+     * -------------------------------------------------------------------*/
+    /**
+     * Trash or force-delete a GroupItem.
+     *
+     * @param bool $force  true = bypass trash
+     * @return bool
+     */
+    public function delete(int $id, bool $force = false): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== self::POST_TYPE) {
+            return false;
+        }
+
+        $dependants = $this->findGroupItemDependants($id);
+        if ($dependants) {
+            throw new ResourceInUseException($dependants);
+        }
+
+
+        $result = wp_delete_post($id, $force);
+        if (is_wp_error($result)) {
+            throw new RuntimeException(
+                'Failed to delete GroupItem: ' . $result->get_error_message()
+            );
+        }
+        return (bool) $result;
+    }
+
+
+    /* ---------------------------------------------------------------------
+    *  Helper: list ProductGroups / Products that still use this GI
+    * -------------------------------------------------------------------*/
+    private function findGroupItemDependants(int $giId): array
+    {
+        $names  = [];
+        $pgRepo = new ProductGroupRepository();
+        $prodRepo = new ProductRepository();
+
+        /* 1) ProductGroups whose _group_item_ids contain this GI -------*/
+        $pgIds = get_posts([
+            'post_type'   => ProductGroupRepository::POST_TYPE,
+            'fields'      => 'ids',
+            'nopaging'    => true,
+            'post_status' => 'publish',
+            'meta_query'  => [[
+                'key'     => '_group_item_ids',
+                'value'   => 'i:' . $giId . ';',   // match serialized int
+                'compare' => 'LIKE',
+            ]],
+        ]);
+
+        foreach ($pgIds as $pgId) {
+            $pg = $pgRepo->get((int)$pgId);
+            if ($pg) {
+                $names[] = $pg->name;
+            }
+        }
+
+        /* 2) Any Product that includes those ProductGroups -------------*/
+        if ($pgIds) {
+            $prodIds = get_posts([
+                'post_type'   => ProductRepository::POST_TYPE,
+                'fields'      => 'ids',
+                'nopaging'    => true,
+                'post_status' => 'publish',
+                'meta_query'  => [[
+                    'key'     => '_product_group_ids',
+                    'value'   => array_map(
+                        fn($id) => 'i:' . $id . ';',
+                        $pgIds
+                    ),
+                    'compare' => 'LIKE',
+                ]],
+            ]);
+
+            foreach ($prodIds as $pid) {
+                $names[] = get_post_field('post_title', $pid);
+            }
+        }
+
+        return array_unique($names);
+    }
     
 }
