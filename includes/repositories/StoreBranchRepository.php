@@ -319,4 +319,38 @@ class StoreBranchRepository
         update_post_meta($branchId, '_ingredient_availability', $avail);
     }
 
+    
+    /* ======================================================================
+    *  delete()
+    * ====================================================================*/
+    /**
+     * Permanently trash or force-delete a Store Branch.
+     *
+     * @param int  $id     Post-ID of the branch
+     * @param bool $force  True = bypass trash and delete permanently
+     *
+     * @return bool  True on success, false when the post doesn’t exist / wrong type
+     * @throws RuntimeException When WP returns a WP_Error.
+     */
+    public function delete(int $id, bool $force = false): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== self::POST_TYPE) {
+            return false;                              // not a branch
+        }
+
+        // Future: place dependency checks here
+        // -------------------------------------
+
+        $result = wp_delete_post($id, $force);
+        if (is_wp_error($result)) {
+            throw new RuntimeException(
+                'Failed to delete store-branch: ' . $result->get_error_message()
+            );
+        }
+        return (bool) $result;                         // true when trashed/deleted
+    }
+
+
+
 }

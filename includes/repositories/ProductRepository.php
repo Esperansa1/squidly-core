@@ -116,4 +116,116 @@ class ProductRepository
 
         return $products;
     }
+
+    /* ======================================================================
+    *  Safe delete()
+    * ====================================================================*/
+
+    /**
+     * Delete a product only if it is not referenced by any
+     *   – GroupItem  (item_type = product)
+     *   – ProductGroup that includes that GroupItem
+     *   – Other Products that include that ProductGroup
+     *
+     * @throws ResourceInUseException when still referenced
+     * @throws RuntimeException       on WP delete failure
+     */
+    public function delete(int $id, bool $force = false): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== self::POST_TYPE) {
+            return false;
+        }
+
+        $dependants = $this->findProductDependants($id);
+        if ($dependants) {
+            throw new ResourceInUseException($dependants);
+        }
+
+        $result = wp_delete_post($id, $force);
+        if (is_wp_error($result)) {
+            throw new RuntimeException(
+                'Failed to delete product: ' . $result->get_error_message()
+            );
+        }
+        return (bool) $result;
+    }
+
+    /* ======================================================================
+    *  Helper: who is still using this product?
+    * ====================================================================*/
+    private function findProductDependants(int $productId): array
+    {
+        $names   = [];
+        $giRepo  = new GroupItemRepository();
+        $pgRepo  = new ProductGroupRepository();
+
+        /* 1) GroupItems that reference this product -----------------------*/
+        $giIds = get_posts([
+            'post_type'   => GroupItemRepository::POST_TYPE,
+            'fields'      => 'ids',
+            'nopaging'    => true,
+            'post_status' => 'publish',
+            'meta_query'  => [
+                [
+                    'key'     => '_item_id',
+                    'value'   => $productId,
+                    'compare' => '=',
+                    'type'    => 'NUMERIC',
+                ],
+                [
+                    'key'     => '_item_type',
+                    'value'   => 'product',
+                    'compare' => '=',
+                ],
+            ],
+        ]);
+
+        if (!$giIds) {
+            return [];              // product not referenced anywhere
+        }
+
+        /* 2) ProductGroups containing those GroupItems -------------------*/
+        foreach ($giIds as $giId) {
+            $pgIds = get_posts([
+                'post_type'  => ProductGroupRepository::POST_TYPE,
+                'fields'     => 'ids',
+                'nopaging'   => true,
+                'post_status'=> 'publish',
+                'meta_query' => [[
+                    'key'     => '_group_item_ids',
+                    'value'   => 'i:' . $giId . ';',
+                    'compare' => 'LIKE',
+                ]],
+            ]);
+
+            foreach ($pgIds as $pgId) {
+                $pg = $pgRepo->get((int)$pgId);
+                $names[] = $pg->name;
+
+                /* 3) Other products that include this ProductGroup --------*/
+                $siblingIds = get_posts([
+                    'post_type'  => self::POST_TYPE,
+                    'fields'     => 'ids',
+                    'nopaging'   => true,
+                    'post_status'=> 'publish',
+                    'meta_query' => [[
+                        'key'     => '_product_group_ids',
+                        'value'   => 'i:' . $pgId . ';',
+                        'compare' => 'LIKE',
+                    ]],
+                ]);
+
+                foreach ($siblingIds as $sid) {
+                    if ($sid == $productId) {
+                        continue;   // skip self
+                    }
+                    $names[] = get_post_field('post_title', $sid);
+                }
+            }
+        }
+
+        return array_unique($names);
+    }
+
 }
