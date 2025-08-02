@@ -178,38 +178,51 @@ class CustomerRepository implements RepositoryInterface
     {
         $meta_query = ['relation' => 'AND'];
         $search_query = [];
+        $date_query = [];
 
         // Build meta query from criteria
         foreach ($criteria as $key => $value) {
             switch ($key) {
                 case 'email':
-                    $meta_query[] = [
-                        'key' => '_email',
-                        'value' => $value,
-                        'compare' => '='
-                    ];
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_email',
+                            'value' => $value,
+                            'compare' => '='
+                        ];
+                    }
                     break;
+                    
                 case 'phone':
-                    $meta_query[] = [
-                        'key' => '_phone',
-                        'value' => $value,
-                        'compare' => '='
-                    ];
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_phone',
+                            'value' => $value,
+                            'compare' => '='
+                        ];
+                    }
                     break;
+                    
                 case 'auth_provider':
-                    $meta_query[] = [
-                        'key' => '_auth_provider',
-                        'value' => $value,
-                        'compare' => '='
-                    ];
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_auth_provider',
+                            'value' => $value,
+                            'compare' => '='
+                        ];
+                    }
                     break;
+                    
                 case 'google_id':
-                    $meta_query[] = [
-                        'key' => '_google_id',
-                        'value' => $value,
-                        'compare' => '='
-                    ];
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_google_id',
+                            'value' => $value,
+                            'compare' => '='
+                        ];
+                    }
                     break;
+                    
                 case 'is_guest':
                     $meta_query[] = [
                         'key' => '_is_guest',
@@ -217,6 +230,7 @@ class CustomerRepository implements RepositoryInterface
                         'compare' => '='
                     ];
                     break;
+                    
                 case 'is_active':
                     $meta_query[] = [
                         'key' => '_is_active',
@@ -224,9 +238,74 @@ class CustomerRepository implements RepositoryInterface
                         'compare' => '='
                     ];
                     break;
+                    
                 case 'name':
                     // Search in post title (which contains name)
                     $search_query['s'] = $value;
+                    break;
+                    
+                case 'phone_like':
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_phone',
+                            'value' => $value,
+                            'compare' => 'LIKE'
+                        ];
+                    }
+                    break;
+                    
+                case 'email_like':
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_email',
+                            'value' => $value,
+                            'compare' => 'LIKE'
+                        ];
+                    }
+                    break;
+                    
+                case 'min_loyalty_points':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_loyalty_points_balance',
+                            'value' => (float) $value,
+                            'compare' => '>='
+                        ];
+                    }
+                    break;
+                    
+                case 'min_total_spent':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_total_spent',
+                            'value' => (float) $value,
+                            'compare' => '>='
+                        ];
+                    }
+                    break;
+                    
+                case 'min_orders':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_total_orders',
+                            'value' => (int) $value,
+                            'compare' => '>='
+                        ];
+                    }
+                    break;
+                    
+                case 'registered_after':
+                    $date_query[] = [
+                        'after' => $value,
+                        'inclusive' => true,
+                    ];
+                    break;
+                    
+                case 'registered_before':
+                    $date_query[] = [
+                        'before' => $value,
+                        'inclusive' => true,
+                    ];
                     break;
             }
         }
@@ -251,6 +330,10 @@ class CustomerRepository implements RepositoryInterface
 
         if (!empty($search_query)) {
             $query_args = array_merge($query_args, $search_query);
+        }
+
+        if (!empty($date_query)) {
+            $query_args['date_query'] = $date_query;
         }
 
         $query = new WP_Query($query_args);
@@ -280,7 +363,12 @@ class CustomerRepository implements RepositoryInterface
      */
     public function exists(int $id): bool
     {
-        return $this->get($id) !== null;
+        if ($id <= 0) {
+            return false;
+        }
+
+        $post = get_post($id);
+        return $post && $post->post_type === CustomerPostType::POST_TYPE;
     }
 
     /**

@@ -598,4 +598,222 @@ class ProductRepository implements RepositoryInterface
             return null;
         }
     }
+
+    public function findBy(array $criteria, ?int $limit = null, int $offset = 0): array
+    {
+        $meta_query = ['relation' => 'AND'];
+        $search_query = [];
+        $tax_query = [];
+
+        // Build meta query from criteria
+        foreach ($criteria as $key => $value) {
+            switch ($key) {
+                case 'name':
+                    // Search in post title
+                    $search_query['s'] = $value;
+                    break;
+                    
+                case 'category':
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_category',
+                            'value' => $value,
+                            'compare' => '='
+                        ];
+                    }
+                    break;
+                    
+                case 'min_price':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_regular_price',
+                            'value' => (float) $value,
+                            'compare' => '>='
+                        ];
+                    }
+                    break;
+                    
+                case 'max_price':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_regular_price',
+                            'value' => (float) $value,
+                            'compare' => '<='
+                        ];
+                    }
+                    break;
+                    
+                case 'on_sale':
+                    if ($value) {
+                        $meta_query[] = [
+                            'key' => '_sale_price',
+                            'value' => '',
+                            'compare' => '!='
+                        ];
+                    }
+                    break;
+                    
+                case 'is_available':
+                    $meta_query[] = [
+                        'key' => '_is_available',
+                        'value' => (bool) $value,
+                        'compare' => '='
+                    ];
+                    break;
+                    
+                case 'is_featured':
+                    $meta_query[] = [
+                        'key' => '_is_featured',
+                        'value' => (bool) $value,
+                        'compare' => '='
+                    ];
+                    break;
+                    
+                case 'has_product_group':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_product_group_ids',
+                            'value' => 'i:' . (int) $value . ';',
+                            'compare' => 'LIKE'
+                        ];
+                    }
+                    break;
+                    
+                case 'tag':
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_tags',
+                            'value' => $value,
+                            'compare' => 'LIKE'
+                        ];
+                    }
+                    break;
+            }
+        }
+
+        $query_args = [
+            'post_type' => ProductPostType::POST_TYPE,
+            'post_status' => 'publish',
+            'posts_per_page' => $limit ?? -1,
+            'offset' => $offset,
+            'fields' => 'ids',
+            'no_found_rows' => true,
+            'orderby' => 'title',
+            'order' => 'ASC',
+        ];
+
+        // Custom orderby for sort_order
+        if (isset($criteria['orderby']) && $criteria['orderby'] === 'sort_order') {
+            $query_args['meta_key'] = '_sort_order';
+            $query_args['orderby'] = 'meta_value_num';
+            $query_args['order'] = $criteria['order'] ?? 'ASC';
+        }
+
+        if (!empty($meta_query) && count($meta_query) > 1) {
+            $query_args['meta_query'] = $meta_query;
+        }
+
+        if (!empty($search_query)) {
+            $query_args = array_merge($query_args, $search_query);
+        }
+
+        if (!empty($tax_query)) {
+            $query_args['tax_query'] = $tax_query;
+        }
+
+        $query = new WP_Query($query_args);
+
+        $products = [];
+        foreach ($query->posts as $post_id) {
+            $product = $this->get((int) $post_id);
+            if ($product) {
+                $products[] = $product;
+            }
+        }
+
+        return $products;
+    }
+
+    /**
+     * Count products by criteria
+     */
+    public function countBy(array $criteria): int
+    {
+        $products = $this->findBy($criteria);
+        return count($products);
+    }
+
+    /**
+     * Check if product exists
+     */
+    public function exists(int $id): bool
+    {
+        if ($id <= 0) {
+            return false;
+        }
+
+        $post = get_post($id);
+        return $post && $post->post_type === ProductPostType::POST_TYPE;
+    }
+
+    /**
+     * Find products by category
+     */
+    public function findByCategory(string $category): array
+    {
+        return $this->findBy(['category' => $category]);
+    }
+
+    /**
+     * Find available products
+     */
+    public function findAvailable(): array
+    {
+        return $this->findBy(['is_available' => true]);
+    }
+
+    /**
+     * Find featured products
+     */
+    public function findFeatured(): array
+    {
+        return $this->findBy(['is_featured' => true]);
+    }
+
+    /**
+     * Find products on sale
+     */
+    public function findOnSale(): array
+    {
+        return $this->findBy(['on_sale' => true]);
+    }
+
+    /**
+     * Find products in price range
+     */
+    public function findInPriceRange(float $min_price, float $max_price): array
+    {
+        return $this->findBy([
+            'min_price' => $min_price,
+            'max_price' => $max_price
+        ]);
+    }
+
+    /**
+     * Find products with specific product group
+     */
+    public function findWithProductGroup(int $group_id): array
+    {
+        return $this->findBy(['has_product_group' => $group_id]);
+    }
+
+    /**
+     * Find products ordered by sort order
+     */
+    public function findOrderedBySort(string $order = 'ASC'): array
+    {
+        return $this->findBy(['orderby' => 'sort_order', 'order' => $order]);
+    }
+
+
 }

@@ -203,5 +203,144 @@ class GroupItemRepository implements RepositoryInterface
 
         return array_unique($names);
     }
+
+
+    /**
+     * Find group items by criteria
+     */
+    public function findBy(array $criteria, ?int $limit = null, int $offset = 0): array
+    {
+        $meta_query = ['relation' => 'AND'];
+
+        // Build meta query from criteria
+        foreach ($criteria as $key => $value) {
+            switch ($key) {
+                case 'item_id':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_item_id',
+                            'value' => (int) $value,
+                            'compare' => '='
+                        ];
+                    }
+                    break;
+                    
+                case 'item_type':
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_item_type',
+                            'value' => $value,
+                            'compare' => '='
+                        ];
+                    }
+                    break;
+                    
+                case 'has_override_price':
+                    if ($value) {
+                        $meta_query[] = [
+                            'key' => '_override_price',
+                            'value' => '',
+                            'compare' => '!='
+                        ];
+                    } else {
+                        $meta_query[] = [
+                            'key' => '_override_price',
+                            'value' => '',
+                            'compare' => '='
+                        ];
+                    }
+                    break;
+                    
+                case 'min_override_price':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_override_price',
+                            'value' => (float) $value,
+                            'compare' => '>='
+                        ];
+                    }
+                    break;
+                    
+                case 'max_override_price':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_override_price',
+                            'value' => (float) $value,
+                            'compare' => '<='
+                        ];
+                    }
+                    break;
+            }
+        }
+
+        $query_args = [
+            'post_type' => GroupItemPostType::POST_TYPE,
+            'post_status' => 'publish',
+            'posts_per_page' => $limit ?? -1,
+            'offset' => $offset,
+            'fields' => 'ids',
+            'no_found_rows' => true,
+            'orderby' => 'title',
+            'order' => 'ASC',
+        ];
+
+        if (!empty($meta_query) && count($meta_query) > 1) {
+            $query_args['meta_query'] = $meta_query;
+        }
+
+        $query = new WP_Query($query_args);
+
+        $group_items = [];
+        foreach ($query->posts as $post_id) {
+            $group_item = $this->get((int) $post_id);
+            if ($group_item) {
+                $group_items[] = $group_item;
+            }
+        }
+
+        return $group_items;
+    }
+
+    /**
+     * Count group items by criteria
+     */
+    public function countBy(array $criteria): int
+    {
+        $group_items = $this->findBy($criteria);
+        return count($group_items);
+    }
+
+    /**
+     * Check if group item exists
+     */
+    public function exists(int $id): bool
+    {
+        if ($id <= 0) {
+            return false;
+        }
+
+        $post = get_post($id);
+        return $post && $post->post_type === GroupItemPostType::POST_TYPE;
+    }
+
+    /**
+     * Find group items by referenced item
+     */
+    public function findByReferencedItem(int $item_id, string $item_type): array
+    {
+        return $this->findBy([
+            'item_id' => $item_id,
+            'item_type' => $item_type
+        ]);
+    }
+
+    /**
+     * Find group items with price overrides
+     */
+    public function findWithOverrides(): array
+    {
+        return $this->findBy(['has_override_price' => true]);
+    }
+
     
 }

@@ -431,6 +431,189 @@ class StoreBranchRepository implements RepositoryInterface
         return (bool) $result;                         // true when trashed/deleted
     }
 
+    public function findBy(array $criteria, ?int $limit = null, int $offset = 0): array
+    {
+        $meta_query = ['relation' => 'AND'];
+        $search_query = [];
 
+        // Build meta query from criteria
+        foreach ($criteria as $key => $value) {
+            switch ($key) {
+                case 'name':
+                    // Search in post title
+                    $search_query['s'] = $value;
+                    break;
+                    
+                case 'city':
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_city',
+                            'value' => $value,
+                            'compare' => '='
+                        ];
+                    }
+                    break;
+                    
+                case 'city_like':
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_city',
+                            'value' => $value,
+                            'compare' => 'LIKE'
+                        ];
+                    }
+                    break;
+                    
+                case 'is_open':
+                    $meta_query[] = [
+                        'key' => '_is_open',
+                        'value' => (bool) $value,
+                        'compare' => '='
+                    ];
+                    break;
+                    
+                case 'kosher_type':
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_kosher_type',
+                            'value' => $value,
+                            'compare' => '='
+                        ];
+                    }
+                    break;
+                    
+                case 'has_accessibility':
+                    if (!empty($value)) {
+                        $meta_query[] = [
+                            'key' => '_accessibility_list',
+                            'value' => $value,
+                            'compare' => 'LIKE'
+                        ];
+                    }
+                    break;
+                    
+                case 'has_product':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_products',
+                            'value' => (int) $value,
+                            'compare' => 'LIKE'
+                        ];
+                    }
+                    break;
+                    
+                case 'has_ingredient':
+                    if (is_numeric($value)) {
+                        $meta_query[] = [
+                            'key' => '_ingredients',
+                            'value' => (int) $value,
+                            'compare' => 'LIKE'
+                        ];
+                    }
+                    break;
+            }
+        }
+
+        $query_args = [
+            'post_type' => StoreBranchPostType::POST_TYPE,
+            'post_status' => 'publish',
+            'posts_per_page' => $limit ?? -1,
+            'offset' => $offset,
+            'fields' => 'ids',
+            'no_found_rows' => true,
+            'orderby' => 'title',
+            'order' => 'ASC',
+        ];
+
+        if (!empty($meta_query) && count($meta_query) > 1) {
+            $query_args['meta_query'] = $meta_query;
+        }
+
+        if (!empty($search_query)) {
+            $query_args = array_merge($query_args, $search_query);
+        }
+
+        $query = new WP_Query($query_args);
+
+        $branches = [];
+        foreach ($query->posts as $post_id) {
+            $branch = $this->get((int) $post_id);
+            if ($branch) {
+                $branches[] = $branch;
+            }
+        }
+
+        return $branches;
+    }
+
+    /**
+     * Count store branches by criteria
+     */
+    public function countBy(array $criteria): int
+    {
+        $branches = $this->findBy($criteria);
+        return count($branches);
+    }
+
+    /**
+     * Check if store branch exists
+     */
+    public function exists(int $id): bool
+    {
+        if ($id <= 0) {
+            return false;
+        }
+
+        $post = get_post($id);
+        return $post && $post->post_type === StoreBranchPostType::POST_TYPE;
+    }
+
+    /**
+     * Find branches by city
+     */
+    public function findByCity(string $city): array
+    {
+        return $this->findBy(['city' => $city]);
+    }
+
+    /**
+     * Find open branches
+     */
+    public function findOpen(): array
+    {
+        return $this->findBy(['is_open' => true]);
+    }
+
+    /**
+     * Find branches by kosher type
+     */
+    public function findByKosherType(string $kosher_type): array
+    {
+        return $this->findBy(['kosher_type' => $kosher_type]);
+    }
+
+    /**
+     * Find branches with specific accessibility feature
+     */
+    public function findWithAccessibility(string $feature): array
+    {
+        return $this->findBy(['has_accessibility' => $feature]);
+    }
+
+    /**
+     * Find branches offering specific product
+     */
+    public function findOfferingProduct(int $product_id): array
+    {
+        return $this->findBy(['has_product' => $product_id]);
+    }
+
+    /**
+     * Find branches with specific ingredient
+     */
+    public function findWithIngredient(int $ingredient_id): array
+    {
+        return $this->findBy(['has_ingredient' => $ingredient_id]);
+    }
 
 }
