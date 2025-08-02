@@ -42,3 +42,51 @@ spl_autoload_register(function ($class) {
     }
 });
 
+// Initialize admin menu system
+require_once __DIR__ . '/includes/admin/AdminMenuManager.php';
+AdminMenuManager::init();
+
+// Register settings
+add_action('admin_init', function() {
+    register_setting('squidly_settings', 'squidly_currency');
+    register_setting('squidly_settings', 'squidly_loyalty_rate');
+    register_setting('squidly_settings', 'squidly_allow_guest_checkout');
+    register_setting('squidly_settings', 'squidly_guest_cleanup_days');
+});
+
+// Add cleanup cron job
+add_action('wp', function() {
+    if (!wp_next_scheduled('squidly_cleanup_guests')) {
+        wp_schedule_event(time(), 'daily', 'squidly_cleanup_guests');
+    }
+});
+
+add_action('squidly_cleanup_guests', function() {
+    $days = get_option('squidly_guest_cleanup_days', 30);
+    $customerRepo = new CustomerRepository();
+    $deleted = $customerRepo->cleanupOldGuests($days);
+    
+    if ($deleted > 0) {
+        error_log("Squidly: Cleaned up {$deleted} old guest customers");
+    }
+});
+
+// Plugin activation hook updates
+register_activation_hook(__FILE__, function() {
+    // Create necessary database tables (if needed in future)
+    
+    // Set default options
+    add_option('squidly_currency', 'ILS');
+    add_option('squidly_currency_symbol', '₪');
+    add_option('squidly_loyalty_rate', 2.0);
+    add_option('squidly_allow_guest_checkout', true);
+    add_option('squidly_guest_cleanup_days', 30);
+    add_option('squidly_default_order_status', 'pending');
+    add_option('squidly_enable_online_ordering', true);
+    
+    // Register post types before flushing rewrite rules
+    PostTypeRegistry::register_all();
+    
+    // Flush rewrite rules
+    flush_rewrite_rules();
+});

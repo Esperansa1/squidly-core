@@ -2,49 +2,59 @@
 declare(strict_types=1);
 
 /**
- * Customer Post Type Registration
- * 
- * Registers the 'customer' post type for storing customer data.
- * Handles both registered customers and guest customer sessions.
+ * Customer Post Type
+ * includes/post-types/CustomerPostType.php
  */
 class CustomerPostType implements PostTypeInterface
 {
     public const POST_TYPE = 'customer';
 
+    public static function getPostType(): string
+    {
+        return self::POST_TYPE;
+    }
+
     public static function register(): void
     {
-        add_action('init', [self::class, 'registerPostType']);
-        add_action('admin_init', [self::class, 'addMetaBoxes']);
+        register_post_type(self::POST_TYPE, self::getArgs());
+    }
+
+    public static function init(): void
+    {
+        add_action('init', [self::class, 'register']);
+        add_action('add_meta_boxes', [self::class, 'addMetaBoxes']);
         add_action('save_post', [self::class, 'saveCustomFields']);
     }
 
-    /**
-     * Register the customer post type
-     */
-    public static function registerPostType(): void
+    public static function getLabels(): array
     {
-        register_post_type(self::POST_TYPE, [
-            'labels' => [
-                'name' => 'Customers',
-                'singular_name' => 'Customer',
-                'add_new' => 'Add New Customer',
-                'add_new_item' => 'Add New Customer',
-                'edit_item' => 'Edit Customer',
-                'new_item' => 'New Customer',
-                'view_item' => 'View Customer',
-                'view_items' => 'View Customers',
-                'search_items' => 'Search Customers',
-                'not_found' => 'No customers found',
-                'not_found_in_trash' => 'No customers found in trash',
-                'all_items' => 'All Customers',
-                'archives' => 'Customer Archives',
-                'attributes' => 'Customer Attributes',
-                'insert_into_item' => 'Insert into customer',
-                'uploaded_to_this_item' => 'Uploaded to this customer',
-                'filter_items_list' => 'Filter customers list',
-                'items_list_navigation' => 'Customers list navigation',
-                'items_list' => 'Customers list',
-            ],
+        return [
+            'name' => 'Customers',
+            'singular_name' => 'Customer',
+            'add_new' => 'Add New Customer',
+            'add_new_item' => 'Add New Customer',
+            'edit_item' => 'Edit Customer',
+            'new_item' => 'New Customer',
+            'view_item' => 'View Customer',
+            'view_items' => 'View Customers',
+            'search_items' => 'Search Customers',
+            'not_found' => 'No customers found',
+            'not_found_in_trash' => 'No customers found in trash',
+            'all_items' => 'All Customers',
+            'archives' => 'Customer Archives',
+            'attributes' => 'Customer Attributes',
+            'insert_into_item' => 'Insert into customer',
+            'uploaded_to_this_item' => 'Uploaded to this customer',
+            'filter_items_list' => 'Filter customers list',
+            'items_list_navigation' => 'Customers list navigation',
+            'items_list' => 'Customers list',
+        ];
+    }
+
+    public static function getArgs(): array
+    {
+        return [
+            'labels' => self::getLabels(),
             'public' => false,
             'show_ui' => true,
             'show_in_menu' => 'squidly-restaurant',
@@ -59,17 +69,18 @@ class CustomerPostType implements PostTypeInterface
             'hierarchical' => false,
             'rewrite' => false,
             'query_var' => false,
-            'supports' => ['title', 'custom-fields'],
-            'menu_icon' => 'dashicons-groups',
-            'menu_position' => 26,
-            'show_in_rest' => false, // No REST API exposure for privacy
+            'supports' => self::getSupports(),
+            'show_in_rest' => false, // Privacy protection
             'delete_with_user' => false,
-        ]);
+            'menu_icon' => 'dashicons-groups',
+        ];
     }
 
-    /**
-     * Add meta boxes for customer data
-     */
+    public static function getSupports(): array
+    {
+        return ['title', 'custom-fields'];
+    }
+
     public static function addMetaBoxes(): void
     {
         add_meta_box(
@@ -118,9 +129,6 @@ class CustomerPostType implements PostTypeInterface
         );
     }
 
-    /**
-     * Personal information meta box
-     */
     public static function personalInfoMetaBox($post): void
     {
         wp_nonce_field('customer_meta_nonce', 'customer_meta_nonce');
@@ -168,9 +176,6 @@ class CustomerPostType implements PostTypeInterface
         echo '</table>';
     }
 
-    /**
-     * Authentication information meta box
-     */
     public static function authInfoMetaBox($post): void
     {
         $auth_provider = get_post_meta($post->ID, '_auth_provider', true);
@@ -210,9 +215,6 @@ class CustomerPostType implements PostTypeInterface
         echo '</table>';
     }
 
-    /**
-     * Order statistics meta box
-     */
     public static function orderStatsMetaBox($post): void
     {
         $total_orders = get_post_meta($post->ID, '_total_orders', true) ?: 0;
@@ -240,9 +242,6 @@ class CustomerPostType implements PostTypeInterface
         }
     }
 
-    /**
-     * Loyalty points meta box
-     */
     public static function loyaltyMetaBox($post): void
     {
         $points_balance = get_post_meta($post->ID, '_loyalty_points_balance', true) ?: 0;
@@ -268,9 +267,6 @@ class CustomerPostType implements PostTypeInterface
         echo '<p><small>Enter positive number to add points, negative to subtract.</small></p>';
     }
 
-    /**
-     * Staff notes meta box
-     */
     public static function staffNotesMetaBox($post): void
     {
         $staff_labels = get_post_meta($post->ID, '_staff_labels', true);
@@ -289,10 +285,7 @@ class CustomerPostType implements PostTypeInterface
         echo '</div>';
     }
 
-    /**
-     * Save custom fields
-     */
-    public static function saveCustomFields($post_id): void
+    public static function saveCustomFields(int $post_id): void
     {
         // Verify nonce
         if (!isset($_POST['customer_meta_nonce']) || 
@@ -393,13 +386,5 @@ class CustomerPostType implements PostTypeInterface
             
             update_post_meta($post_id, '_staff_labels', $updated_notes);
         }
-    }
-
-    /**
-     * Get the customer post type name
-     */
-    public static function getPostType(): string
-    {
-        return self::POST_TYPE;
     }
 }
