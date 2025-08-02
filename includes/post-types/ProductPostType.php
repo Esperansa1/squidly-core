@@ -1,6 +1,8 @@
 <?php
+declare(strict_types=1);
 
-class ProductPostType {
+
+class ProductPostType implements PostTypeInterface {
     public const POST_TYPE = 'product';
 
     public static function register(): void {

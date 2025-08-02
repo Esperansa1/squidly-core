@@ -1,7 +1,8 @@
 <?php
 declare(strict_types=1);
 
-class StoreBranchPostType {
+
+class StoreBranchPostType implements PostTypeInterface {
     public const POST_TYPE = 'store_branch';
  
     public static function register(): void {

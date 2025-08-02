@@ -1,6 +1,8 @@
 <?php
+declare(strict_types=1);
 
-class IngredientPostType {
+
+class IngredientPostType implements PostTypeInterface {
     public const POST_TYPE = 'ingredient';
     
     public static function register(): void {

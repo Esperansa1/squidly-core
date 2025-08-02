@@ -23,8 +23,7 @@ define( 'SQUIDLY_CORE_URL', plugin_dir_url( __FILE__ ) );
 
 # Register Post-Types
 require_once __DIR__ . '/includes/PostTypeRegistry.php';
-
-PostTypeRegistry::register_all();
+\PostTypeRegistry::register_all();
 
 
 spl_autoload_register(function ($class) {

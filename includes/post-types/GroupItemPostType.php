@@ -1,6 +1,8 @@
 <?php
+declare(strict_types=1);
 
-class GroupItemPostType {
+
+class GroupItemPostType implements PostTypeInterface {
     public const POST_TYPE = 'group_item';
 
     public static function register(): void {

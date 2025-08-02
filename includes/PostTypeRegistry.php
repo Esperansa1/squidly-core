@@ -5,6 +5,7 @@ require_once __DIR__ . '/post-types/ProductPostType.php';
 require_once __DIR__ . '/post-types/ProductGroupPostType.php';
 require_once __DIR__ . '/post-types/IngredientPostType.php';
 require_once __DIR__ . '/post-types/GroupItemPostType.php';
+require_once __DIR__ . '/post-types/CustomerPostType.php';
 
 class PostTypeRegistry {
     public static function register_all(): void {
@@ -13,5 +14,6 @@ class PostTypeRegistry {
         ProductGroupPostType::register();
         IngredientPostType::register();
         GroupItemPostType::register();
+        CustomerPostType::register();
     }
 }
