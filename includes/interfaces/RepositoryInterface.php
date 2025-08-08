@@ -83,8 +83,3 @@ interface RepositoryInterface
      */
     public function exists(int $id): bool;
 }
-
-/**
- * WordPress Admin Enhancements
- * Add to includes/admin/AdminEnhancements.php
- */
