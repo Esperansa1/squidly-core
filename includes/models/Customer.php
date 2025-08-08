@@ -352,7 +352,7 @@ class Customer
      */
     private function validateRequiredFields(array $data): void
     {
-        $requiredFields = ['first_name', 'last_name', 'phone', 'auth_provider'];
+        $requiredFields = ['first_name', 'last_name', 'auth_provider']; // Phone Validation is under validateAndFormatPhone
         
         foreach ($requiredFields as $field) {
             if (!isset($data[$field]) || $data[$field] === '' || $data[$field] === null) {
@@ -501,28 +501,6 @@ class Customer
         
         if (!in_array($this->auth_provider, $validProviders, true)) {
             throw new InvalidArgumentException('auth_provider must be one of: ' . implode(', ', $validProviders));
-        }
-        
-        // Google auth validation
-        if ($this->auth_provider === 'google') {
-            if (empty($this->google_id)) {
-                throw new InvalidArgumentException('google_id is required when auth_provider is "google"');
-            }
-            
-            if (empty($this->email)) {
-                throw new InvalidArgumentException('email is required when auth_provider is "google"');
-            }
-        }
-        
-        // Phone auth validation
-        if ($this->auth_provider === 'phone') {
-            if ($this->is_guest && $this->phone_verified_at !== null) {
-                throw new InvalidArgumentException('Guest customers cannot have verified phone');
-            }
-            
-            if (!$this->is_guest && $this->phone_verified_at === null) {
-                throw new InvalidArgumentException('Registered phone customers must have verified phone');
-            }
         }
     }
 

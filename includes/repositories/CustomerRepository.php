@@ -46,12 +46,13 @@ class CustomerRepository implements RepositoryInterface
      */
     public function get(int $id): ?Customer
     {
-        if ($id <= 0) {
+        if ($id < 0) {
             return null;
         }
 
         $post = get_post($id);
         if (!$post || $post->post_type !== CustomerPostType::POST_TYPE) {
+            error_log("Failed to get post with id {$id}");
             return null;
         }
 
@@ -100,7 +101,7 @@ class CustomerRepository implements RepositoryInterface
      */
     public function update(int $id, array $data): bool
     {
-        if ($id <= 0) {
+        if ($id < 0) {
             return false;
         }
 
