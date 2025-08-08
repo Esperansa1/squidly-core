@@ -18,9 +18,11 @@ class CustomerRepository implements RepositoryInterface
         // Validate required fields before attempting creation
         $this->validateCreateData($data);
         
-        // Prepare customer name for post title
+        // Prepare customer name and phone number for post title
+        $phone = $this->normalizePhone($data['phone']);
+        $data['phone'] = $phone;
         $full_name = trim($data['first_name'] . ' ' . $data['last_name']);
-        $phone = $data['phone'];
+        
         $post_title = $full_name . ' (' . $phone . ')';
         
         // Create WordPress post
@@ -120,6 +122,8 @@ class CustomerRepository implements RepositoryInterface
                 
                 $first_name = $data['first_name'] ?? $current_data['first_name'];
                 $last_name = $data['last_name'] ?? $current_data['last_name'];
+
+                $data['phone'] = $this->normalizePhone($data['phone']);
                 $phone = $data['phone'] ?? $current_data['phone'];
                 
                 $new_title = trim($first_name . ' ' . $last_name) . ' (' . $phone . ')';
@@ -196,9 +200,10 @@ class CustomerRepository implements RepositoryInterface
                     
                 case 'phone':
                     if (!empty($value)) {
+                        $normalized = $this->normalizePhone($value);
                         $meta_query[] = [
                             'key' => '_phone',
-                            'value' => $value,
+                            'value' => $normalized,
                             'compare' => '='
                         ];
                     }
@@ -805,5 +810,40 @@ class CustomerRepository implements RepositoryInterface
         }
 
         return array_slice($unique_customers, 0, $limit);
+    }
+
+    private function normalizePhone(string $phone): string
+    {
+        $phone = trim($phone);
+        
+        if (empty($phone)) {
+            throw new InvalidArgumentException('Phone number cannot be empty');
+        }
+        
+        // Remove all non-digit characters except +
+        $cleanPhone = preg_replace('/[^\d+]/', '', $phone);
+        
+        if (empty($cleanPhone)) {
+            throw new InvalidArgumentException('Phone number must contain digits');
+        }
+        
+        // Israeli phone number validation
+        if (str_starts_with($cleanPhone, '+972')) {
+            // Full international format
+            if (strlen($cleanPhone) !== 13) {
+                throw new InvalidArgumentException('Israeli phone number with +972 must be 13 digits total');
+            }
+        } elseif (str_starts_with($cleanPhone, '0')) {
+            // Local format starting with 0
+            if (strlen($cleanPhone) !== 10) {
+                throw new InvalidArgumentException('Israeli phone number starting with 0 must be 10 digits');
+            }
+            // Convert to international format
+            $cleanPhone = '+972' . substr($cleanPhone, 1);
+        } else {
+            throw new InvalidArgumentException('Phone number must start with +972 or 0 for Israeli numbers');
+        }
+        
+        return $cleanPhone;
     }
 }
