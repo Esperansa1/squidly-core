@@ -1,6 +1,4 @@
-
 <?php
-
 declare(strict_types=1);
 
 class AdminEnhancements
@@ -92,7 +90,7 @@ class AdminEnhancements
                 $total_orders = get_post_meta($post_id, '_total_orders', true) ?: 0;
                 $total_spent = get_post_meta($post_id, '_total_spent', true) ?: 0;
                 echo $total_orders . ' orders<br>';
-                echo '<small>₪' . number_format($total_spent, 2) . ' total</small>';
+                echo '<small>₪' . number_format((float)$total_spent, 2) . ' total</small>';
                 break;
                 
             case 'customer_loyalty':
@@ -101,7 +99,7 @@ class AdminEnhancements
                     echo '<span style="color: #666;">N/A</span>';
                 } else {
                     $points = get_post_meta($post_id, '_loyalty_points_balance', true) ?: 0;
-                    echo number_format($points, 1) . ' pts';
+                    echo number_format((float)$points, 1) . ' pts';
                 }
                 break;
         }
@@ -138,10 +136,10 @@ class AdminEnhancements
                 $sale_price = get_post_meta($post_id, '_sale_price', true);
                 
                 if ($sale_price) {
-                    echo '<del>₪' . number_format($regular_price, 2) . '</del><br>';
-                    echo '<strong>₪' . number_format($sale_price, 2) . '</strong>';
+                    echo '<del>₪' . number_format((float)$regular_price, 2) . '</del><br>';
+                    echo '<strong>₪' . number_format((float)$sale_price, 2) . '</strong>';
                 } else {
-                    echo '₪' . number_format($regular_price, 2);
+                    echo '₪' . number_format((float)$regular_price, 2);
                 }
                 break;
                 

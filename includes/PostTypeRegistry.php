@@ -13,6 +13,7 @@ require_once __DIR__ . '/post-types/ProductGroupPostType.php';
 require_once __DIR__ . '/post-types/IngredientPostType.php';
 require_once __DIR__ . '/post-types/GroupItemPostType.php';
 require_once __DIR__ . '/post-types/CustomerPostType.php';
+require_once __DIR__ . '/post-types/OrderPostType.php';
 
 class PostTypeRegistry
 {
@@ -28,6 +29,7 @@ class PostTypeRegistry
         IngredientPostType::init();
         GroupItemPostType::init();
         CustomerPostType::init();
+        OrderPostType::init();
         
         // Add AJAX handlers for dynamic loading
         add_action('wp_ajax_get_items_by_type', [self::class, 'ajaxGetItemsByType']);
@@ -79,6 +81,7 @@ class PostTypeRegistry
             IngredientPostType::getPostType() => IngredientPostType::class,
             GroupItemPostType::getPostType() => GroupItemPostType::class,
             CustomerPostType::getPostType() => CustomerPostType::class,
+            OrderPostType::getPostType() => OrderPostType::class,
         ];
     }
 

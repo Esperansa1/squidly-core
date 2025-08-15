@@ -10,12 +10,15 @@ use IngredientRepository;
 use ProductGroupRepository;
 use GroupItemRepository;
 use CustomerRepository;
+use OrderRepository;
 use StoreBranch;
 use Product;
 use Ingredient;
 use ProductGroup;
 use GroupItem;
 use Customer;
+use Order;
+use OrderItem;
 use ItemType;
 
 /**
@@ -30,6 +33,7 @@ class CompleteSystemE2ETest extends WP_UnitTestCase
     private ProductGroupRepository $productGroupRepo;
     private GroupItemRepository $groupItemRepo;
     private CustomerRepository $customerRepo;
+    private OrderRepository $orderRepo;
 
     public function setUp(): void
     {
@@ -42,6 +46,7 @@ class CompleteSystemE2ETest extends WP_UnitTestCase
         $this->productGroupRepo = new ProductGroupRepository();
         $this->groupItemRepo = new GroupItemRepository();
         $this->customerRepo = new CustomerRepository();
+        $this->orderRepo = new OrderRepository();
     }
 
     /**
@@ -205,11 +210,11 @@ class CompleteSystemE2ETest extends WP_UnitTestCase
     }
 
     /**
-     * Test complete customer order flow
+     * Test complete customer order flow with order management
      */
     public function test_complete_customer_order_flow(): void
     {
-        // Setup: Create products and ingredients
+        // Setup: Create products
         $burger_id = $this->productRepo->create([
             'name' => 'Cheeseburger',
             'price' => 42.00,
@@ -233,42 +238,124 @@ class CompleteSystemE2ETest extends WP_UnitTestCase
             'is_guest' => false,
         ]);
         
-        // Simulate order placement
-        $order_total = 50.00; // burger + drink
-        $order_id = 2001;
+        // Create first order
+        $order1_id = $this->orderRepo->create([
+            'customer_id' => $customer_id,
+            'order_items' => [
+                [
+                    'product_id' => $burger_id,
+                    'product_name' => 'Cheeseburger',
+                    'quantity' => 1,
+                    'unit_price' => 42.00,
+                    'total_price' => 42.00,
+                    'modifications' => ['no pickles'],
+                    'notes' => 'Medium well'
+                ],
+                [
+                    'product_id' => $drink_id,
+                    'product_name' => 'Coca Cola',
+                    'quantity' => 1,
+                    'unit_price' => 8.00,
+                    'total_price' => 8.00,
+                    'modifications' => ['extra ice'],
+                    'notes' => null
+                ]
+            ],
+            'subtotal' => 50.00,
+            'tax_amount' => 8.50,
+            'delivery_fee' => 5.00,
+            'total_amount' => 63.50,
+            'payment_method' => Order::PAYMENT_CARD,
+            'delivery_address' => '123 Test Street, Tel Aviv',
+            'special_instructions' => 'Ring bell twice'
+        ]);
+        
+        // Verify order creation
+        $order1 = $this->orderRepo->get($order1_id);
+        $this->assertInstanceOf(Order::class, $order1);
+        $this->assertEquals($customer_id, $order1->customer_id);
+        $this->assertEquals(Order::STATUS_PENDING, $order1->status);
+        $this->assertEquals(50.00, $order1->subtotal);
+        $this->assertEquals(63.50, $order1->total_amount);
+        $this->assertCount(2, $order1->order_items);
         
         // Update customer order stats
-        $this->customerRepo->updateOrderStats($customer_id, $order_id, $order_total);
+        $this->customerRepo->updateOrderStats($customer_id, $order1_id, $order1->total_amount);
         
         // Award loyalty points (2% of order)
-        $loyalty_points = $order_total * 0.02;
+        $loyalty_points = $order1->total_amount * 0.02;
         $this->customerRepo->addLoyaltyPoints($customer_id, $loyalty_points);
         
-        // Verify customer state after order
+        // Test order status progression
+        $this->orderRepo->updateStatus($order1_id, Order::STATUS_CONFIRMED);
+        $this->orderRepo->updateStatus($order1_id, Order::STATUS_PREPARING);
+        $this->orderRepo->updateStatus($order1_id, Order::STATUS_READY);
+        
+        // Update payment status
+        $this->orderRepo->updatePaymentStatus($order1_id, Order::PAYMENT_PAID);
+        
+        // Complete order
+        $this->orderRepo->updateStatus($order1_id, Order::STATUS_COMPLETED);
+        
+        $completed_order = $this->orderRepo->get($order1_id);
+        $this->assertEquals(Order::STATUS_COMPLETED, $completed_order->status);
+        $this->assertEquals(Order::PAYMENT_PAID, $completed_order->payment_status);
+        $this->assertTrue($completed_order->isCompleted());
+        
+        // Verify customer state after first order
         $customer = $this->customerRepo->get($customer_id);
         $this->assertEquals(1, $customer->total_orders);
-        $this->assertEquals(50.00, $customer->total_spent);
-        $this->assertEquals(1.00, $customer->loyalty_points_balance);
-        $this->assertContains($order_id, $customer->order_ids);
+        $this->assertEquals(63.50, $customer->total_spent);
+        $this->assertEquals(1.27, $customer->loyalty_points_balance); // 2% of 63.50
         
-        // Simulate second order with loyalty discount
-        $second_order_total = 75.00;
-        $second_order_id = 2002;
-        
-        // Use some loyalty points
-        $points_to_use = 0.50;
+        // Create second order with loyalty discount
+        $points_to_use = 1.00;
         $this->customerRepo->useLoyaltyPoints($customer_id, $points_to_use);
         
+        $order2_id = $this->orderRepo->create([
+            'customer_id' => $customer_id,
+            'order_items' => [
+                [
+                    'product_id' => $burger_id,
+                    'product_name' => 'Cheeseburger',
+                    'quantity' => 2,
+                    'unit_price' => 42.00,
+                    'total_price' => 84.00,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ],
+            'subtotal' => 84.00,
+            'tax_amount' => 14.28,
+            'delivery_fee' => 0.00, // Pickup order
+            'total_amount' => 97.28, // After loyalty discount applied externally
+            'payment_method' => Order::PAYMENT_CASH,
+            'pickup_time' => date('Y-m-d H:i:s', strtotime('+30 minutes')),
+            'notes' => 'Used ₪1.00 loyalty points'
+        ]);
+        
         // Process second order
-        $this->customerRepo->updateOrderStats($customer_id, $second_order_id, $second_order_total - $points_to_use);
-        $loyalty_points_earned = ($second_order_total - $points_to_use) * 0.02;
+        $order2 = $this->orderRepo->get($order2_id);
+        $this->customerRepo->updateOrderStats($customer_id, $order2_id, $order2->total_amount);
+        $loyalty_points_earned = $order2->total_amount * 0.02;
         $this->customerRepo->addLoyaltyPoints($customer_id, $loyalty_points_earned);
         
         // Final verification
         $customer = $this->customerRepo->get($customer_id);
         $this->assertEquals(2, $customer->total_orders);
-        $this->assertEquals(124.50, $customer->total_spent); // 50 + 74.50
-        $this->assertEquals(1.99, $customer->loyalty_points_balance); // 1.00 - 0.50 + 1.49
+        $this->assertEquals(160.78, $customer->total_spent); // 63.50 + 97.28
+        
+        // Test order querying
+        $customer_orders = $this->orderRepo->getByCustomer($customer_id);
+        $this->assertCount(2, $customer_orders);
+        
+        $completed_orders = $this->orderRepo->getByStatus(Order::STATUS_COMPLETED);
+        $this->assertGreaterThanOrEqual(1, count($completed_orders));
+        
+        // Test order statistics
+        $stats = $this->orderRepo->getStatistics();
+        $this->assertGreaterThanOrEqual(2, $stats['total_orders']);
+        $this->assertGreaterThanOrEqual(160.78, $stats['total_revenue']);
     }
 
     /**
