@@ -10,7 +10,5 @@
         <testsuite name="e2e">
             <directory suffix="E2ETest.php">tests/</directory>
         </testsuite>
-
-
     </testsuites>
 </phpunit>

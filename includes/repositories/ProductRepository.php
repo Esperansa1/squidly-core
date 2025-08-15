@@ -615,10 +615,10 @@ class ProductRepository implements RepositoryInterface
                     
                 case 'category':
                     if (!empty($value)) {
-                        $meta_query[] = [
-                            'key' => '_category',
-                            'value' => $value,
-                            'compare' => '='
+                        $tax_query[] = [
+                            'taxonomy' => 'product_cat',
+                            'field' => 'name',
+                            'terms' => $value,
                         ];
                     }
                     break;

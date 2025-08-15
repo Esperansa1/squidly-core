@@ -15,54 +15,56 @@ class CustomerRepository implements RepositoryInterface
      */
     public function create(array $data): int
     {
-        // Validate required fields before attempting creation
+        // Validate the presence of required fields
         $this->validateCreateData($data);
-        
-        // Prepare customer name and phone number for post title
-        $phone = $this->normalizePhone($data['phone']);
-        $data['phone'] = $phone;
+
+        // Normalise the phone number; this will throw if invalid
+        $data['phone'] = $this->normalizePhone($data['phone']);
+
+        // Build the post title using the normalised phone number
         $full_name = trim($data['first_name'] . ' ' . $data['last_name']);
-        
-        $post_title = $full_name . ' (' . $phone . ')';
-        
-        // Create WordPress post
+        $phone     = $data['phone'];
+        $post_title = "{$full_name} ({$phone})";
+
         $post_id = wp_insert_post([
-            'post_title' => $post_title,
-            'post_type' => CustomerPostType::POST_TYPE,
-            'post_status' => 'publish',
-            'post_content' => '', // We store everything in meta
+            'post_title'   => $post_title,
+            'post_type'    => CustomerPostType::POST_TYPE,
+            'post_status'  => 'publish',
+            'post_content' => '',
         ]);
 
         if (is_wp_error($post_id)) {
             throw new RuntimeException('Failed to create customer: ' . $post_id->get_error_message());
         }
 
-        // Store all customer data as meta fields
-        $this->saveCustomerMeta($post_id, $data);
+        // Save meta fields (will include the normalised phone)
+        $this->saveCustomerMeta((int)$post_id, $data);
 
-        return $post_id;
+        return (int)$post_id;
     }
+
 
     /**
      * Get customer by ID
      */
     public function get(int $id): ?Customer
     {
-        if ($id < 0) {
+        if ($id <= 0) {
             return null;
         }
 
         $post = get_post($id);
         if (!$post || $post->post_type !== CustomerPostType::POST_TYPE) {
-            error_log("Failed to get post with id {$id}");
             return null;
         }
 
         try {
             $customer_data = $this->extractCustomerData($post);
+            error_log("Customer data for ID {$id}: " . json_encode($customer_data));
             return new Customer($customer_data);
         } catch (Exception $e) {
             error_log("Failed to create Customer object for ID {$id}: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return null;
         }
     }
@@ -73,23 +75,16 @@ class CustomerRepository implements RepositoryInterface
     public function getAll(): array
     {
         $query = new WP_Query([
-            'post_type' => CustomerPostType::POST_TYPE,
-            'post_status' => 'publish',
+            'post_type'      => CustomerPostType::POST_TYPE,
+            'post_status'    => 'publish',
             'posts_per_page' => -1,
-            'fields' => 'ids',
-            'no_found_rows' => true,
-            'meta_query' => [
-                [
-                    'key' => '_is_active',
-                    'value' => true,
-                    'compare' => '='
-                ]
-            ]
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
         ]);
 
         $customers = [];
         foreach ($query->posts as $post_id) {
-            $customer = $this->get((int) $post_id);
+            $customer = $this->get((int)$post_id);
             if ($customer) {
                 $customers[] = $customer;
             }
@@ -97,6 +92,7 @@ class CustomerRepository implements RepositoryInterface
 
         return $customers;
     }
+
 
     /**
      * Update customer data
@@ -118,15 +114,14 @@ class CustomerRepository implements RepositoryInterface
             
             // Update post title if name or phone changed
             if (isset($data['first_name']) || isset($data['last_name']) || isset($data['phone'])) {
-                $current_data = $this->extractCustomerData($post);
-                
-                $first_name = $data['first_name'] ?? $current_data['first_name'];
-                $last_name = $data['last_name'] ?? $current_data['last_name'];
-
-                $data['phone'] = $this->normalizePhone($data['phone']);
-                $phone = $data['phone'] ?? $current_data['phone'];
-                
-                $new_title = trim($first_name . ' ' . $last_name) . ' (' . $phone . ')';
+                $current_data   = $this->extractCustomerData($post);
+                $first_name     = $data['first_name'] ?? $current_data['first_name'];
+                $last_name      = $data['last_name'] ?? $current_data['last_name'];
+                if (isset($data['phone'])) {
+                    $data['phone'] = $this->normalizePhone($data['phone']);
+                }
+                $phone          = $data['phone'] ?? $current_data['phone'];
+                $new_title      = trim($first_name . ' ' . $last_name) . ' (' . $phone . ')';
                 
                 wp_update_post([
                     'ID' => $id,
@@ -136,7 +131,6 @@ class CustomerRepository implements RepositoryInterface
 
             // Update meta fields
             $this->updateCustomerMeta($id, $data);
-
             return true;
         } catch (Exception $e) {
             error_log("Failed to update customer {$id}: " . $e->getMessage());
@@ -181,165 +175,81 @@ class CustomerRepository implements RepositoryInterface
      */
     public function findBy(array $criteria, ?int $limit = null, int $offset = 0): array
     {
-        $meta_query = ['relation' => 'AND'];
-        $search_query = [];
-        $date_query = [];
-
-        // Build meta query from criteria
-        foreach ($criteria as $key => $value) {
-            switch ($key) {
-                case 'email':
-                    if (!empty($value)) {
-                        $meta_query[] = [
-                            'key' => '_email',
-                            'value' => $value,
-                            'compare' => '='
-                        ];
-                    }
-                    break;
-                    
-                case 'phone':
-                    if (!empty($value)) {
-                        $normalized = $this->normalizePhone($value);
-                        $meta_query[] = [
-                            'key' => '_phone',
-                            'value' => $normalized,
-                            'compare' => '='
-                        ];
-                    }
-                    break;
-                    
-                case 'auth_provider':
-                    if (!empty($value)) {
-                        $meta_query[] = [
-                            'key' => '_auth_provider',
-                            'value' => $value,
-                            'compare' => '='
-                        ];
-                    }
-                    break;
-                    
-                case 'google_id':
-                    if (!empty($value)) {
-                        $meta_query[] = [
-                            'key' => '_google_id',
-                            'value' => $value,
-                            'compare' => '='
-                        ];
-                    }
-                    break;
-                    
-                case 'is_guest':
-                    $meta_query[] = [
-                        'key' => '_is_guest',
-                        'value' => (bool) $value,
-                        'compare' => '='
-                    ];
-                    break;
-                    
-                case 'is_active':
-                    $meta_query[] = [
-                        'key' => '_is_active',
-                        'value' => (bool) $value,
-                        'compare' => '='
-                    ];
-                    break;
-                    
-                case 'name':
-                    // Search in post title (which contains name)
-                    $search_query['s'] = $value;
-                    break;
-                    
-                case 'phone_like':
-                    if (!empty($value)) {
-                        $meta_query[] = [
-                            'key' => '_phone',
-                            'value' => $value,
-                            'compare' => 'LIKE'
-                        ];
-                    }
-                    break;
-                    
-                case 'email_like':
-                    if (!empty($value)) {
-                        $meta_query[] = [
-                            'key' => '_email',
-                            'value' => $value,
-                            'compare' => 'LIKE'
-                        ];
-                    }
-                    break;
-                    
-                case 'min_loyalty_points':
-                    if (is_numeric($value)) {
-                        $meta_query[] = [
-                            'key' => '_loyalty_points_balance',
-                            'value' => (float) $value,
-                            'compare' => '>='
-                        ];
-                    }
-                    break;
-                    
-                case 'min_total_spent':
-                    if (is_numeric($value)) {
-                        $meta_query[] = [
-                            'key' => '_total_spent',
-                            'value' => (float) $value,
-                            'compare' => '>='
-                        ];
-                    }
-                    break;
-                    
-                case 'min_orders':
-                    if (is_numeric($value)) {
-                        $meta_query[] = [
-                            'key' => '_total_orders',
-                            'value' => (int) $value,
-                            'compare' => '>='
-                        ];
-                    }
-                    break;
-                    
-                case 'registered_after':
-                    $date_query[] = [
-                        'after' => $value,
-                        'inclusive' => true,
-                    ];
-                    break;
-                    
-                case 'registered_before':
-                    $date_query[] = [
-                        'before' => $value,
-                        'inclusive' => true,
-                    ];
-                    break;
-            }
-        }
-
         $query_args = [
             'post_type' => CustomerPostType::POST_TYPE,
             'post_status' => 'publish',
+            'posts_per_page' => $limit ?? -1,
+            'offset' => $offset,
             'fields' => 'ids',
             'no_found_rows' => true,
-            'offset' => $offset,
         ];
 
-        if ($limit !== null && $limit > 0) {
-            $query_args['posts_per_page'] = $limit;
-        } else {
-            $query_args['posts_per_page'] = -1;
-        }
-
-        if (!empty($meta_query) && count($meta_query) > 1) {
-            $query_args['meta_query'] = $meta_query;
-        }
-
-        if (!empty($search_query)) {
-            $query_args = array_merge($query_args, $search_query);
-        }
-
-        if (!empty($date_query)) {
-            $query_args['date_query'] = $date_query;
+        // For single criteria, use simple meta_key/meta_value
+        if (count($criteria) === 1) {
+            $key = array_key_first($criteria);
+            $value = $criteria[$key];
+            
+            switch ($key) {
+                case 'email':
+                    $query_args['meta_key'] = '_email';
+                    $query_args['meta_value'] = $value;
+                    break;
+                    
+                case 'phone':
+                    // Phone is already normalized in the database
+                    $query_args['meta_key'] = '_phone';
+                    $query_args['meta_value'] = $value;
+                    break;
+                    
+                case 'google_id':
+                    $query_args['meta_key'] = '_google_id';
+                    $query_args['meta_value'] = $value;
+                    break;
+                    
+                case 'auth_provider':
+                    $query_args['meta_key'] = '_auth_provider';
+                    $query_args['meta_value'] = $value;
+                    break;
+                    
+                case 'is_guest':
+                    $query_args['meta_key'] = '_is_guest';
+                    $query_args['meta_value'] = $value ? '1' : '0';
+                    break;
+                    
+                case 'is_active':
+                    $query_args['meta_key'] = '_is_active';
+                    $query_args['meta_value'] = $value ? '1' : '0';
+                    break;
+                    
+                case 'name':
+                    $query_args['s'] = $value;
+                    break;
+                    
+                default:
+                    // For complex queries, build meta_query
+                    $meta_query = $this->buildMetaQueryForSingleCriteria($key, $value);
+                    if (!empty($meta_query)) {
+                        $query_args['meta_query'] = [$meta_query];
+                    }
+                    break;
+            }
+        } else if (!empty($criteria)) {
+            // Multiple criteria - build meta_query
+            $meta_queries = [];
+            
+            foreach ($criteria as $key => $value) {
+                $meta_query_item = $this->buildMetaQueryForSingleCriteria($key, $value);
+                if (!empty($meta_query_item)) {
+                    $meta_queries[] = $meta_query_item;
+                }
+            }
+            
+            if (!empty($meta_queries)) {
+                if (count($meta_queries) > 1) {
+                    array_unshift($meta_queries, ['relation' => 'AND']);
+                }
+                $query_args['meta_query'] = $meta_queries;
+            }
         }
 
         $query = new WP_Query($query_args);
@@ -354,6 +264,7 @@ class CustomerRepository implements RepositoryInterface
 
         return $customers;
     }
+
 
     /**
      * Count customers by criteria
@@ -382,8 +293,35 @@ class CustomerRepository implements RepositoryInterface
      */
     public function findByEmail(string $email): ?Customer
     {
-        $customers = $this->findBy(['email' => $email], 1);
-        return $customers[0] ?? null;
+        if (empty($email)) {
+            return null;
+        }
+
+        $query = new WP_Query([
+            'post_type' => CustomerPostType::POST_TYPE,
+            'post_status' => 'publish',
+            'posts_per_page' => 1,
+            'meta_key' => '_email',
+            'meta_value' => $email,
+            'fields' => 'ids',
+        ]);
+
+        error_log("findByEmail debug - searching for email: $email");
+        error_log("findByEmail debug - query found posts: " . count($query->posts));
+        error_log("findByEmail debug - post_type: " . CustomerPostType::POST_TYPE);
+        
+        if (!empty($query->posts)) {
+            $post_id = (int) $query->posts[0];
+            error_log("findByEmail debug - found post ID: $post_id");
+            
+            // Debug: check if meta actually exists
+            $saved_email = get_post_meta($post_id, '_email', true);
+            error_log("findByEmail debug - saved email meta: '$saved_email'");
+            
+            return $this->get($post_id);
+        }
+
+        return null;
     }
 
     /**
@@ -391,8 +329,24 @@ class CustomerRepository implements RepositoryInterface
      */
     public function findByPhone(string $phone): ?Customer
     {
-        $customers = $this->findBy(['phone' => $phone], 1);
-        return $customers[0] ?? null;
+        if (empty($phone)) {
+            return null;
+        }
+
+        $query = new WP_Query([
+            'post_type' => CustomerPostType::POST_TYPE,
+            'post_status' => 'publish',
+            'posts_per_page' => 1,
+            'meta_key' => '_phone',
+            'meta_value' => $phone,
+            'fields' => 'ids',
+        ]);
+
+        if (!empty($query->posts)) {
+            return $this->get((int) $query->posts[0]);
+        }
+
+        return null;
     }
 
     /**
@@ -470,6 +424,8 @@ class CustomerRepository implements RepositoryInterface
      */
     private function saveCustomerMeta(int $post_id, array $data): void
     {
+        error_log("Saving customer meta for post $post_id");
+        
         $meta_fields = [
             '_email' => $data['email'] ?? '',
             '_phone' => $data['phone'],
@@ -477,23 +433,28 @@ class CustomerRepository implements RepositoryInterface
             '_google_id' => $data['google_id'] ?? '',
             '_phone_verified_at' => isset($data['phone_verified_at']) ? $data['phone_verified_at'] : '',
             '_addresses' => $data['addresses'] ?? [],
-            '_allow_sms_notifications' => (bool) ($data['allow_sms_notifications'] ?? false),
-            '_allow_email_notifications' => (bool) ($data['allow_email_notifications'] ?? false),
+            '_allow_sms_notifications' => isset($data['allow_sms_notifications']) ? (int)$data['allow_sms_notifications'] : 0,
+            '_allow_email_notifications' => isset($data['allow_email_notifications']) ? (int)$data['allow_email_notifications'] : 0,
             '_order_ids' => $data['order_ids'] ?? [],
             '_total_orders' => (int) ($data['total_orders'] ?? 0),
             '_total_spent' => (float) ($data['total_spent'] ?? 0.0),
             '_last_order_date' => $data['last_order_date'] ?? '',
             '_loyalty_points_balance' => (float) ($data['loyalty_points_balance'] ?? 0.0),
-            '_lifetime_points_earned' => (float) ($data['lifetime_points_earned'] ?? 0.0),
+            '_lifetime_points_earned' => (float) ($data['lifetime_points_earned'] ?? $data['loyalty_points_balance'] ?? 0.0),
             '_staff_labels' => $data['staff_labels'] ?? '',
-            '_is_active' => (bool) ($data['is_active'] ?? true),
+            '_is_active' => isset($data['is_active']) ? (int)$data['is_active'] : 1,
             '_registration_date' => $data['registration_date'] ?? date('Y-m-d H:i:s'),
-            '_is_guest' => (bool) ($data['is_guest'] ?? false),
+            '_is_guest' => isset($data['is_guest']) ? (int)$data['is_guest'] : 0,
         ];
 
         foreach ($meta_fields as $meta_key => $meta_value) {
-            update_post_meta($post_id, $meta_key, $meta_value);
+            $result = update_post_meta($post_id, $meta_key, $meta_value);
+            error_log("Saved $meta_key = " . print_r($meta_value, true) . " (result: " . ($result ? 'success' : 'failed') . ")");
         }
+        
+        // Verify the data was saved
+        $saved_email = get_post_meta($post_id, '_email', true);
+        error_log("Verification - saved email: '$saved_email'");
     }
 
     /**
@@ -558,34 +519,81 @@ class CustomerRepository implements RepositoryInterface
     private function extractCustomerData(WP_Post $post): array
     {
         // Extract name from post title (format: "First Last (phone)")
-        $title_parts = explode(' (', $post->post_title);
-        $full_name = $title_parts[0];
-        $name_parts = explode(' ', $full_name, 2);
+        $title = $post->post_title;
+        $first_name = '';
+        $last_name = '';
         
-        return [
+        // Parse the title to extract names
+        if (preg_match('/^(.+?)\s+\(/', $title, $matches)) {
+            // Extract the name part before the phone number
+            $full_name = trim($matches[1]);
+            $name_parts = explode(' ', $full_name, 2);
+            $first_name = $name_parts[0] ?? '';
+            $last_name = $name_parts[1] ?? '';
+        } else {
+            // Fallback: if no parentheses, treat whole title as name
+            $name_parts = explode(' ', $title, 2);
+            $first_name = $name_parts[0] ?? '';
+            $last_name = $name_parts[1] ?? '';
+        }
+        
+        // Get all meta data
+        $email = get_post_meta($post->ID, '_email', true) ?: '';
+        $phone = get_post_meta($post->ID, '_phone', true) ?: '';
+        $auth_provider = get_post_meta($post->ID, '_auth_provider', true) ?: '';
+        $google_id = get_post_meta($post->ID, '_google_id', true);
+        $phone_verified_at = get_post_meta($post->ID, '_phone_verified_at', true);
+        $addresses = get_post_meta($post->ID, '_addresses', true);
+        $allow_sms = get_post_meta($post->ID, '_allow_sms_notifications', true);
+        $allow_email = get_post_meta($post->ID, '_allow_email_notifications', true);
+        $order_ids = get_post_meta($post->ID, '_order_ids', true);
+        $total_orders = get_post_meta($post->ID, '_total_orders', true);
+        $total_spent = get_post_meta($post->ID, '_total_spent', true);
+        $last_order_date = get_post_meta($post->ID, '_last_order_date', true);
+        $loyalty_balance = get_post_meta($post->ID, '_loyalty_points_balance', true);
+        $lifetime_points = get_post_meta($post->ID, '_lifetime_points_earned', true);
+        $staff_labels = get_post_meta($post->ID, '_staff_labels', true);
+        $is_active = get_post_meta($post->ID, '_is_active', true);
+        $registration_date = get_post_meta($post->ID, '_registration_date', true);
+        $is_guest = get_post_meta($post->ID, '_is_guest', true);
+        
+        // Build the data array with proper defaults and type conversions
+        $data = [
             'id' => $post->ID,
-            'first_name' => $name_parts[0] ?? '',
-            'last_name' => $name_parts[1] ?? '',
-            'email' => get_post_meta($post->ID, '_email', true) ?: '',
-            'phone' => get_post_meta($post->ID, '_phone', true) ?: '',
-            'auth_provider' => get_post_meta($post->ID, '_auth_provider', true) ?: '',
-            'google_id' => get_post_meta($post->ID, '_google_id', true) ?: null,
-            'phone_verified_at' => get_post_meta($post->ID, '_phone_verified_at', true) ?: null,
-            'addresses' => get_post_meta($post->ID, '_addresses', true) ?: [],
-            'allow_sms_notifications' => (bool) get_post_meta($post->ID, '_allow_sms_notifications', true),
-            'allow_email_notifications' => (bool) get_post_meta($post->ID, '_allow_email_notifications', true),
-            'order_ids' => get_post_meta($post->ID, '_order_ids', true) ?: [],
-            'total_orders' => (int) get_post_meta($post->ID, '_total_orders', true),
-            'total_spent' => (float) get_post_meta($post->ID, '_total_spent', true),
-            'last_order_date' => get_post_meta($post->ID, '_last_order_date', true) ?: null,
-            'loyalty_points_balance' => (float) get_post_meta($post->ID, '_loyalty_points_balance', true),
-            'lifetime_points_earned' => (float) get_post_meta($post->ID, '_lifetime_points_earned', true),
-            'staff_labels' => get_post_meta($post->ID, '_staff_labels', true) ?: '',
-            'is_active' => (bool) get_post_meta($post->ID, '_is_active', true),
-            'registration_date' => get_post_meta($post->ID, '_registration_date', true) ?: $post->post_date,
-            'is_guest' => (bool) get_post_meta($post->ID, '_is_guest', true),
+            'first_name' => $first_name ?: 'Unknown',
+            'last_name' => $last_name ?: 'Customer',
+            'email' => $email ?: '',
+            'phone' => $phone ?: '',
+            'auth_provider' => $auth_provider ?: 'phone',
+            'google_id' => (!empty($google_id) && $google_id !== '') ? $google_id : null,
+            'phone_verified_at' => (!empty($phone_verified_at) && $phone_verified_at !== '') ? $phone_verified_at : null,
+            'addresses' => is_array($addresses) ? $addresses : [],
+            'allow_sms_notifications' => ($allow_sms === '1' || $allow_sms === 1 || $allow_sms === true),
+            'allow_email_notifications' => ($allow_email === '1' || $allow_email === 1 || $allow_email === true),
+            'order_ids' => is_array($order_ids) ? $order_ids : [],
+            'total_orders' => (int) ($total_orders ?: 0),
+            'total_spent' => (float) ($total_spent ?: 0),
+            'last_order_date' => (!empty($last_order_date) && $last_order_date !== '') ? $last_order_date : null,
+            'loyalty_points_balance' => (float) ($loyalty_balance ?: 0),
+            'lifetime_points_earned' => (float) ($lifetime_points ?: 0),
+            'staff_labels' => $staff_labels ?: '',
+            'is_active' => ($is_active === '1' || $is_active === 1 || $is_active === true || $is_active === ''),
+            'registration_date' => $registration_date ?: $post->post_date,
+            'is_guest' => ($is_guest === '1' || $is_guest === 1 || $is_guest === true),
         ];
+        
+        // Ensure required fields are present
+        if (empty($data['phone'])) {
+            throw new InvalidArgumentException("Phone is required but missing for customer ID {$post->ID}");
+        }
+        
+        if (empty($data['auth_provider'])) {
+            throw new InvalidArgumentException("Auth provider is required but missing for customer ID {$post->ID}");
+        }
+        
+        return $data;
     }
+
 
     /**
      * Get order count for customer (for dependency checking)
@@ -846,4 +854,79 @@ class CustomerRepository implements RepositoryInterface
         
         return $cleanPhone;
     }
+
+    private function buildMetaQueryForSingleCriteria(string $key, $value): array
+    {
+        switch ($key) {
+            case 'email':
+                return [
+                    'key' => '_email',
+                    'value' => $value,
+                    'compare' => '='
+                ];
+                
+            case 'phone':
+                return [
+                    'key' => '_phone',
+                    'value' => $value,
+                    'compare' => '='
+                ];
+                
+            case 'min_loyalty_points':
+                return [
+                    'key' => '_loyalty_points_balance',
+                    'value' => (float) $value,
+                    'compare' => '>=',
+                    'type' => 'DECIMAL(10,2)'
+                ];
+                
+            case 'min_total_spent':
+                return [
+                    'key' => '_total_spent',
+                    'value' => (float) $value,
+                    'compare' => '>=',
+                    'type' => 'DECIMAL(10,2)'
+                ];
+                
+            case 'min_orders':
+                return [
+                    'key' => '_total_orders',
+                    'value' => (int) $value,
+                    'compare' => '>=',
+                    'type' => 'NUMERIC'
+                ];
+                
+            case 'auth_provider':
+                return [
+                    'key' => '_auth_provider',
+                    'value' => $value,
+                    'compare' => '='
+                ];
+                
+            case 'is_guest':
+                return [
+                    'key' => '_is_guest',
+                    'value' => $value ? '1' : '0',
+                    'compare' => '='
+                ];
+                
+            case 'is_active':
+                return [
+                    'key' => '_is_active',
+                    'value' => $value ? '1' : '0',
+                    'compare' => '='
+                ];
+                
+            case 'google_id':
+                return [
+                    'key' => '_google_id',
+                    'value' => $value,
+                    'compare' => '='
+                ];
+
+            default:
+                return [];
+        }
+    }
+
 }

@@ -55,8 +55,19 @@ class AdditionalIntegrationTest extends WP_UnitTestCase
             ]);
         }
 
+        // Debug: check if products were created
+        error_log("Debug: Created product IDs: " . implode(', ', $product_ids));
+        
+        // Debug: check all products to see what categories they have
+        $all_products = $this->productRepo->getAll();
+        error_log("Debug: All products count: " . count($all_products));
+        foreach ($all_products as $product) {
+            error_log("Debug: Product {$product->id} - Name: {$product->name}, Category: '{$product->category}'");
+        }
+        
         // Test limit
         $first_page = $this->productRepo->findBy(['category' => 'Test Category'], 3, 0);
+        error_log("Debug: Found " . count($first_page) . " products with category 'Test Category'");
         $this->assertCount(3, $first_page);
 
         // Test offset

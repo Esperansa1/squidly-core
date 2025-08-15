@@ -22,6 +22,17 @@ class CustomerRepositoryIntegrationTest extends WP_UnitTestCase
     {
         parent::setUp();
         $this->repository = new CustomerRepository();
+        
+        // Clean up any existing customers from previous tests
+        $this->cleanupExistingCustomers();
+    }
+    
+    private function cleanupExistingCustomers(): void
+    {
+        $all_customers = $this->repository->getAll();
+        foreach ($all_customers as $customer) {
+            $this->repository->delete($customer->id, true);
+        }
     }
 
     /* =====================================================================
@@ -132,6 +143,7 @@ class CustomerRepositoryIntegrationTest extends WP_UnitTestCase
 
         $guest = $this->repository->get($guest_id);
         $this->assertInstanceOf(Customer::class, $guest);
+        $this->assertEquals('+972521234567', $guest->phone); // check phone number (formatted)
         $this->assertTrue($guest->is_guest);
         $this->assertEquals('phone', $guest->auth_provider);
         $this->assertEmpty($guest->email);
@@ -162,6 +174,7 @@ class CustomerRepositoryIntegrationTest extends WP_UnitTestCase
 
     public function test_find_customers_by_various_criteria(): void
     {
+        $this->cleanupExistingCustomers();
         // Create test customers
         $customer1_id = $this->repository->create([
             'first_name' => 'Alice',
@@ -172,8 +185,11 @@ class CustomerRepositoryIntegrationTest extends WP_UnitTestCase
             'google_id' => 'google_alice',
             'is_guest' => false,
             'loyalty_points_balance' => 150.0,
+            'lifetime_points_earned' => 200.0,
             'total_spent' => 500.0,
             'total_orders' => 5,
+            'order_ids' => [1001, 1002, 1003, 1004, 1005],
+            'last_order_date' => '2025-08-10 14:30:00',
         ]);
 
         $customer2_id = $this->repository->create([
@@ -184,8 +200,11 @@ class CustomerRepositoryIntegrationTest extends WP_UnitTestCase
             'auth_provider' => 'phone',
             'is_guest' => false,
             'loyalty_points_balance' => 50.0,
+            'lifetime_points_earned' => 75.0,
             'total_spent' => 200.0,
             'total_orders' => 2,
+            'order_ids' => [2001, 2002],
+            'last_order_date' => '2025-08-12 10:15:00',
         ]);
 
         $guest_id = $this->repository->create([
@@ -195,6 +214,7 @@ class CustomerRepositoryIntegrationTest extends WP_UnitTestCase
             'auth_provider' => 'phone',
             'is_guest' => true,
         ]);
+        
 
         // Test findByEmail
         $found_by_email = $this->repository->findByEmail('alice@example.com');
