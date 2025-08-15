@@ -67,6 +67,17 @@ class PaymentException extends Exception
     }
 
     /**
+     * Create invalid request error
+     */
+    public static function invalidRequest(string $message): self
+    {
+        return new self(
+            message: "Invalid payment request: {$message}",
+            errorCode: self::ERROR_INVALID_REQUEST
+        );
+    }
+
+    /**
      * Create card declined error
      */
     public static function cardDeclined(string $gatewayMessage = '', array $gatewayData = []): self

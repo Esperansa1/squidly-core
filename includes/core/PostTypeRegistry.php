@@ -5,15 +5,15 @@
  */
 declare(strict_types=1);
 
-require_once __DIR__ . '/interfaces/PostTypeInterface.php';
-require_once __DIR__ . '/post-types/BasePostType.php';
-require_once __DIR__ . '/post-types/StoreBranchPostType.php';
-require_once __DIR__ . '/post-types/ProductPostType.php';
-require_once __DIR__ . '/post-types/ProductGroupPostType.php';
-require_once __DIR__ . '/post-types/IngredientPostType.php';
-require_once __DIR__ . '/post-types/GroupItemPostType.php';
-require_once __DIR__ . '/post-types/CustomerPostType.php';
-require_once __DIR__ . '/post-types/OrderPostType.php';
+require_once __DIR__ . '/../shared/interfaces/PostTypeInterface.php';
+require_once __DIR__ . '/../shared/abstracts/BasePostType.php';
+require_once __DIR__ . '/../domains/stores/post-types/StoreBranchPostType.php';
+require_once __DIR__ . '/../domains/products/post-types/ProductPostType.php';
+require_once __DIR__ . '/../domains/products/post-types/ProductGroupPostType.php';
+require_once __DIR__ . '/../domains/products/post-types/IngredientPostType.php';
+require_once __DIR__ . '/../domains/products/post-types/GroupItemPostType.php';
+require_once __DIR__ . '/../domains/customers/post-types/CustomerPostType.php';
+require_once __DIR__ . '/../domains/orders/post-types/OrderPostType.php';
 
 class PostTypeRegistry
 {

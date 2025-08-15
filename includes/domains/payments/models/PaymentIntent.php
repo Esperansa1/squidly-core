@@ -34,35 +34,29 @@ class PaymentIntent
     public const STATUS_EXPIRED = 'expired';
 
     public function __construct(
-        string $id,
         string $gatewayId,
         string $gatewayIntentId,
-        int $orderId,
-        int $customerId,
+        ?string $clientSecret,
         float $amount,
         string $currency,
         string $status = self::STATUS_CREATED,
         array $metadata = [],
-        ?string $clientSecret = null,
-        ?string $paymentUrl = null,
-        array $gatewayData = [],
-        ?string $createdAt = null,
-        ?string $expiresAt = null
+        ?string $createdAt = null
     ) {
-        $this->id = $id;
+        $this->id = uniqid('pi_');
         $this->gatewayId = $gatewayId;
         $this->gatewayIntentId = $gatewayIntentId;
-        $this->orderId = $orderId;
-        $this->customerId = $customerId;
+        $this->orderId = 0; // Will be set when linked to order
+        $this->customerId = 0; // Will be set when linked to customer
         $this->amount = $amount;
         $this->currency = $currency;
         $this->status = $status;
         $this->metadata = $metadata;
         $this->clientSecret = $clientSecret;
-        $this->paymentUrl = $paymentUrl;
-        $this->gatewayData = $gatewayData;
+        $this->paymentUrl = null;
+        $this->gatewayData = [];
         $this->createdAt = $createdAt ?: date('Y-m-d H:i:s');
-        $this->expiresAt = $expiresAt;
+        $this->expiresAt = null;
     }
 
     /**

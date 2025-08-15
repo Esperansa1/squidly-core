@@ -9,6 +9,7 @@ declare(strict_types=1);
 class PaymentResult
 {
     public bool $success;
+    public string $gatewayId;
     public string $status;
     public ?string $transactionId;
     public ?string $gatewayTransactionId;
@@ -32,17 +33,19 @@ class PaymentResult
 
     public function __construct(
         bool $success,
-        string $status,
+        string $gatewayId,
+        string $transactionId,
+        string $gatewayTransactionId,
         float $amount,
-        string $currency = 'ILS',
-        ?string $transactionId = null,
-        ?string $gatewayTransactionId = null,
-        ?string $message = null,
+        string $currency,
+        string $status,
+        string $message,
         ?string $errorCode = null,
         array $gatewayData = [],
         ?string $processedAt = null
     ) {
         $this->success = $success;
+        $this->gatewayId = $gatewayId;
         $this->status = $status;
         $this->transactionId = $transactionId;
         $this->gatewayTransactionId = $gatewayTransactionId;

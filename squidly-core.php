@@ -22,15 +22,47 @@ define( 'SQUIDLY_CORE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SQUIDLY_CORE_URL', plugin_dir_url( __FILE__ ) );
 
 # Register Post-Types
-require_once __DIR__ . '/includes/PostTypeRegistry.php';
+require_once __DIR__ . '/includes/core/PostTypeRegistry.php';
 \PostTypeRegistry::register_all();
 
 
 spl_autoload_register(function ($class) {
     $paths = [
-        'includes/models/',
-        'includes/models/enums/',
-        'includes/repositories/',
+        // Shared components
+        'includes/shared/models/',
+        'includes/shared/models/enums/',
+        'includes/shared/interfaces/',
+        'includes/shared/exceptions/',
+        'includes/shared/abstracts/',
+        
+        // Domain models
+        'includes/domains/customers/models/',
+        'includes/domains/orders/models/',
+        'includes/domains/products/models/',
+        'includes/domains/payments/models/',
+        'includes/domains/stores/models/',
+        
+        // Domain repositories
+        'includes/domains/customers/repositories/',
+        'includes/domains/orders/repositories/',
+        'includes/domains/products/repositories/',
+        'includes/domains/stores/repositories/',
+        
+        // Domain post types
+        'includes/domains/customers/post-types/',
+        'includes/domains/orders/post-types/',
+        'includes/domains/products/post-types/',
+        'includes/domains/stores/post-types/',
+        
+        // Payment system
+        'includes/domains/payments/interfaces/',
+        'includes/domains/payments/exceptions/',
+        'includes/domains/payments/gateways/',
+        'includes/domains/payments/services/',
+        'includes/domains/payments/managers/',
+        
+        // Admin components
+        'includes/admin/',
     ];
 
     foreach ($paths as $path) {

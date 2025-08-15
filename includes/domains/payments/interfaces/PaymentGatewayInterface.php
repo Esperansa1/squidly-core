@@ -17,18 +17,32 @@ interface PaymentGatewayInterface
     /**
      * Get the gateway display name
      */
-    public function getGatewayName(): string;
+    public function getDisplayName(): string;
 
     /**
-     * Check if the gateway is properly configured and ready to process payments
+     * Get supported currencies for this gateway
      */
-    public function isConfigured(): bool;
+    public function getSupportedCurrencies(): array;
 
     /**
-     * Get supported payment methods for this gateway
-     * @return string[] Array of payment method types (card, bank_transfer, digital_wallet, etc.)
+     * Check if gateway supports authorization/capture flow
      */
-    public function getSupportedPaymentMethods(): array;
+    public function supportsAuthorization(): bool;
+
+    /**
+     * Check if gateway supports capture operations
+     */
+    public function supportsCapture(): bool;
+
+    /**
+     * Check if gateway supports refund operations
+     */
+    public function supportsRefunds(): bool;
+
+    /**
+     * Check if gateway supports void operations
+     */
+    public function supportsVoid(): bool;
 
     /**
      * Create a payment intent/session for processing
@@ -68,7 +82,7 @@ interface PaymentGatewayInterface
      * @return PaymentResult The result of the refund
      * @throws PaymentException When refund fails
      */
-    public function refundPayment(string $transactionId, ?float $amount = null, ?string $reason = null): PaymentResult;
+    public function refundPayment(string $transactionId, float $amount, string $reason = ''): PaymentResult;
 
     /**
      * Void/cancel an authorized but not captured payment
@@ -96,18 +110,4 @@ interface PaymentGatewayInterface
      * @throws PaymentException When webhook processing fails
      */
     public function handleWebhook(array $webhookData): PaymentWebhookResult;
-
-    /**
-     * Validate gateway configuration
-     * 
-     * @return array Array of validation errors (empty if valid)
-     */
-    public function validateConfiguration(): array;
-
-    /**
-     * Get gateway-specific configuration requirements
-     * 
-     * @return array Configuration fields required for this gateway
-     */
-    public function getConfigurationFields(): array;
 }

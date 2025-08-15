@@ -152,4 +152,28 @@ class Order
     {
         return "Order #{$this->id} - " . date('M j, Y', strtotime($this->order_date));
     }
+
+    /**
+     * Convert order to array for updates
+     */
+    public function toArray(): array
+    {
+        return [
+            'customer_id' => $this->customer_id,
+            'status' => $this->status,
+            'order_date' => $this->order_date,
+            'total_amount' => $this->total_amount,
+            'subtotal' => $this->subtotal,
+            'tax_amount' => $this->tax_amount,
+            'delivery_fee' => $this->delivery_fee,
+            'payment_status' => $this->payment_status,
+            'payment_method' => $this->payment_method,
+            'gateway_transaction_id' => $this->gateway_transaction_id,
+            'notes' => $this->notes,
+            'order_items' => $this->order_items,
+            'delivery_address' => $this->delivery_address,
+            'pickup_time' => $this->pickup_time,
+            'special_instructions' => $this->special_instructions,
+        ];
+    }
 }

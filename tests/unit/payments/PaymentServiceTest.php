@@ -59,8 +59,21 @@ class PaymentServiceTest extends TestCase
         
         $mockOrder = new Order();
         $mockOrder->id = 123;
+        $mockOrder->customer_id = 456;
         $mockOrder->status = Order::STATUS_PENDING;
+        $mockOrder->order_date = date('Y-m-d H:i:s');
+        $mockOrder->total_amount = 100.50;
+        $mockOrder->subtotal = 90.00;
+        $mockOrder->tax_amount = 8.10;
+        $mockOrder->delivery_fee = 2.40;
         $mockOrder->payment_status = Order::PAYMENT_PENDING;
+        $mockOrder->payment_method = '';
+        $mockOrder->gateway_transaction_id = null;
+        $mockOrder->notes = '';
+        $mockOrder->order_items = [];
+        $mockOrder->delivery_address = null;
+        $mockOrder->pickup_time = null;
+        $mockOrder->special_instructions = null;
         
         // Configure mock expectations
         $this->mockGateway->expects($this->once())
@@ -129,8 +142,21 @@ class PaymentServiceTest extends TestCase
         
         $mockOrder = new Order();
         $mockOrder->id = 123;
+        $mockOrder->customer_id = 456;
         $mockOrder->status = Order::STATUS_PENDING;
+        $mockOrder->order_date = date('Y-m-d H:i:s');
+        $mockOrder->total_amount = 100.50;
+        $mockOrder->subtotal = 90.00;
+        $mockOrder->tax_amount = 8.10;
+        $mockOrder->delivery_fee = 2.40;
         $mockOrder->payment_status = Order::PAYMENT_PENDING;
+        $mockOrder->payment_method = '';
+        $mockOrder->gateway_transaction_id = null;
+        $mockOrder->notes = '';
+        $mockOrder->order_items = [];
+        $mockOrder->delivery_address = null;
+        $mockOrder->pickup_time = null;
+        $mockOrder->special_instructions = null;
         
         $this->mockGateway->method('createPaymentIntent')->willReturn($mockIntent);
         $this->mockGateway->method('processPayment')->willReturn($mockResult);
@@ -181,8 +207,21 @@ class PaymentServiceTest extends TestCase
         
         $mockOrder = new Order();
         $mockOrder->id = 123;
+        $mockOrder->customer_id = 456;
         $mockOrder->status = Order::STATUS_PENDING;
+        $mockOrder->order_date = date('Y-m-d H:i:s');
+        $mockOrder->total_amount = 100.50;
+        $mockOrder->subtotal = 90.00;
+        $mockOrder->tax_amount = 8.10;
+        $mockOrder->delivery_fee = 2.40;
         $mockOrder->payment_status = Order::PAYMENT_PENDING;
+        $mockOrder->payment_method = '';
+        $mockOrder->gateway_transaction_id = null;
+        $mockOrder->notes = '';
+        $mockOrder->order_items = [];
+        $mockOrder->delivery_address = null;
+        $mockOrder->pickup_time = null;
+        $mockOrder->special_instructions = null;
         
         $this->mockGateway->method('createPaymentIntent')->willReturn($mockIntent);
         $this->mockGateway->method('processPayment')->willReturn($mockResult);
@@ -347,8 +386,21 @@ class PaymentServiceTest extends TestCase
         
         $mockOrder = new Order();
         $mockOrder->id = 123;
+        $mockOrder->customer_id = 456;
         $mockOrder->status = Order::STATUS_PENDING;
+        $mockOrder->order_date = date('Y-m-d H:i:s');
+        $mockOrder->total_amount = 100.50;
+        $mockOrder->subtotal = 90.00;
+        $mockOrder->tax_amount = 8.10;
+        $mockOrder->delivery_fee = 2.40;
         $mockOrder->payment_status = Order::PAYMENT_PENDING;
+        $mockOrder->payment_method = '';
+        $mockOrder->gateway_transaction_id = null;
+        $mockOrder->notes = '';
+        $mockOrder->order_items = [];
+        $mockOrder->delivery_address = null;
+        $mockOrder->pickup_time = null;
+        $mockOrder->special_instructions = null;
         
         $this->mockGateway->expects($this->once())
             ->method('handleWebhook')

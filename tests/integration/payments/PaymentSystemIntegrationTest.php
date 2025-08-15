@@ -28,7 +28,7 @@ class PaymentSystemIntegrationTest extends WP_UnitTestCase
             'last_name' => 'Customer',
             'email' => 'test@example.com',
             'phone' => '+972501234567',
-            'auth_provider' => 'email'
+            'auth_provider' => 'phone'
         ]);
         
         // Create test order
@@ -40,9 +40,18 @@ class PaymentSystemIntegrationTest extends WP_UnitTestCase
             'tax_amount' => 8.10,
             'delivery_fee' => 2.40,
             'payment_status' => Order::PAYMENT_PENDING,
-            'payment_method' => '',
+            'payment_method' => Order::PAYMENT_ONLINE,
             'notes' => 'Test order for payment integration',
-            'order_items' => []
+            'order_items' => [
+                [
+                    'product_id' => 1,
+                    'product_name' => 'Test Product',
+                    'quantity' => 1,
+                    'unit_price' => 90.00,
+                    'total_price' => 90.00,
+                    'modifications' => []
+                ]
+            ]
         ]);
     }
 
@@ -219,11 +228,11 @@ class PaymentSystemIntegrationTest extends WP_UnitTestCase
         // Test specific exception types
         $cardDeclined = PaymentException::cardDeclined('Card was declined by bank');
         $this->assertEquals(PaymentException::ERROR_CARD_DECLINED, $cardDeclined->errorCode);
-        $this->assertStringContains('declined by the bank', $cardDeclined->getUserMessage());
+        $this->assertStringContainsString('payment was declined', $cardDeclined->getUserMessage());
         
         $insufficientFunds = PaymentException::insufficientFunds();
         $this->assertEquals(PaymentException::ERROR_INSUFFICIENT_FUNDS, $insufficientFunds->errorCode);
-        $this->assertStringContains('Insufficient funds', $insufficientFunds->getUserMessage());
+        $this->assertStringContainsString('Insufficient funds', $insufficientFunds->getUserMessage());
         
         $invalidAmount = PaymentException::invalidAmount(-50.0);
         $this->assertEquals(PaymentException::ERROR_INVALID_AMOUNT, $invalidAmount->errorCode);
@@ -248,7 +257,7 @@ class PaymentSystemIntegrationTest extends WP_UnitTestCase
         // Test non-existent gateway
         $errors = $this->manager->validateGateway('non_existent');
         $this->assertNotEmpty($errors);
-        $this->assertStringContains('not registered', $errors[0]);
+        $this->assertStringContainsString('not registered', $errors[0]);
     }
 
     public function test_payment_manager_creation_from_config(): void
