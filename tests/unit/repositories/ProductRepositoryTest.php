@@ -124,4 +124,34 @@ class ProductRepositoryTest extends TestCase
         $this->expectException(ResourceInUseException::class);
         $this->repo->delete($pid, true);
     }
+
+    /* ---------------------------------------------------------------------
+     *  exists() Tests (Simple Unit Tests)
+     * -------------------------------------------------------------------*/
+
+    public function test_exists_returns_true_for_valid_product(): void
+    {
+        $productId = $this->repo->create(['name' => 'Test Product', 'price' => 10.0]);
+        
+        $this->assertTrue($this->repo->exists($productId));
+    }
+
+    public function test_exists_returns_false_for_invalid_id(): void
+    {
+        $this->assertFalse($this->repo->exists(99999));
+        $this->assertFalse($this->repo->exists(0));
+        $this->assertFalse($this->repo->exists(-1));
+    }
+
+    public function test_exists_returns_false_for_wrong_post_type(): void
+    {
+        // Create a regular post (not product)
+        $postId = wp_insert_post([
+            'post_title' => 'Regular Post',
+            'post_type' => 'post',
+            'post_status' => 'publish'
+        ]);
+        
+        $this->assertFalse($this->repo->exists($postId));
+    }
 }

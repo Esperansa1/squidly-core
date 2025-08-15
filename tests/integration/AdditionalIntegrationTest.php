@@ -275,6 +275,13 @@ class AdditionalIntegrationTest extends WP_UnitTestCase
      */
     public function test_error_recovery_in_create_operations(): void
     {
+        // Clean up any existing "Test Product" from previous runs
+        $all_products = $this->productRepo->getAll();
+        $existing_test_products = array_filter($all_products, fn($p) => $p->name === 'Test Product');
+        foreach ($existing_test_products as $product) {
+            $this->productRepo->delete($product->id, true);
+        }
+
         // Test that a failed product creation doesn't leave orphaned data
         try {
             $this->productRepo->create([
