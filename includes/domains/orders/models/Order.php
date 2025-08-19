@@ -19,7 +19,6 @@ class Order
     public float $delivery_fee;
     public string $payment_status;
     public string $payment_method;
-    public ?string $gateway_transaction_id;
     public string $notes;
     public array $order_items; // Array of OrderItem objects
     public ?string $delivery_address;
@@ -39,7 +38,6 @@ class Order
     public const PAYMENT_PAID = 'paid';
     public const PAYMENT_FAILED = 'failed';
     public const PAYMENT_REFUNDED = 'refunded';
-    public const PAYMENT_AUTHORIZED = 'authorized';
 
     // Payment methods
     public const PAYMENT_CASH = 'cash';
