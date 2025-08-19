@@ -477,3 +477,4 @@ composer.lock
 # Custom
 .circleci/
 bin/
+.claude/
