@@ -10,5 +10,8 @@
         <testsuite name="e2e">
             <directory suffix="E2ETest.php">tests/</directory>
         </testsuite>
+        <testsuite name="domains">
+            <directory suffix="Test.php">tests/domains</directory>
+        </testsuite>
     </testsuites>
 </phpunit>

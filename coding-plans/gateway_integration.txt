@@ -1,0 +1,105 @@
+1) Contracts & Folders
+Create includes/domains/payments/interfaces/PaymentProvider.php
+Methods (names only, no code):
+- startPayment(squidly_order_id, amount, billing_fields) -> checkout_url
+- refund(squidly_order_id, amount, reason) -> {success, message, refund_id?}
+- label() -> string
+
+Create scaffolding folders (empty for now):
+- includes/domains/payments/gateways/ (providers live here)
+- includes/domains/payments/services/ (factory/service)
+- includes/domains/payments/rest/ (REST layer)
+- activation/ (activation routines)
+- admin/ (WP-Admin UI actions)
+- bootstrap/ (wire-up file)
+
+2) Provider Selection (Service Layer)
+Single service responsible for handing out the active provider.
+Default provider: WooProvider.
+Allow replacement via a filter hook (name it: squidly/payments/provider).
+The rest of Squidly touches only the service; never the provider directly.
+
+3) Woo Provider — Behavior (Words)
+Role: use WooCommerce only as a payment router. Squidly remains source of truth for orders.
+
+On startPayment:
+- Validate Woo is active and hidden payment product ID option exists.
+- Convert amount to a decimal string with 2 decimals (money-safe), no rounding errors.
+- Programmatically create a Woo order:
+  - Status: pending.
+  - Created via: "squidly".
+  - Add the hidden virtual product (qty 1).
+  - Force order total to the requested amount.
+  - Apply provided billing fields (first/last/email/phone/address/city/postcode/country).
+  - Add a back-reference meta _squidly_order_id.
+  - Persist Woo order ID on Squidly order meta _wc_order_id.
+  - Set Squidly _payment_status=pending.
+- Return Woo's checkout URL (payment page) to caller.
+
+On refund:
+- Load Woo order by saved _wc_order_id.
+- Invoke Woo's refund API (payment gateway refund).
+- Return structured result (success, message, refund_id if any).
+- Squidly status will also be updated by hooks; still update optimistically to refunded after a successful call.
+
+On label(): return "WooCommerce".
+
+4) Hidden "Payment" Product (Activation Routine)
+On plugin activation:
+- If option squidly_wc_payment_product_id is absent or invalid:
+  - Create a virtual, hidden, sold individually product named "Squidly Payment".
+  - Price 0 (order total will be overridden programmatically).
+  - Save its ID in the option.
+- Purpose: give Woo a legitimate line item so taxes/fees/gateways work consistently, while total is controlled.
+
+5) Payment Status Sync (Hooks — Words)
+Register on init:
+- For Woo statuses: processing, completed → treat as "paid-like".
+- For failed → map to Squidly failed.
+- For refunded → map to Squidly refunded.
+
+On each transition:
+- Read _squidly_order_id from Woo order meta.
+- Update Squidly meta:
+  - _payment_status: paid | failed | refunded.
+  - _tx_id: Woo transaction id (if present) when paid.
+- Optional: cover cancelled, on-hold if needed (map to failed or pending per policy).
+
+6) REST Endpoints (Backend Only)
+Namespace: squidly/v1.
+Endpoints:
+
+POST /pay/start
+- Body: { order_id, amount, billing? }
+- Action: call provider.startPayment → return { checkout_url }.
+- Permissions: backend-only (admin-capability).
+
+POST /pay/refund
+- Body: { order_id, amount, reason? }
+- Action: call provider.refund → return { success, message, refund_id? }.
+- Permissions: backend-only.
+
+Error responses: clear message; no stack traces; 4xx for validation, 5xx for provider/infra errors.
+
+7) Admin Triggers (Orders List)
+In Squidly orders WP-Admin list row actions:
+- Add "Pay" → JS prompt for amount → call /pay/start → open checkout URL in new tab.
+- Add "Refund" → JS prompt for amount → call /pay/refund → alert result.
+
+Secure with:
+- Nonces per row action.
+- Capability checks.
+
+These are convenience actions; front-end remains out of scope.
+
+8) Data Model — Keys & Options
+Squidly order meta:
+- _wc_order_id (int): paired Woo order ID.
+- _payment_status (string): pending|paid|failed|refunded.
+- _tx_id (string): Woo/gateway transaction id.
+
+Woo order meta:
+- _squidly_order_id (int): back-reference to Squidly.
+
+Options:
+- squidly_wc_payment_product_id (int).

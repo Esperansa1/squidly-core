@@ -34,7 +34,21 @@ function _manually_load_plugin() {
 	require dirname( dirname( __FILE__ ) ) . '/squidly-core.php';
 }
 
+/**
+ * Load payment domain classes for testing.
+ */
+function _load_payment_classes() {
+	$plugin_dir = dirname( dirname( __FILE__ ) );
+	
+	require_once $plugin_dir . '/includes/domains/payments/interfaces/PaymentProvider.php';
+	require_once $plugin_dir . '/includes/domains/payments/services/PaymentService.php';
+	require_once $plugin_dir . '/includes/domains/payments/gateways/WooProvider.php';
+}
+
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
+
+// Load payment classes before tests run
+_load_payment_classes();
 
 // Start up the WP testing environment.
 require "{$_tests_dir}/includes/bootstrap.php";
