@@ -1,6 +1,6 @@
 <?php
 
-namespace Squidly\Activation;
+namespace Squidly\Domains\Payments\Activation;
 
 class PaymentProductActivation {
     

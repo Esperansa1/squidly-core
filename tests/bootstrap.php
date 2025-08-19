@@ -43,6 +43,9 @@ function _load_payment_classes() {
 	require_once $plugin_dir . '/includes/domains/payments/interfaces/PaymentProvider.php';
 	require_once $plugin_dir . '/includes/domains/payments/services/PaymentService.php';
 	require_once $plugin_dir . '/includes/domains/payments/gateways/WooProvider.php';
+	require_once $plugin_dir . '/includes/domains/payments/admin/PaymentAdminActions.php';
+	require_once $plugin_dir . '/includes/domains/payments/activation/PaymentProductActivation.php';
+	require_once $plugin_dir . '/includes/domains/payments/bootstrap/PaymentBootstrap.php';
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );

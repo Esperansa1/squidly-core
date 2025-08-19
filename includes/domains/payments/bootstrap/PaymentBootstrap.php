@@ -1,11 +1,11 @@
 <?php
 
-namespace Squidly\Bootstrap;
+namespace Squidly\Domains\Payments\Bootstrap;
 
 use Squidly\Domains\Payments\Rest\PaymentRestController;
 use Squidly\Domains\Payments\Hooks\PaymentStatusSync;
-use Squidly\Admin\PaymentAdminActions;
-use Squidly\Activation\PaymentProductActivation;
+use Squidly\Domains\Payments\Admin\PaymentAdminActions;
+use Squidly\Domains\Payments\Activation\PaymentProductActivation;
 
 class PaymentBootstrap {
     

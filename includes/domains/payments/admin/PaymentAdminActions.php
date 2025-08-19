@@ -1,6 +1,6 @@
 <?php
 
-namespace Squidly\Admin;
+namespace Squidly\Domains\Payments\Admin;
 
 class PaymentAdminActions {
     
