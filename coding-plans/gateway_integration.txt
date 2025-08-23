@@ -9,14 +9,19 @@ Create scaffolding folders (empty for now):
 - includes/domains/payments/gateways/ (providers live here)
 - includes/domains/payments/services/ (factory/service)
 - includes/domains/payments/rest/ (REST layer)
-- activation/ (activation routines)
-- admin/ (WP-Admin UI actions)
-- bootstrap/ (wire-up file)
+- includes/domains/payments/hooks/ (WordPress hooks)
+- includes/domains/payments/activation/ (activation routines)
+- includes/domains/payments/admin/ (WP-Admin UI actions)
+- includes/domains/payments/bootstrap/ (wire-up file)
 
 2) Provider Selection (Service Layer)
+File: includes/domains/payments/services/PaymentService.php
 Single service responsible for handing out the active provider.
 Default provider: WooProvider.
-Allow replacement via a filter hook (name it: squidly/payments/provider).
+
+In the constructor of PaymentService, check if a provider instance was passed in.
+If not, default to new WooProvider().
+Apply filter hook (name it: squidly/payments/provider) to allow replacement.
 The rest of Squidly touches only the service; never the provider directly.
 
 3) Woo Provider — Behavior (Words)
@@ -53,17 +58,20 @@ On plugin activation:
 - Purpose: give Woo a legitimate line item so taxes/fees/gateways work consistently, while total is controlled.
 
 5) Payment Status Sync (Hooks — Words)
-Register on init:
-- For Woo statuses: processing, completed → treat as "paid-like".
-- For failed → map to Squidly failed.
-- For refunded → map to Squidly refunded.
+File: includes/domains/payments/hooks/PaymentStatusSync.php
+Register WordPress hooks on init using woocommerce_order_status_* actions:
+- woocommerce_order_status_processing → map to Squidly paid
+- woocommerce_order_status_completed → map to Squidly paid  
+- woocommerce_order_status_failed → map to Squidly failed
+- woocommerce_order_status_refunded → map to Squidly refunded
+- woocommerce_order_status_cancelled → map to Squidly failed
+- woocommerce_order_status_on-hold → map to Squidly pending
 
 On each transition:
 - Read _squidly_order_id from Woo order meta.
 - Update Squidly meta:
-  - _payment_status: paid | failed | refunded.
+  - _payment_status: paid | failed | refunded | pending.
   - _tx_id: Woo transaction id (if present) when paid.
-- Optional: cover cancelled, on-hold if needed (map to failed or pending per policy).
 
 6) REST Endpoints (Backend Only)
 Namespace: squidly/v1.
@@ -82,13 +90,17 @@ POST /pay/refund
 Error responses: clear message; no stack traces; 4xx for validation, 5xx for provider/infra errors.
 
 7) Admin Triggers (Orders List)
+File: includes/domains/payments/admin/PaymentAdminActions.php
+JavaScript: includes/domains/payments/admin/js/payment-admin.js
+
 In Squidly orders WP-Admin list row actions:
 - Add "Pay" → JS prompt for amount → call /pay/start → open checkout URL in new tab.
 - Add "Refund" → JS prompt for amount → call /pay/refund → alert result.
 
+Enqueue JavaScript on edit.php page for squidly_order post type.
 Secure with:
 - Nonces per row action.
-- Capability checks.
+- Capability checks (manage_options).
 
 These are convenience actions; front-end remains out of scope.
 

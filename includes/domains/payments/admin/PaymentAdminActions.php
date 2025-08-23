@@ -2,6 +2,9 @@
 
 namespace Squidly\Domains\Payments\Admin;
 
+// Import OrderPostType to use the constant
+require_once SQUIDLY_CORE_PATH . 'includes/domains/orders/post-types/OrderPostType.php';
+
 class PaymentAdminActions {
     
     public function __construct() {
@@ -14,13 +17,13 @@ class PaymentAdminActions {
             return;
         }
         
-        if ($_GET['post_type'] !== 'squidly_order') {
+        if ($_GET['post_type'] !== \OrderPostType::POST_TYPE) {
             return;
         }
         
         wp_enqueue_script(
             'squidly-payment-admin',
-            plugins_url('js/payment-admin.js', __FILE__),
+            plugins_url('includes/domains/payments/admin/js/payment-admin.js', dirname(dirname(dirname(dirname(__FILE__))))),
             ['jquery'],
             '1.0.0',
             true
@@ -29,12 +32,12 @@ class PaymentAdminActions {
         wp_localize_script('squidly-payment-admin', 'squidly_payment', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'rest_url' => rest_url('squidly/v1/pay/'),
-            'nonce' => wp_create_nonce('squidly_payment_nonce')
+            'nonce' => wp_create_nonce('wp_rest')
         ]);
     }
     
     public function add_payment_row_actions(array $actions, \WP_Post $post): array {
-        if ($post->post_type !== 'squidly_order') {
+        if ($post->post_type !== \OrderPostType::POST_TYPE) {
             return $actions;
         }
         
@@ -42,7 +45,11 @@ class PaymentAdminActions {
             return $actions;
         }
         
+        // Check both meta field variations for payment status
         $payment_status = get_post_meta($post->ID, '_payment_status', true);
+        if (!$payment_status) {
+            $payment_status = get_post_meta($post->ID, 'payment_status', true);
+        }
         
         if ($payment_status !== 'paid') {
             $pay_nonce = wp_create_nonce('squidly_pay_' . $post->ID);

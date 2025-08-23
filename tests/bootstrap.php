@@ -43,6 +43,8 @@ function _load_payment_classes() {
 	require_once $plugin_dir . '/includes/domains/payments/interfaces/PaymentProvider.php';
 	require_once $plugin_dir . '/includes/domains/payments/services/PaymentService.php';
 	require_once $plugin_dir . '/includes/domains/payments/gateways/WooProvider.php';
+	require_once $plugin_dir . '/includes/domains/payments/hooks/PaymentStatusSync.php';
+	require_once $plugin_dir . '/includes/domains/payments/rest/PaymentRestController.php';
 	require_once $plugin_dir . '/includes/domains/payments/admin/PaymentAdminActions.php';
 	require_once $plugin_dir . '/includes/domains/payments/activation/PaymentProductActivation.php';
 	require_once $plugin_dir . '/includes/domains/payments/bootstrap/PaymentBootstrap.php';
@@ -50,9 +52,9 @@ function _load_payment_classes() {
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
-// Load payment classes before tests run
-_load_payment_classes();
-
 // Start up the WP testing environment.
 require "{$_tests_dir}/includes/bootstrap.php";
+
+// Load payment classes after WordPress is loaded
+_load_payment_classes();
 

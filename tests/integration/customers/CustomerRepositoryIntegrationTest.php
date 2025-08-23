@@ -239,7 +239,9 @@ class CustomerRepositoryIntegrationTest extends WP_UnitTestCase
         // Test getCustomersWithLoyaltyPoints
         $with_points = $this->repository->getCustomersWithLoyaltyPoints(100.0);
         $this->assertCount(1, $with_points);
-        $this->assertEquals($customer1_id, $with_points[0]->id);
+        if (!empty($with_points)) {
+            $this->assertEquals($customer1_id, $with_points[0]->id);
+        }
 
         // Test findBy with various criteria
         $high_spenders = $this->repository->findBy(['min_total_spent' => 400.0]);

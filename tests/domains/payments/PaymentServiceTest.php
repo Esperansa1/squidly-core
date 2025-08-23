@@ -105,4 +105,31 @@ class PaymentServiceTest extends TestCase {
         
         new PaymentService();
     }
+    
+    public function testConstructorWithInjectedProvider(): void {
+        $injected_provider = $this->createMock(PaymentProvider::class);
+        $injected_provider->method('label')->willReturn('Injected Provider');
+        
+        $service = new PaymentService($injected_provider);
+        
+        $this->assertEquals('Injected Provider', $service->getProviderLabel());
+    }
+    
+    public function testConstructorWithNullDefaultsToFilter(): void {
+        $this->mockProvider->method('label')->willReturn('Filter Provider');
+        
+        $service = new PaymentService(null);
+        
+        $this->assertEquals('Filter Provider', $service->getProviderLabel());
+    }
+    
+    public function testInjectedProviderTakesPrecedenceOverFilter(): void {
+        $injected_provider = $this->createMock(PaymentProvider::class);
+        $injected_provider->method('label')->willReturn('Injected Provider');
+        
+        // Filter should be ignored when provider is injected
+        $service = new PaymentService($injected_provider);
+        
+        $this->assertEquals('Injected Provider', $service->getProviderLabel());
+    }
 }

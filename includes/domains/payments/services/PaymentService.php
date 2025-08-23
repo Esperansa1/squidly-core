@@ -9,8 +9,8 @@ class PaymentService {
     
     private PaymentProvider $provider;
     
-    public function __construct() {
-        $this->provider = $this->getProvider();
+    public function __construct(?PaymentProvider $provider = null) {
+        $this->provider = $provider ?? $this->getProvider();
     }
     
     public function startPayment(int $squidly_order_id, string $amount, array $billing_fields = []): array {

@@ -27,6 +27,25 @@ require_once __DIR__ . '/includes/core/PostTypeRegistry.php';
 
 
 spl_autoload_register(function ($class) {
+    // Handle namespaced classes (e.g., Squidly\Domains\Payments\Bootstrap\PaymentBootstrap)
+    if (strpos($class, 'Squidly\\Domains\\Payments\\') === 0) {
+        // Convert namespace to file path
+        $relative_class = str_replace('Squidly\\Domains\\Payments\\', '', $class);
+        $parts = explode('\\', $relative_class);
+        
+        if (count($parts) === 2) {
+            $folder = strtolower($parts[0]);  // e.g., 'bootstrap'
+            $filename = $parts[1];            // e.g., 'PaymentBootstrap'
+            $file = SQUIDLY_CORE_PATH . 'includes/domains/payments/' . $folder . '/' . $filename . '.php';
+            
+            if (file_exists($file)) {
+                require_once $file;
+                return;
+            }
+        }
+    }
+    
+    // Fallback to original paths for non-namespaced classes
     $paths = [
         // Shared components
         'includes/shared/models/',
@@ -60,6 +79,11 @@ spl_autoload_register(function ($class) {
         'includes/domains/payments/gateways/',
         'includes/domains/payments/services/',
         'includes/domains/payments/managers/',
+        'includes/domains/payments/rest/',
+        'includes/domains/payments/admin/',
+        'includes/domains/payments/hooks/',
+        'includes/domains/payments/activation/',
+        'includes/domains/payments/bootstrap/',
         
         // Admin components
         'includes/admin/',
@@ -100,6 +124,48 @@ add_action('squidly_cleanup_guests', function() {
     
     if ($deleted > 0) {
         error_log("Squidly: Cleaned up {$deleted} old guest customers");
+    }
+});
+
+// Manual require of payment classes (temporary fix)
+require_once __DIR__ . '/includes/domains/payments/interfaces/PaymentProvider.php';
+require_once __DIR__ . '/includes/domains/payments/services/PaymentService.php';
+require_once __DIR__ . '/includes/domains/payments/gateways/WooProvider.php';
+require_once __DIR__ . '/includes/domains/payments/rest/PaymentRestController.php';
+require_once __DIR__ . '/includes/domains/payments/admin/PaymentAdminActions.php';
+require_once __DIR__ . '/includes/domains/payments/hooks/PaymentStatusSync.php';
+require_once __DIR__ . '/includes/domains/payments/activation/PaymentProductActivation.php';
+require_once __DIR__ . '/includes/domains/payments/bootstrap/PaymentBootstrap.php';
+
+// Initialize Payment Gateway System immediately after classes are loaded
+if (class_exists('Squidly\Domains\Payments\Bootstrap\PaymentBootstrap')) {
+    \Squidly\Domains\Payments\Bootstrap\PaymentBootstrap::init();
+}
+
+// Payment system activation hooks
+register_activation_hook(__FILE__, function() {
+    // Ensure WooCommerce is loaded before creating payment product
+    if (class_exists('WooCommerce')) {
+        if (class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {
+            \Squidly\Domains\Payments\Activation\PaymentProductActivation::createPaymentProduct();
+        }
+    } else {
+        // Schedule creation for later when WooCommerce is available
+        add_action('init', function() {
+            if (class_exists('WooCommerce') && class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {
+                // Only create if not already created
+                $existing = get_option('squidly_wc_payment_product_id');
+                if (!$existing || !wc_get_product($existing)) {
+                    \Squidly\Domains\Payments\Activation\PaymentProductActivation::createPaymentProduct();
+                }
+            }
+        });
+    }
+});
+
+register_deactivation_hook(__FILE__, function() {
+    if (class_exists('WooCommerce') && class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {
+        \Squidly\Domains\Payments\Activation\PaymentProductActivation::cleanupPaymentProduct();
     }
 });
 
