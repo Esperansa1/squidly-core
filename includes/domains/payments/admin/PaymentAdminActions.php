@@ -10,6 +10,10 @@ class PaymentAdminActions {
     public function __construct() {
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_scripts']);
         add_filter('post_row_actions', [$this, 'add_payment_row_actions'], 10, 2);
+        
+        // Add AJAX handlers for payment actions
+        add_action('wp_ajax_squidly_start_payment', [$this, 'handle_start_payment']);
+        add_action('wp_ajax_squidly_refund_payment', [$this, 'handle_refund_payment']);
     }
     
     public function enqueue_admin_scripts($hook): void {
@@ -32,7 +36,7 @@ class PaymentAdminActions {
         wp_localize_script('squidly-payment-admin', 'squidly_payment', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'rest_url' => rest_url('squidly/v1/pay/'),
-            'nonce' => wp_create_nonce('wp_rest')
+            'nonce' => wp_create_nonce('squidly_payment_ajax')
         ]);
     }
     
@@ -72,5 +76,76 @@ class PaymentAdminActions {
         }
         
         return $actions;
+    }
+    
+    public function handle_start_payment(): void {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'squidly_payment_ajax')) {
+            wp_die('Invalid nonce', 'Nonce Error', ['response' => 403]);
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_die('Insufficient permissions', 'Permission Error', ['response' => 403]);
+        }
+        
+        $order_id = intval($_POST['order_id'] ?? 0);
+        $amount = floatval($_POST['amount'] ?? 0);
+        
+        if (!$order_id || !$amount) {
+            wp_send_json_error('Invalid order ID or amount');
+            return;
+        }
+        
+        try {
+            require_once SQUIDLY_CORE_PATH . 'includes/domains/payments/services/PaymentService.php';
+            $payment_service = new \Squidly\Domains\Payments\Services\PaymentService();
+            
+            $result = $payment_service->startPayment($order_id, $amount);
+            
+            if (isset($result['error'])) {
+                wp_send_json_error($result['error']);
+            } else {
+                wp_send_json_success($result);
+            }
+        } catch (Exception $e) {
+            wp_send_json_error('Payment failed: ' . $e->getMessage());
+        }
+    }
+    
+    public function handle_refund_payment(): void {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'squidly_payment_ajax')) {
+            wp_die('Invalid nonce', 'Nonce Error', ['response' => 403]);
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_die('Insufficient permissions', 'Permission Error', ['response' => 403]);
+        }
+        
+        $order_id = intval($_POST['order_id'] ?? 0);
+        $amount = floatval($_POST['amount'] ?? 0);
+        $reason = sanitize_text_field($_POST['reason'] ?? '');
+        
+        if (!$order_id || !$amount) {
+            wp_send_json_error('Invalid order ID or amount');
+            return;
+        }
+        
+        try {
+            require_once SQUIDLY_CORE_PATH . 'includes/domains/payments/services/PaymentService.php';
+            $payment_service = new \Squidly\Domains\Payments\Services\PaymentService();
+            
+            $result = $payment_service->refund($order_id, $amount, $reason);
+            
+            if (!$result['success']) {
+                wp_send_json_error($result['message']);
+            } else {
+                wp_send_json_success($result);
+            }
+        } catch (Exception $e) {
+            wp_send_json_error('Refund failed: ' . $e->getMessage());
+        }
     }
 }

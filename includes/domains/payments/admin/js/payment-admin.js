@@ -13,29 +13,27 @@ jQuery(document).ready(function($) {
         }
         
         console.log('Starting payment request for order:', orderId, 'amount:', amount);
-        console.log('REST URL:', squidly_payment.rest_url + 'start');
+        console.log('AJAX URL:', squidly_payment.ajax_url);
         console.log('Nonce:', squidly_payment.nonce);
         
         $.ajax({
-            url: squidly_payment.rest_url + 'start',
+            url: squidly_payment.ajax_url,
             type: 'POST',
             data: {
+                action: 'squidly_start_payment',
                 order_id: parseInt(orderId),
-                amount: amount
-            },
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-WP-Nonce', squidly_payment.nonce);
-                console.log('Request headers set, sending request...');
+                amount: amount,
+                nonce: squidly_payment.nonce
             },
             success: function(response) {
                 console.log('Payment request successful:', response);
-                if (response.checkout_url) {
-                    console.log('Opening checkout URL:', response.checkout_url);
-                    window.open(response.checkout_url, '_blank');
+                if (response.success && response.data.checkout_url) {
+                    console.log('Opening checkout URL:', response.data.checkout_url);
+                    window.open(response.data.checkout_url, '_blank');
                     location.reload();
-                } else if (response.error) {
-                    console.log('Payment error from server:', response.error);
-                    alert('Payment failed: ' + response.error);
+                } else if (!response.success && response.data) {
+                    console.log('Payment error from server:', response.data);
+                    alert('Payment failed: ' + response.data);
                 } else {
                     console.log('Unexpected response format:', response);
                     alert('Unexpected response format');
@@ -89,23 +87,21 @@ jQuery(document).ready(function($) {
         }
         
         $.ajax({
-            url: squidly_payment.rest_url + 'refund',
+            url: squidly_payment.ajax_url,
             type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
+            data: {
+                action: 'squidly_refund_payment',
                 order_id: parseInt(orderId),
                 amount: amount,
-                reason: reason
-            }),
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-WP-Nonce', squidly_payment.nonce);
+                reason: reason,
+                nonce: squidly_payment.nonce
             },
             success: function(response) {
                 if (response.success) {
-                    alert('Refund processed successfully: ' + response.message);
+                    alert('Refund processed successfully: ' + response.data.message);
                     location.reload();
-                } else if (response.error) {
-                    alert('Refund failed: ' + response.error);
+                } else if (!response.success && response.data) {
+                    alert('Refund failed: ' + response.data);
                 }
             },
             error: function(xhr) {
