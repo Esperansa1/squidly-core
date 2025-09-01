@@ -194,15 +194,50 @@ class OrderPostType implements PostTypeInterface
         
         if (!empty($order_items)) {
             echo '<table class="wp-list-table widefat fixed striped">';
-            echo '<thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead>';
+            echo '<thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Total</th><th>Modifications & Notes</th></tr></thead>';
             echo '<tbody>';
             
             foreach ($order_items as $item) {
                 echo '<tr>';
-                echo '<td>' . esc_html($item['product_name']) . '</td>';
+                echo '<td><strong>' . esc_html($item['product_name']) . '</strong></td>';
                 echo '<td>' . esc_html($item['quantity']) . '</td>';
                 echo '<td>₪' . number_format((float)$item['unit_price'], 2) . '</td>';
                 echo '<td>₪' . number_format((float)$item['total_price'], 2) . '</td>';
+                
+                // Modifications and Notes column
+                echo '<td>';
+                
+                // Display modifications if they exist
+                if (!empty($item['modifications']) && is_array($item['modifications'])) {
+                    echo '<div style="margin-bottom: 8px;">';
+                    echo '<strong style="color: #0073aa;">🔧 Modifications:</strong><br>';
+                    foreach ($item['modifications'] as $key => $value) {
+                        if (is_array($value)) {
+                            // Handle arrays (like toppings)
+                            $value_str = implode(', ', $value);
+                            echo '<span style="font-size: 12px; color: #666;">' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ':</span> ' . esc_html($value_str) . '<br>';
+                        } else {
+                            // Handle single values
+                            echo '<span style="font-size: 12px; color: #666;">' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ':</span> ' . esc_html($value) . '<br>';
+                        }
+                    }
+                    echo '</div>';
+                }
+                
+                // Display notes if they exist
+                if (!empty($item['notes'])) {
+                    echo '<div>';
+                    echo '<strong style="color: #d63638;">📝 Notes:</strong><br>';
+                    echo '<span style="font-style: italic; color: #444;">' . esc_html($item['notes']) . '</span>';
+                    echo '</div>';
+                }
+                
+                // If no modifications or notes
+                if (empty($item['modifications']) && empty($item['notes'])) {
+                    echo '<span style="color: #999; font-style: italic;">No customizations</span>';
+                }
+                
+                echo '</td>';
                 echo '</tr>';
             }
             

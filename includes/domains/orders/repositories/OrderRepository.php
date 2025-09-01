@@ -503,6 +503,84 @@ class OrderRepository implements RepositoryInterface
     }
 
     /**
+     * Create order from cart data (for payment flow)
+     */
+    public function createFromCartData(array $cart_data): Order
+    {
+        // Validate required cart data
+        $required_fields = ['customer_id', 'items'];
+        foreach ($required_fields as $field) {
+            if (!isset($cart_data[$field])) {
+                throw new InvalidArgumentException("Missing required field: {$field}");
+            }
+        }
+
+        // Calculate totals from items
+        $subtotal = 0.0;
+        $order_items_data = [];
+        
+        foreach ($cart_data['items'] as $item_data) {
+            $item_total = (float)$item_data['unit_price'] * (int)$item_data['quantity'];
+            $subtotal += $item_total;
+            
+            $order_items_data[] = [
+                'product_id' => (int)$item_data['product_id'],
+                'product_name' => $item_data['product_name'],
+                'quantity' => (int)$item_data['quantity'],
+                'unit_price' => (float)$item_data['unit_price'],
+                'total_price' => $item_total,
+                'modifications' => $item_data['modifications'] ?? [],
+                'notes' => $item_data['notes'] ?? null,
+            ];
+        }
+
+        $delivery_fee = (float)($cart_data['delivery_fee'] ?? 0.0);
+        $tax_rate = (float)get_option('squidly_tax_rate', 0.17);
+        $tax_amount = $subtotal * $tax_rate;
+        $total_amount = $subtotal + $tax_amount + $delivery_fee;
+
+        // Prepare order data
+        $order_data = [
+            'customer_id' => (int)$cart_data['customer_id'],
+            'status' => Order::STATUS_PENDING,
+            'subtotal' => $subtotal,
+            'tax_amount' => $tax_amount,
+            'delivery_fee' => $delivery_fee,
+            'total_amount' => $total_amount,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'payment_method' => $cart_data['payment_method'] ?? Order::PAYMENT_ONLINE,
+            'notes' => $cart_data['notes'] ?? '',
+            'delivery_address' => $cart_data['delivery_address'] ?? null,
+            'pickup_time' => $cart_data['pickup_time'] ?? null,
+            'special_instructions' => $cart_data['special_instructions'] ?? null,
+            'order_items' => $order_items_data,
+        ];
+
+        // Create the order
+        $order_id = $this->create($order_data);
+        
+        // Return the created order
+        return $this->get($order_id);
+    }
+
+    /**
+     * Link WooCommerce order to Squidly order
+     */
+    public function linkWooCommerceOrder(int $order_id, int $wc_order_id): bool
+    {
+        return update_post_meta($order_id, '_wc_order_id', $wc_order_id) !== false;
+    }
+
+    /**
+     * Get WooCommerce order ID for a Squidly order
+     */
+    public function getWooCommerceOrderId(int $order_id): ?int
+    {
+        $wc_order_id = get_post_meta($order_id, '_wc_order_id', true);
+        return $wc_order_id ? (int)$wc_order_id : null;
+    }
+
+    /**
      * Update order meta data
      */
     private function updateOrderMeta(int $post_id, array $data): void

@@ -1,0 +1,34 @@
+Hey Future Or Esperansa,
+This is what you left at the 23.8
+We are currently working on the payment gateway and want to see if after 'paying' the squidly-core plugin
+registers all the data correctly.
+We are currently not working with PayPlus as it requires some setting up and I've moved
+towards 'Pay with cash' option for testing purposes
+
+Send this prompt to Claude-Code
+Create test code that creates a full store, with branches, complex products      
+  (with product groups, ingredients, price overrides), customers and simulate      
+  an order creation with a specific customer and the given products. In the        
+  order add all of the custom available details
+
+I also wanted to ask claude the following but forgot
+Who generates the order id?
+Also in the start_payment function it validates that the order exists? who is supposed to create it? according to the current flow the order has never been created and it will always return error 404 order not found
+What is the WooProvider and what it does?
+The Order state when the customer is redirected to the woocommerce checkout is missing a lot of data. Correct me if I am wrong but it only saves payment status and the woocommerce order id.
+It misses doesnt have all of the data we use in the Order.php model
+    public int $id;
+    public int $customer_id;
+    public string $status;
+    public string $order_date;
+    public float $total_amount;
+    public float $subtotal;
+    public float $tax_amount;
+    public float $delivery_fee;
+    public string $payment_status;
+    public string $payment_method;
+    public string $notes;
+    public array $order_items; // Array of OrderItem objects
+    public ?string $delivery_address;
+    public ?string $pickup_time;
+    public ?string $special_instructions;
