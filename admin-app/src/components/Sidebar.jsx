@@ -93,85 +93,89 @@ const Sidebar = ({
           )}
         </button>
 
-        <div className="pt-16 px-4" dir="rtl">
-          {/* Logo Area */}
-          <div className={`flex items-center gap-3 mb-6 ${isExpanded ? '' : 'justify-center'}`}>
-            <div className="w-10 h-10 bg-red-600 rounded flex items-center justify-center flex-shrink-0">
-              <div className="w-6 h-0.5 bg-white transform rotate-45"></div>
-              <div className="w-6 h-0.5 bg-white transform -rotate-45 -ml-6"></div>
+        <div className="pt-16 px-4 h-full flex flex-col" dir="rtl">
+          {/* Main Content - Takes remaining space */}
+          <div className="flex-grow">
+            {/* Logo Area */}
+            <div className={`flex items-center gap-3 mb-6 ${isExpanded ? '' : 'justify-center'}`}>
+              <div className="w-10 h-10 bg-red-600 rounded flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-0.5 bg-white transform rotate-45"></div>
+                <div className="w-6 h-0.5 bg-white transform -rotate-45 -ml-6"></div>
+              </div>
+              {isExpanded && (
+                <span className="text-xl font-bold text-gray-900" style={{ fontWeight: 800 }}>DeliGO</span>
+              )}
             </div>
-            {isExpanded && (
-              <span className="text-xl font-bold text-gray-900" style={{ fontWeight: 800 }}>DeliGO</span>
-            )}
-          </div>
 
-          {/* Search Bar */}
-          <div className={`mb-6 ${isExpanded ? '' : 'flex justify-center'}`}>
-            {isExpanded ? (
-              <div className="relative">
-                <MagnifyingGlassIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="חיפוש"
-                  className="w-full pl-4 pr-10 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-red-500"
-                />
-              </div>
-            ) : (
-              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
-              </div>
-            )}
-          </div>
-
-          {/* Navigation Sections */}
-          <nav className="space-y-1">
-            {Object.entries(navigationItems).map(([sectionTitle, items], sectionIndex) => (
-              <div key={sectionTitle}>
-                {sectionIndex > 0 && <SectionDivider />}
-                
-                {/* Section Title */}
-                {isExpanded && (
-                  <div className="px-4 py-2">
-                    <h3 className="text-xs text-gray-500 uppercase tracking-wider" style={{ fontWeight: 600 }}>
-                      {sectionTitle}
-                    </h3>
-                  </div>
-                )}
-
-                {/* Section Items */}
-                <div className="space-y-1">
-                  {items.map((item) => (
-                    <NavItem
-                      key={item.id}
-                      item={item}
-                      isActive={activeItem === item.label}
-                    />
-                  ))}
+            {/* Search Bar */}
+            <div className={`mb-6 ${isExpanded ? '' : 'flex justify-center'}`}>
+              {isExpanded ? (
+                <div className="relative">
+                  <MagnifyingGlassIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="חיפוש"
+                    className="w-full pl-4 pr-10 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-red-500"
+                  />
                 </div>
-              </div>
-            ))}
-          </nav>
+              ) : (
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
+                </div>
+              )}
+            </div>
 
-          <SectionDivider />
+            {/* Navigation Sections */}
+            <nav className="space-y-1">
+              {Object.entries(navigationItems).map(([sectionTitle, items], sectionIndex) => (
+                <div key={sectionTitle}>
+                  {sectionIndex > 0 && <SectionDivider />}
+                  
+                  {/* Section Title */}
+                  {isExpanded && (
+                    <div className="px-4 py-2">
+                      <h3 className="text-xs text-gray-500 uppercase tracking-wider" style={{ fontWeight: 600 }}>
+                        {sectionTitle}
+                      </h3>
+                    </div>
+                  )}
 
-          {/* User Section */}
-          <div className={`mt-auto pt-4 ${isExpanded ? '' : 'flex justify-center'}`}>
-            {isExpanded ? (
-              <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors rounded-lg">
-                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  {/* Section Items */}
+                  <div className="space-y-1">
+                    {items.map((item) => (
+                      <NavItem
+                        key={item.id}
+                        item={item}
+                        isActive={activeItem === item.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </nav>
+          </div>
+
+          {/* User Section - Fixed at Bottom */}
+          <div className="flex-shrink-0">
+            <SectionDivider />
+            <div className={`pt-4 pb-4 ${isExpanded ? '' : 'flex justify-center'}`}>
+              {isExpanded ? (
+                <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors rounded-lg">
+                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm text-red-600" style={{ fontWeight: 800 }}>נ</span>
+                  </div>
+                  <div className="flex-1 text-right">
+                    <div className="text-sm text-gray-900" style={{ fontWeight: 800 }}>ניסים דיין</div>
+                    <div className="text-xs text-gray-500" style={{ fontWeight: 400 }}>מנהל</div>
+                  </div>
+                  <ChevronDownIcon className="w-4 h-4 text-gray-400" />
+                </button>
+              ) : (
+                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
                   <span className="text-sm text-red-600" style={{ fontWeight: 800 }}>נ</span>
                 </div>
-                <div className="flex-1 text-right">
-                  <div className="text-sm text-gray-900" style={{ fontWeight: 800 }}>ניסים דיין</div>
-                  <div className="text-xs text-gray-500" style={{ fontWeight: 400 }}>מנהל</div>
-                </div>
-                <ChevronDownIcon className="w-4 h-4 text-gray-400" />
-              </button>
-            ) : (
-              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                <span className="text-sm text-red-600" style={{ fontWeight: 800 }}>נ</span>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
