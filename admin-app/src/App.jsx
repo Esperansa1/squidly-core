@@ -1,6 +1,20 @@
 import React from 'react';
-import MenuManagement from './components/MenuManagement.jsx';
+import { RouterProvider, useRouter } from './router.jsx';
 import './styles/admin.css';
+
+/**
+ * Main Admin Application Content
+ */
+const AppContent = () => {
+  const { getCurrentComponent } = useRouter();
+  const CurrentComponent = getCurrentComponent();
+  
+  return (
+    <div className="squidly-admin-app">
+      <CurrentComponent />
+    </div>
+  );
+};
 
 /**
  * Main Admin Application
@@ -9,9 +23,9 @@ import './styles/admin.css';
  */
 const App = () => {
   return (
-    <div className="squidly-admin-app">
-      <MenuManagement />
-    </div>
+    <RouterProvider>
+      <AppContent />
+    </RouterProvider>
   );
 };
 

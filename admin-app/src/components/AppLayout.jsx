@@ -13,8 +13,8 @@ const AppLayout = ({
     if (onNavigate) {
       onNavigate(itemId, itemLabel);
     }
-    // Default navigation logic can be added here
-    console.log('Navigating to:', itemId, itemLabel);
+    // Navigation is now handled by the router
+    console.log('Navigated to:', itemId, itemLabel);
   };
 
   return (

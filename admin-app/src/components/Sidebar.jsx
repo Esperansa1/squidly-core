@@ -15,6 +15,7 @@ import {
   CogIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
+import { useRouter } from '../router.jsx';
 
 const Sidebar = ({ 
   activeItem = 'ניהול תפריט', 
@@ -23,6 +24,8 @@ const Sidebar = ({
   isExpanded = true,
   className = '' 
 }) => {
+  const { navigate } = useRouter();
+  
   const toggleSidebar = () => {
     onToggle(!isExpanded);
   };
@@ -46,6 +49,7 @@ const Sidebar = ({
   };
 
   const handleItemClick = (itemId, itemLabel) => {
+    navigate(itemId);
     onNavigate(itemId, itemLabel);
   };
 
