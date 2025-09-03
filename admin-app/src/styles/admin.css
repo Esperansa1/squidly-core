@@ -1,0 +1,234 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Root variables for theme colors - easily changeable */
+:root {
+  --squidly-primary: #D12525;
+  --squidly-secondary: #F2F2F2;
+  --squidly-success: #10B981;
+  --squidly-danger: #EF4444;
+  --squidly-white: #FFFFFF;
+}
+
+/* Admin App Container - Remove any WordPress styling influence */
+.squidly-admin-app {
+  font-family: 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.5;
+  color: #374151;
+  background-color: var(--squidly-secondary);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.squidly-admin-app *,
+.squidly-admin-app *::before,
+.squidly-admin-app *::after {
+  box-sizing: border-box;
+}
+
+/* RTL-specific utilities */
+.rtl {
+  direction: rtl;
+}
+
+.ltr {
+  direction: ltr;
+}
+
+/* Remove any WordPress admin styling */
+.squidly-admin-app .wp-admin,
+.squidly-admin-app #wpwrap,
+.squidly-admin-app #adminmenumain,
+.squidly-admin-app #wpcontent {
+  display: none !important;
+}
+
+/* Custom component styles */
+.dropdown-shadow {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card-shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Radio button custom styling */
+input[type="radio"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--squidly-primary);
+}
+
+/* Button hover effects */
+.action-button {
+  transition: all 0.2s ease-in-out;
+}
+
+.action-button:hover:not(:disabled) {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+/* Table row hover effects */
+.table-row {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.table-row:hover {
+  background-color: rgba(249, 250, 251, 1);
+}
+
+/* Tab button styles */
+.tab-button {
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.tab-button.active {
+  background-color: var(--squidly-primary);
+  color: white;
+}
+
+.tab-button:not(.active) {
+  color: #6B7280;
+}
+
+.tab-button:not(.active):hover {
+  color: #374151;
+  background-color: rgba(249, 250, 251, 1);
+}
+
+/* Dropdown animation */
+.dropdown-menu {
+  animation: dropdownFadeIn 0.15s ease-out forwards;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@keyframes dropdownFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Status indicator styles */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.status-dot.active {
+  background-color: var(--squidly-success);
+}
+
+.status-dot.inactive {
+  background-color: var(--squidly-danger);
+}
+
+/* Loading spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Focus styles for accessibility */
+button:focus,
+input:focus,
+select:focus {
+  outline: 2px solid var(--squidly-primary);
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Error message styling */
+.error-message {
+  color: var(--squidly-danger);
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+/* Success message styling */
+.success-message {
+  color: var(--squidly-success);
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+/* Mobile responsive adjustments for RTL */
+@media (max-width: 768px) {
+  .rtl .mobile-stack {
+    flex-direction: column-reverse;
+  }
+  
+  .rtl .mobile-text-right {
+    text-align: right;
+  }
+
+  .squidly-admin-app {
+    padding: 1rem;
+  }
+  
+  .max-w-7xl {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+}
+
+/* Hide scrollbars but keep functionality */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Ensure full viewport coverage */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#squidly-admin-root {
+  min-height: 100vh;
+  background-color: var(--squidly-secondary);
+}
