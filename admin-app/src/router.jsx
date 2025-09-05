@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 // Import content components for SPA behavior
-import MenuManagementSimple from './components/MenuManagementSimple.jsx';
+import MenuManagement from './components/MenuManagement.jsx';
 import ManagementAreaContent from './components/pages/ManagementAreaContent.jsx';
 import PerformanceContent from './components/pages/PerformanceContent.jsx';
 import PaymentsContent from './components/pages/PaymentsContent.jsx';
@@ -18,7 +18,7 @@ const routes = {
   'payments': PaymentsContent,
   'orders': OrdersContent,
   'suppliers': SuppliersContent,
-  'menu-management': MenuManagementSimple,
+  'menu-management': MenuManagement,
   'customers': CustomersContent,
   'tutorials': TutorialsContent,
   'settings': SettingsContent,
@@ -37,7 +37,7 @@ export const RouterProvider = ({ children }) => {
   };
 
   const getCurrentComponent = () => {
-    const Component = routes[currentRoute] || MenuManagementSimple;
+    const Component = routes[currentRoute] || MenuManagement;
     return Component;
   };
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDownIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import api from '../services/api.js';
-import AppLayout from './AppLayout.jsx';
 
 const MenuManagement = () => {
   const [config, setConfig] = useState(null);
@@ -86,36 +85,9 @@ const MenuManagement = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: config?.theme?.secondary_color || '#F2F2F2' }}>
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-gray-300 border-t-red-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">טוען ממשק ניהול התפריט...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: config?.theme?.secondary_color || '#F2F2F2' }}>
-        <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">⚠️</div>
-          <p className="text-red-600 mb-4">שגיאה בטעינה: {error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            טען מחדש
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const theme = api.getTheme();
-  const strings = api.getStrings();
+  // Get theme and strings with fallbacks - don't block rendering
+  const theme = config ? api.getTheme() : { primary_color: '#D12525', secondary_color: '#F2F2F2', danger_color: '#ef4444' };
+  const strings = config ? api.getStrings() : {};
   const tabs = [strings.groups || 'קבוצות', strings.ingredients || 'מרכיבים', strings.products || 'מוצרים'];
 
   const StatusIndicator = ({ status }) => (
@@ -187,7 +159,27 @@ const MenuManagement = () => {
 
       {/* Table Rows - Scrollable */}
       <div className="flex-1 p-6 pt-4 overflow-y-auto">
-        {groups.length === 0 ? (
+        {loading && !config ? (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="text-center">
+              <div className="w-8 h-8 border-4 border-gray-300 border-t-red-600 rounded-full animate-spin mx-auto mb-4"></div>
+              <p>טוען נתונים...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-full text-red-500">
+            <div className="text-center">
+              <div className="text-red-600 text-xl mb-4">⚠️</div>
+              <p className="text-red-600 mb-4">שגיאה בטעינה: {error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                טען מחדש
+              </button>
+            </div>
+          </div>
+        ) : groups.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center">
               <div className="text-4xl mb-4">📋</div>
@@ -209,16 +201,42 @@ const MenuManagement = () => {
                   <StatusIndicator status={group.status} />
                 </div>
                 <div className="col-span-1 flex justify-center">
+                  {/* Custom red radio button */}
+                  <div
+                    onClick={() => setSelectedGroup(group.id)}
+                    className="cursor-pointer"
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      border: `2px solid ${selectedGroup === group.id ? '#D12525' : '#d1d5db'}`,
+                      backgroundColor: selectedGroup === group.id ? '#D12525' : '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease-in-out'
+                    }}
+                  >
+                    {/* White dot when selected */}
+                    {selectedGroup === group.id && (
+                      <div
+                        style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          backgroundColor: '#ffffff'
+                        }}
+                      />
+                    )}
+                  </div>
+                  {/* Hidden native radio for form functionality */}
                   <input
                     type="radio"
                     name={`${type}-selection`}
+                    value={group.id}
                     checked={selectedGroup === group.id}
                     onChange={() => setSelectedGroup(group.id)}
-                    className="w-4 h-4 cursor-pointer focus:ring-2 focus:ring-offset-1"
-                    style={{ 
-                      accentColor: theme.primary_color,
-                      '--tw-ring-color': theme.primary_color + '40' // 25% opacity for focus ring
-                    }}
+                    style={{ display: 'none' }}
                   />
                 </div>
               </div>
@@ -229,106 +247,105 @@ const MenuManagement = () => {
     </div>
   );
 
+  // Return ONLY the content, no AppLayout wrapper
   return (
-    <AppLayout activeNavItem="ניהול תפריט">
-      <div className="h-full flex flex-col" style={{ backgroundColor: theme.secondary_color }}>
-        {/* Fixed Header */}
-        <div className="flex-shrink-0 px-6 pt-6">
-          {/* Page Header Controls */}
-          <div className="flex justify-between items-center mb-6">
-            {/* Tab Selector with Sliding Background */}
-            <div className="relative flex bg-white rounded-lg shadow-sm p-1">
-              {/* Sliding Background */}
-              <div
-                className="absolute inset-y-0 rounded-md transition-all duration-300 ease-out"
-                style={{
-                  backgroundColor: theme.primary_color,
-                  width: `${100 / tabs.length}%`,
-                  right: `${tabs.indexOf(activeTab) * (100 / tabs.length)}%`,
-                }}
-              />
-              
-              {/* Tab Buttons */}
-              {tabs.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`relative z-10 flex-1 px-6 py-2 text-sm transition-colors duration-300 focus:outline-none ${
-                    activeTab === tab
-                      ? 'text-white'
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
-                  style={{ fontWeight: 600 }}
-                >
-                  {tab}
-                </button>
-                ))}
-            </div>
-
-            {/* Branch Dropdown */}
-            <div className="relative">
+    <div className="h-full flex flex-col" style={{ backgroundColor: theme.secondary_color }}>
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 px-6 pt-6">
+        {/* Page Header Controls */}
+        <div className="flex justify-between items-center mb-6">
+          {/* Tab Selector with Sliding Background */}
+          <div className="relative flex bg-white rounded-lg shadow-sm p-1">
+            {/* Sliding Background */}
+            <div
+              className="absolute inset-y-0 rounded-md transition-all duration-300 ease-out"
+              style={{
+                backgroundColor: theme.primary_color,
+                width: `${100 / tabs.length}%`,
+                right: `${tabs.indexOf(activeTab) * (100 / tabs.length)}%`,
+              }}
+            />
+            
+            {/* Tab Buttons */}
+            {tabs.map((tab) => (
               <button
-                onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
-                className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative z-10 flex-1 px-6 py-2 text-sm transition-colors duration-300 focus:outline-none ${
+                  activeTab === tab
+                    ? 'text-white'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+                style={{ fontWeight: 600 }}
               >
-                <span className="text-sm text-gray-700" style={{ fontWeight: 600 }}>{selectedBranch}</span>
-                <ChevronDownIcon 
-                  className={`w-4 h-4 text-gray-500 transition-transform ${
-                    branchDropdownOpen ? 'rotate-180' : ''
-                  }`}
-                />
+                {tab}
               </button>
-              
-              {branchDropdownOpen && (
-                <div className="absolute top-full mt-1 right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                  {branches.map((branch) => (
-                    <button
-                      key={branch.id}
-                      onClick={() => {
-                        setSelectedBranch(branch.name);
-                        setSelectedBranchId(branch.id);
-                        setBranchDropdownOpen(false);
-                      }}
-                      className="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
-                    >
-                      {branch.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+              ))}
           </div>
-        </div>
 
-        {/* Scrollable Content Area */}
-        <div className="flex-1 px-6 pb-6 overflow-y-auto">
-          {/* Content Sections - Full Height Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 h-full">
-            {/* Product Groups Section */}
-            <div className="min-h-0 flex flex-col">
-              <GroupSection
-                title={strings.product_groups || 'קבוצות מוצרים'}
-                groups={productGroups}
-                selectedGroup={selectedProductGroup}
-                setSelectedGroup={setSelectedProductGroup}
-                type="product"
+          {/* Branch Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
+              className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-sm text-gray-700" style={{ fontWeight: 600 }}>{selectedBranch}</span>
+              <ChevronDownIcon 
+                className={`w-4 h-4 text-gray-500 transition-transform ${
+                  branchDropdownOpen ? 'rotate-180' : ''
+                }`}
               />
-            </div>
-
-            {/* Ingredient Groups Section */}
-            <div className="min-h-0 flex flex-col">
-              <GroupSection
-                title={strings.ingredient_groups || 'קבוצות מרכיבים'}
-                groups={ingredientGroups}
-                selectedGroup={selectedIngredientGroup}
-                setSelectedGroup={setSelectedIngredientGroup}
-                type="ingredient"
-              />
-            </div>
+            </button>
+            
+            {branchDropdownOpen && (
+              <div className="absolute top-full mt-1 right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                {branches.map((branch) => (
+                  <button
+                    key={branch.id}
+                    onClick={() => {
+                      setSelectedBranch(branch.name);
+                      setSelectedBranchId(branch.id);
+                      setBranchDropdownOpen(false);
+                    }}
+                    className="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
+                  >
+                    {branch.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </AppLayout>
+
+      {/* Scrollable Content Area */}
+      <div className="flex-1 px-6 pb-6 overflow-y-auto">
+        {/* Content Sections - Full Height Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 h-full">
+          {/* Product Groups Section */}
+          <div className="min-h-0 flex flex-col">
+            <GroupSection
+              title={strings.product_groups || 'קבוצות מוצרים'}
+              groups={productGroups}
+              selectedGroup={selectedProductGroup}
+              setSelectedGroup={setSelectedProductGroup}
+              type="product"
+            />
+          </div>
+
+          {/* Ingredient Groups Section */}
+          <div className="min-h-0 flex flex-col">
+            <GroupSection
+              title={strings.ingredient_groups || 'קבוצות מרכיבים'}
+              groups={ingredientGroups}
+              selectedGroup={selectedIngredientGroup}
+              setSelectedGroup={setSelectedIngredientGroup}
+              type="ingredient"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
