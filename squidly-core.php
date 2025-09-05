@@ -137,10 +137,23 @@ require_once __DIR__ . '/includes/domains/payments/hooks/PaymentStatusSync.php';
 require_once __DIR__ . '/includes/domains/payments/activation/PaymentProductActivation.php';
 require_once __DIR__ . '/includes/domains/payments/bootstrap/PaymentBootstrap.php';
 
+// REST API Controllers
+require_once __DIR__ . '/includes/domains/products/rest/ProductGroupRestController.php';
+require_once __DIR__ . '/includes/domains/products/rest/IngredientGroupRestController.php';
+require_once __DIR__ . '/includes/domains/stores/rest/StoreBranchRestController.php';
+require_once __DIR__ . '/includes/api/AdminApiBootstrap.php';
+
 // Initialize Payment Gateway System immediately after classes are loaded
 if (class_exists('Squidly\Domains\Payments\Bootstrap\PaymentBootstrap')) {
     \Squidly\Domains\Payments\Bootstrap\PaymentBootstrap::init();
 }
+
+// Initialize Admin API
+AdminApiBootstrap::init();
+
+// Initialize Admin Page Handler
+require_once __DIR__ . '/includes/admin/AdminPageHandler.php';
+AdminPageHandler::init();
 
 // Payment system activation hooks
 register_activation_hook(__FILE__, function() {

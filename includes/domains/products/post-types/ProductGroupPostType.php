@@ -179,7 +179,7 @@ class ProductGroupPostType implements PostTypeInterface
                 // Get item details for display
                 $item_id = get_post_meta($item->ID, '_item_id', true);
                 $item_type = get_post_meta($item->ID, '_item_type', true);
-                $override_price = get_post_meta($item->ID, '_override_price', true);
+                $override_price = (float) (get_post_meta($item->ID, '_override_price', true) ?: 0);
                 
                 // Get the referenced item name
                 $referenced_item = get_post($item_id);
@@ -190,7 +190,7 @@ class ProductGroupPostType implements PostTypeInterface
                 echo '<strong>' . esc_html($referenced_name) . '</strong>';
                 echo ' <small style="color: #666;">(ID: ' . $item_id . ')</small>';
                 
-                if ($override_price) {
+                if ($override_price > 0) {
                     echo '<br><small style="color: #d63638;">Override Price: ₪' . number_format($override_price, 2) . '</small>';
                 } else {
                     echo '<br><small style="color: #666;">Uses original price</small>';
@@ -239,7 +239,7 @@ class ProductGroupPostType implements PostTypeInterface
 
             $item_id = get_post_meta($group_item_id, '_item_id', true);
             $item_type = get_post_meta($group_item_id, '_item_type', true);
-            $override_price = get_post_meta($group_item_id, '_override_price', true);
+            $override_price = (float) (get_post_meta($group_item_id, '_override_price', true) ?: 0);
 
             $referenced_item = get_post($item_id);
             if (!$referenced_item) continue;
@@ -247,12 +247,12 @@ class ProductGroupPostType implements PostTypeInterface
             // Get original price
             $original_price = 0;
             if ($item_type === 'product') {
-                $original_price = get_post_meta($item_id, '_regular_price', true) ?: 0;
+                $original_price = (float) (get_post_meta($item_id, '_regular_price', true) ?: 0);
             } elseif ($item_type === 'ingredient') {
-                $original_price = get_post_meta($item_id, '_price', true) ?: 0;
+                $original_price = (float) (get_post_meta($item_id, '_price', true) ?: 0);
             }
 
-            $group_price = $override_price ?: $original_price;
+            $group_price = ($override_price > 0) ? $override_price : $original_price;
             $difference = $group_price - $original_price;
 
             $total_original += $original_price;

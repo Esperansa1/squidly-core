@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Squidly Admin - ניהול מסעדה</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="Squidly Admin - ניהול מסעדה">
+  <meta name="description" content="מערכת ניהול מסעדה מתקדמת עם תמיכה בעברית">
+  
+  <!-- Preload critical resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Hebrew/RTL optimized fonts -->
+  <style>
+    body {
+      font-family: 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      direction: rtl;
+      text-align: right;
+      background-color: #F2F2F2;
+      color: #374151;
+    }
+    
+    /* Loading screen styles */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #F2F2F2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #D12525;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      font-size: 16px;
+      color: #6B7280;
+      font-weight: 500;
+    }
+    
+    /* Hide loading screen when app loads */
+    .app-loaded .loading-screen {
+      display: none;
+    }
+    
+    /* Error screen styles */
+    .error-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #F2F2F2;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9998;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .error-screen.show {
+      display: flex;
+    }
+    
+    .error-icon {
+      font-size: 48px;
+      color: #EF4444;
+      margin-bottom: 20px;
+    }
+    
+    .error-title {
+      font-size: 24px;
+      color: #1F2937;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    
+    .error-message {
+      font-size: 16px;
+      color: #6B7280;
+      margin-bottom: 30px;
+      max-width: 500px;
+      line-height: 1.5;
+    }
+    
+    .error-button {
+      background-color: #D12525;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .error-button:hover {
+      background-color: #B01D1D;
+    }
+    
+    /* Ensure app root takes full height */
+    #squidly-admin-root {
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loading-screen">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">טוען מערכת ניהול המסעדה...</div>
+  </div>
+  
+  <!-- Error Screen -->
+  <div class="error-screen" id="error-screen">
+    <div class="error-icon">⚠️</div>
+    <h1 class="error-title">שגיאה בטעינת המערכת</h1>
+    <p class="error-message" id="error-message">
+      אירעה שגיאה בטעינת מערכת ניהול המסעדה. אנא נסה שוב או פנה לתמיכה טכנית.
+    </p>
+    <button class="error-button" onclick="window.location.reload()">
+      טען מחדש
+    </button>
+  </div>
+  
+  <!-- Main App Container -->
+  <div id="squidly-admin-root"></div>
+  
+  <!-- Global JavaScript -->
+  <script>
+    // Global error handler
+    window.addEventListener('error', function(event) {
+      console.error('Global error:', event.error);
+      showErrorScreen('שגיאה טכנית: ' + event.error.message);
+    });
+    
+    // Show error screen
+    function showErrorScreen(message) {
+      document.getElementById('error-message').textContent = message;
+      document.getElementById('error-screen').classList.add('show');
+      document.getElementById('loading-screen').style.display = 'none';
+    }
+    
+    // Hide loading screen when app loads successfully
+    function hideLoadingScreen() {
+      document.body.classList.add('app-loaded');
+      document.getElementById('loading-screen').style.display = 'none';
+    }
+    
+    // Set up app load timeout
+    setTimeout(function() {
+      if (!document.body.classList.contains('app-loaded')) {
+        showErrorScreen('המערכת לא הצליחה להיטען בזמן הקצוב. אנא נסה שוב.');
+      }
+    }, 15000); // 15 second timeout
+  </script>
+</body>
+</html>
