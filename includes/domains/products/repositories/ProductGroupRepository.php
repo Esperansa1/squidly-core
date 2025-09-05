@@ -34,10 +34,17 @@ class ProductGroupRepository implements RepositoryInterface
             return null;
         }
 
+        $type = get_post_meta($id, '_type', true);
+        
+        // Skip ProductGroups without _type meta field - they're from before the filtering was implemented
+        if (empty($type) || !ItemType::tryFrom($type)) {
+            return null;
+        }
+
         return new ProductGroup([
             'id'              => $id,
             'name'            => $post->post_title,
-            'type'            => get_post_meta($id, '_type', true),
+            'type'            => $type,
             'group_item_ids'  => get_post_meta($id, '_group_item_ids', true) ?? [],
         ]);
     }
@@ -137,11 +144,17 @@ class ProductGroupRepository implements RepositoryInterface
             'nopaging'    => true,
             'meta_query'  => [
                 [
-                    'key'     => 'type',
+                    'key'     => '_type',
                     'value'   => $itemType->value,
                     'compare' => '='
+                ],
+                // Ensure the meta key exists (exclude ProductGroups without _type meta)
+                [
+                    'key'     => '_type',
+                    'compare' => 'EXISTS'
                 ]
-            ]
+            ],
+            'meta_query_relation' => 'AND'
         ]);
 
         return array_values(
@@ -149,6 +162,34 @@ class ProductGroupRepository implements RepositoryInterface
                 array_map(fn($pid) => $this->get((int)$pid), $ids)
             )
         );
+    }
+
+    /* ---------------------------------------------------------------------
+     *  getProductGroups() - Convenience method for product-type groups
+     * -------------------------------------------------------------------*/
+    /**
+     * Get all ProductGroups that group products together (ItemType::PRODUCT)
+     * These are used for organizing related products in menu categories
+     * 
+     * @return array Array of ProductGroup objects with type 'product'
+     */
+    public function getProductGroups(): array
+    {
+        return $this->getAllByItemType(ItemType::from('product'));
+    }
+
+    /* ---------------------------------------------------------------------
+     *  getIngredientGroups() - Convenience method for ingredient-type groups
+     * -------------------------------------------------------------------*/
+    /**
+     * Get all ProductGroups that group ingredients for customization (ItemType::INGREDIENT)
+     * These are used for allowing customers to customize ingredients within a product
+     * 
+     * @return array Array of ProductGroup objects with type 'ingredient'
+     */
+    public function getIngredientGroups(): array
+    {
+        return $this->getAllByItemType(ItemType::from('ingredient'));
     }
 
     /* ---------------------------------------------------------------------

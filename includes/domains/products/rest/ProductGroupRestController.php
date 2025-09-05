@@ -80,9 +80,11 @@ class ProductGroupRestController extends \WP_REST_Controller
 
             // Check if filtering by item type is requested
             if (!empty($request['item_type'])) {
-                $itemType = ItemType::tryFrom($request['item_type']);
-                if ($itemType !== null) {
-                    $groups = $this->repository->getAllByItemType($itemType);
+                $itemType = sanitize_text_field($request['item_type']);
+                if ($itemType === 'product') {
+                    $groups = $this->repository->getProductGroups();
+                } elseif ($itemType === 'ingredient') {
+                    $groups = $this->repository->getIngredientGroups();
                 } else {
                     return new \WP_REST_Response([
                         'error' => 'Invalid item_type. Must be "product" or "ingredient".'
