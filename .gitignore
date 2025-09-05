@@ -1,16 +1,105 @@
 # Dependencies
 admin-app/node_modules/
+node_modules/
+vendor/
 
 # Build outputs
 admin-app/dist/
+admin-app/assets/
+assets/main.js
+assets/main.css
+
+# CI/CD
+.circleci/
+
+# IDE and Editor files
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# dotenv environment variables file
+.env
+.env.test
+.env.local
+.env.production
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Package files
+*.tgz
+*.tar.gz
+
+# Composer
+composer.lock
+
+# WordPress specific
+wp-config.php
+wp-content/uploads/
+wp-content/blogs.dir/
+wp-content/upgrade/
+wp-content/backup-db/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+wp-content/cache/
+
+# WP-CLI
+wp-cli.local.yml
+
+# Testing
+bin/
+phpunit.xml
+.phpunit.result.cache
 
 # Temporary files
+*.tmp
+*.temp
 cookies.txt
 build.js
 
-# OS files
-.DS_Store
-Thumbs.db
+# Build configuration files (keep in repo but ignore if needed)
+# Uncomment these lines if you want to ignore build configs:
+# postcss.config.js
+# tailwind.config.js
+# vite.config.js
+# package-lock.json

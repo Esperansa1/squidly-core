@@ -78,7 +78,19 @@ class ProductGroupRestController extends \WP_REST_Controller
                 $filters['status'] = sanitize_text_field($request['status']);
             }
 
-            $groups = $this->repository->getAll($filters);
+            // Check if filtering by item type is requested
+            if (!empty($request['item_type'])) {
+                $itemType = ItemType::tryFrom($request['item_type']);
+                if ($itemType !== null) {
+                    $groups = $this->repository->getAllByItemType($itemType);
+                } else {
+                    return new \WP_REST_Response([
+                        'error' => 'Invalid item_type. Must be "product" or "ingredient".'
+                    ], 400);
+                }
+            } else {
+                $groups = $this->repository->getAll();
+            }
             
             $data = array_map(function($group) {
                 return $this->prepare_item_for_response($group, new \WP_REST_Request())->get_data();
@@ -288,6 +300,12 @@ class ProductGroupRestController extends \WP_REST_Controller
                 'description' => 'Filter by status',
                 'type' => 'string',
                 'enum' => ['active', 'inactive'],
+            ],
+            'item_type' => [
+                'description' => 'Filter by item type',
+                'type' => 'string',
+                'enum' => ['product', 'ingredient'],
+                'sanitize_callback' => 'sanitize_text_field',
             ],
         ];
     }

@@ -120,6 +120,38 @@ class ProductGroupRepository implements RepositoryInterface
     }
 
     /* ---------------------------------------------------------------------
+     *  getAllByItemType()
+     * -------------------------------------------------------------------*/
+    /**
+     * Get all ProductGroups filtered by ItemType
+     * 
+     * @param ItemType $itemType The item type to filter by (product or ingredient)
+     * @return array Array of ProductGroup objects
+     */
+    public function getAllByItemType(ItemType $itemType): array
+    {
+        $ids = get_posts([
+            'post_type'   => ProductGroupPostType::POST_TYPE,
+            'post_status' => 'publish',
+            'fields'      => 'ids',
+            'nopaging'    => true,
+            'meta_query'  => [
+                [
+                    'key'     => 'type',
+                    'value'   => $itemType->value,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        return array_values(
+            array_filter(
+                array_map(fn($pid) => $this->get((int)$pid), $ids)
+            )
+        );
+    }
+
+    /* ---------------------------------------------------------------------
      *  Helper – list Products that still include this ProductGroup
      * -------------------------------------------------------------------*/
     private function findProductGroupDependants(int $pgId): array
