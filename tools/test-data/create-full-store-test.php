@@ -161,8 +161,55 @@ try {
 
     echo "<h2>🍔 Creating Complex Hamburger Products with Product Groups</h2>";
     
-    // Create Product Groups for different categories
-    $product_groups_data = [
+    // First create some actual products that will be used in product-type groups
+    $simple_products_data = [
+        [
+            'name' => 'Classic Cheeseburger',
+            'description' => 'Traditional cheeseburger with beef patty, cheese, lettuce, tomato',
+            'price' => 28.00,
+            'category' => 'burgers',
+            'is_available' => true,
+            'allergens' => ['gluten', 'dairy'],
+            'preparation_time' => 12
+        ],
+        [
+            'name' => 'Chicken Deluxe',
+            'description' => 'Grilled chicken breast with premium toppings',
+            'price' => 26.00,
+            'category' => 'burgers',
+            'is_available' => true,
+            'allergens' => ['gluten', 'dairy'],
+            'preparation_time' => 14
+        ],
+        [
+            'name' => 'Veggie Supreme',
+            'description' => 'Plant-based patty with fresh vegetables',
+            'price' => 24.00,
+            'category' => 'burgers',
+            'is_available' => true,
+            'allergens' => ['gluten'],
+            'preparation_time' => 10
+        ],
+        [
+            'name' => 'BBQ Bacon Burger',
+            'description' => 'Beef patty with crispy bacon and BBQ sauce',
+            'price' => 32.00,
+            'category' => 'burgers',
+            'is_available' => true,
+            'allergens' => ['gluten', 'dairy'],
+            'preparation_time' => 16
+        ]
+    ];
+    
+    $simple_product_ids = [];
+    foreach ($simple_products_data as $product_data) {
+        $simple_product_id = $productRepo->create($product_data);
+        $simple_product_ids[] = $simple_product_id;
+        echo "<div style='color: green;'>✅ Created simple product: {$product_data['name']} (ID: {$simple_product_id})</div>";
+    }
+
+    // Create INGREDIENT Product Groups (for customizing ingredients within a product)
+    $ingredient_groups_data = [
         // Meat Selection Group
         [
             'name' => 'Choose Your Protein',
@@ -200,10 +247,30 @@ try {
             'ingredient_ids' => array_slice($ingredient_ids, 31, 4) // Sides
         ]
     ];
+
+    // Create PRODUCT Product Groups (for grouping related products together)
+    $product_groups_data = [
+        [
+            'name' => 'Signature Burgers',
+            'type' => 'product',
+            'product_ids' => [$simple_product_ids[0], $simple_product_ids[1]] // Classic Cheeseburger, Chicken Deluxe
+        ],
+        [
+            'name' => 'Healthy Options',
+            'type' => 'product', 
+            'product_ids' => [$simple_product_ids[2]] // Veggie Supreme
+        ],
+        [
+            'name' => 'Premium Selection',
+            'type' => 'product',
+            'product_ids' => [$simple_product_ids[3]] // BBQ Bacon Burger
+        ]
+    ];
     
-    $group_ids = [];
-    foreach ($product_groups_data as $group_data) {
-        // Create GroupItems first
+    echo "<h3>🥬 Creating Ingredient Product Groups</h3>";
+    $ingredient_group_ids = [];
+    foreach ($ingredient_groups_data as $group_data) {
+        // Create GroupItems first for ingredients
         $group_item_ids = [];
         foreach ($group_data['ingredient_ids'] as $ingredient_id) {
             $group_item_data = [
@@ -215,19 +282,49 @@ try {
             $group_item_ids[] = $group_item_id;
         }
         
-        // Create ProductGroup
+        // Create ProductGroup of type 'ingredient'
         $product_group_data = [
             'name' => $group_data['name'],
             'type' => $group_data['type'],
             'group_item_ids' => $group_item_ids
         ];
         $group_id = $productGroupRepo->create($product_group_data);
-        $group_ids[] = $group_id;
-        echo "<div style='color: blue;'>✅ Created product group: {$group_data['name']} (ID: {$group_id}) with " . count($group_item_ids) . " items</div>";
+        $ingredient_group_ids[] = $group_id;
+        echo "<div style='color: orange;'>✅ Created INGREDIENT group: {$group_data['name']} (ID: {$group_id}) with " . count($group_item_ids) . " ingredients</div>";
     }
 
-    // Create complex hamburger products with multiple Product Groups
-    $products_data = [
+    echo "<h3>🍔 Creating Product Product Groups</h3>";
+    $product_group_ids = [];
+    foreach ($product_groups_data as $group_data) {
+        // Create GroupItems first for products
+        $group_item_ids = [];
+        foreach ($group_data['product_ids'] as $product_id) {
+            $group_item_data = [
+                'item_id' => $product_id,
+                'item_type' => 'product',
+                'override_price' => null
+            ];
+            $group_item_id = $groupItemRepo->create($group_item_data);
+            $group_item_ids[] = $group_item_id;
+        }
+        
+        // Create ProductGroup of type 'product'
+        $product_group_data = [
+            'name' => $group_data['name'],
+            'type' => $group_data['type'],
+            'group_item_ids' => $group_item_ids
+        ];
+        $group_id = $productGroupRepo->create($product_group_data);
+        $product_group_ids[] = $group_id;
+        echo "<div style='color: purple;'>✅ Created PRODUCT group: {$group_data['name']} (ID: {$group_id}) with " . count($group_item_ids) . " products</div>";
+    }
+
+    // Combine all group IDs for backward compatibility with existing complex products
+    $group_ids = array_merge($ingredient_group_ids, $product_group_ids);
+
+    echo "<h3>🍴 Creating Complex Customizable Products</h3>";
+    // Create complex hamburger products with multiple INGREDIENT Product Groups (for customization)
+    $complex_products_data = [
         [
             'name' => 'Build Your Own Burger',
             'description' => 'Create your perfect burger with our selection of premium ingredients',
@@ -237,7 +334,7 @@ try {
             'is_available' => true,
             'allergens' => ['gluten', 'dairy', 'eggs'],
             'preparation_time' => 15,
-            'product_groups' => [$group_ids[0], $group_ids[1], $group_ids[2]] // Protein, Bun, Cheese
+            'product_groups' => [$ingredient_group_ids[0], $ingredient_group_ids[1], $ingredient_group_ids[2]] // Protein, Bun, Cheese
         ],
         [
             'name' => 'Gourmet Deluxe Burger',
@@ -248,7 +345,7 @@ try {
             'is_available' => true,
             'allergens' => ['gluten', 'dairy', 'eggs'],
             'preparation_time' => 20,
-            'product_groups' => [$group_ids[0], $group_ids[1], $group_ids[2], $group_ids[3]] // Protein, Bun, Cheese, Toppings
+            'product_groups' => [$ingredient_group_ids[0], $ingredient_group_ids[1], $ingredient_group_ids[2], $ingredient_group_ids[3]] // Protein, Bun, Cheese, Toppings
         ],
         [
             'name' => 'Ultimate Combo Meal',
@@ -259,16 +356,19 @@ try {
             'is_available' => true,
             'allergens' => ['gluten', 'dairy', 'eggs'],
             'preparation_time' => 25,
-            'product_groups' => [$group_ids[0], $group_ids[1], $group_ids[2], $group_ids[3], $group_ids[4], $group_ids[5]] // All groups
+            'product_groups' => $ingredient_group_ids // All ingredient customization groups
         ]
     ];
     
-    $product_ids = [];
-    foreach ($products_data as $product_data) {
+    $complex_product_ids = [];
+    foreach ($complex_products_data as $product_data) {
         $product_id = $productRepo->create($product_data);
-        $product_ids[] = $product_id;
-        echo "<div style='color: green;'>✅ Created complex product: {$product_data['name']} (ID: {$product_id}) with " . count($product_data['product_groups']) . " product groups</div>";
+        $complex_product_ids[] = $product_id;
+        echo "<div style='color: green;'>✅ Created complex product: {$product_data['name']} (ID: {$product_id}) with " . count($product_data['product_groups']) . " ingredient groups</div>";
     }
+
+    // Combine all product IDs for backward compatibility
+    $product_ids = array_merge($simple_product_ids, $complex_product_ids);
 
     echo "<h2>👥 Creating Customers</h2>";
     
@@ -403,16 +503,25 @@ try {
     echo "<ul>";
     echo "<li><strong>Store Branches:</strong> " . count($branch_ids) . " created</li>";
     echo "<li><strong>Ingredients:</strong> " . count($ingredient_ids) . " created (meats, buns, cheese, toppings, sauces, sides)</li>";
-    echo "<li><strong>Product Groups:</strong> " . count($group_ids) . " created (protein, bun, cheese, toppings, sauce, sides selection)</li>";
-    echo "<li><strong>Complex Products:</strong> " . count($product_ids) . " created with multiple product groups</li>";
+    echo "<li><strong>Simple Products:</strong> " . count($simple_product_ids) . " created (pre-made burgers)</li>";
+    echo "<li><strong>INGREDIENT Product Groups:</strong> " . count($ingredient_group_ids) . " created (for ingredient customization)</li>";
+    echo "<li><strong>PRODUCT Product Groups:</strong> " . count($product_group_ids) . " created (for product collections)</li>";
+    echo "<li><strong>Complex Products:</strong> " . count($complex_product_ids) . " created with ingredient customization options</li>";
+    echo "<li><strong>Total Products:</strong> " . count($product_ids) . " created (simple + complex)</li>";
     echo "<li><strong>Customers:</strong> " . count($customer_ids) . " created</li>";
     echo "<li><strong>Complete Orders:</strong> " . count($order_ids) . " created with detailed modifications</li>";
     echo "</ul>";
-    echo "<h4>🍔 Product Complexity:</h4>";
+    echo "<h4>🍔 Group Types:</h4>";
     echo "<ul>";
-    echo "<li><strong>Build Your Own Burger:</strong> 3 product groups (protein, bun, cheese)</li>";
-    echo "<li><strong>Gourmet Deluxe Burger:</strong> 4 product groups (+ toppings)</li>";
-    echo "<li><strong>Ultimate Combo Meal:</strong> 6 product groups (all customization options)</li>";
+    echo "<li><strong>Ingredient Groups:</strong> For customizing ingredients within a product (protein, bun, cheese, toppings, sauce, sides)</li>";
+    echo "<li><strong>Product Groups:</strong> For organizing related products together (Signature Burgers, Healthy Options, Premium Selection)</li>";
+    echo "</ul>";
+    echo "<h4>🍔 Product Structure:</h4>";
+    echo "<ul>";
+    echo "<li><strong>Simple Products:</strong> Ready-made burgers (Classic Cheeseburger, Chicken Deluxe, etc.)</li>";
+    echo "<li><strong>Build Your Own Burger:</strong> 3 ingredient groups (protein, bun, cheese)</li>";
+    echo "<li><strong>Gourmet Deluxe Burger:</strong> 4 ingredient groups (+ toppings)</li>";
+    echo "<li><strong>Ultimate Combo Meal:</strong> 6 ingredient groups (all customization options)</li>";
     echo "</ul>";
     echo "</div>";
     
