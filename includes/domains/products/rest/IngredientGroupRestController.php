@@ -68,17 +68,9 @@ class IngredientGroupRestController extends \WP_REST_Controller
     public function get_items($request)
     {
         try {
-            $filters = ['type' => 'ingredient']; // Only ingredient type groups
-            
-            if (!empty($request['branch_id'])) {
-                $filters['branch_id'] = (int)$request['branch_id'];
-            }
-            
-            if (!empty($request['status'])) {
-                $filters['status'] = sanitize_text_field($request['status']);
-            }
-
-            $groups = $this->repository->getAll($filters);
+            // Get only ingredient type groups using the new method
+            $itemType = ItemType::from('ingredient');
+            $groups = $this->repository->getAllByItemType($itemType);
             
             $data = array_map(function($group) {
                 return $this->prepare_item_for_response($group, new \WP_REST_Request())->get_data();

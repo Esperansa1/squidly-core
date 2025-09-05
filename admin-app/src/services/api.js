@@ -104,8 +104,10 @@ class ApiService {
   // ===== PRODUCT GROUPS API =====
   
   async getProductGroups(filters = {}) {
-    const queryParams = new URLSearchParams(filters).toString();
-    const endpoint = queryParams ? `product-groups?${queryParams}` : 'product-groups';
+    // Add item_type filter to get only product groups
+    const productFilters = { ...filters, item_type: 'product' };
+    const queryParams = new URLSearchParams(productFilters).toString();
+    const endpoint = queryParams ? `product-groups?${queryParams}` : 'product-groups?item_type=product';
     return await this.fetch(endpoint);
   }
 
@@ -136,8 +138,10 @@ class ApiService {
   // ===== INGREDIENT GROUPS API =====
   
   async getIngredientGroups(filters = {}) {
-    const queryParams = new URLSearchParams(filters).toString();
-    const endpoint = queryParams ? `ingredient-groups?${queryParams}` : 'ingredient-groups';
+    // Add item_type filter to get only ingredient groups, using product-groups endpoint
+    const ingredientFilters = { ...filters, item_type: 'ingredient' };
+    const queryParams = new URLSearchParams(ingredientFilters).toString();
+    const endpoint = queryParams ? `product-groups?${queryParams}` : 'product-groups?item_type=ingredient';
     return await this.fetch(endpoint);
   }
 
