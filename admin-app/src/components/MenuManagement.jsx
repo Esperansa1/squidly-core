@@ -149,71 +149,78 @@ const MenuManagement = () => {
   };
 
   const GroupSection = ({ title, groups, selectedGroup, setSelectedGroup, type }) => (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      {/* Section Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg text-gray-800" style={{ fontWeight: 800 }}>{title}</h2>
-        <div className="flex gap-2 rtl:flex-row-reverse">
-          <ActionButton 
-            icon={PlusIcon} 
-            onClick={() => console.log('Add clicked', type)} 
-          />
-          <ActionButton 
-            icon={PencilIcon} 
-            onClick={() => console.log('Edit clicked', type, selectedGroup)}
-            disabled={!selectedGroup}
-          />
-          <ActionButton 
-            icon={TrashIcon} 
-            onClick={() => selectedGroup && handleDeleteGroup(selectedGroup, type)}
-            variant="danger"
-            disabled={!selectedGroup}
-          />
+    <div className="bg-white rounded-lg shadow-sm h-full flex flex-col">
+      {/* Section Header - Fixed */}
+      <div className="flex-shrink-0 p-6 border-b border-gray-200">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg text-gray-800" style={{ fontWeight: 800 }}>{title}</h2>
+          <div className="flex gap-2 rtl:flex-row-reverse">
+            <ActionButton 
+              icon={PlusIcon} 
+              onClick={() => console.log('Add clicked', type)} 
+            />
+            <ActionButton 
+              icon={PencilIcon} 
+              onClick={() => console.log('Edit clicked', type, selectedGroup)}
+              disabled={!selectedGroup}
+            />
+            <ActionButton 
+              icon={TrashIcon} 
+              onClick={() => selectedGroup && handleDeleteGroup(selectedGroup, type)}
+              variant="danger"
+              disabled={!selectedGroup}
+            />
+          </div>
+        </div>
+
+        {/* Table Header */}
+        <div className="grid grid-cols-12 gap-4 pb-3">
+          <div className="col-span-6 text-right">
+            <span className="text-sm text-gray-700" style={{ fontWeight: 600 }}>{strings.group_name || 'שם הקבוצה'}</span>
+          </div>
+          <div className="col-span-5 text-right">
+            <span className="text-sm text-gray-700" style={{ fontWeight: 600 }}>{strings.group_status || 'סטטוס הקבוצה'}</span>
+          </div>
+          <div className="col-span-1"></div>
         </div>
       </div>
 
-      {/* Table Header */}
-      <div className="grid grid-cols-12 gap-4 pb-3 border-b border-gray-200">
-        <div className="col-span-6 text-right">
-          <span className="text-sm text-gray-700" style={{ fontWeight: 600 }}>{strings.group_name || 'שם הקבוצה'}</span>
-        </div>
-        <div className="col-span-5 text-right">
-          <span className="text-sm text-gray-700" style={{ fontWeight: 600 }}>{strings.group_status || 'סטטוס הקבוצה'}</span>
-        </div>
-        <div className="col-span-1"></div>
-      </div>
-
-      {/* Table Rows */}
-      <div className="space-y-3 mt-4">
+      {/* Table Rows - Scrollable */}
+      <div className="flex-1 p-6 pt-4 overflow-y-auto">
         {groups.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            אין קבוצות להצגה
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="text-center">
+              <div className="text-4xl mb-4">📋</div>
+              <p>אין קבוצות להצגה</p>
+            </div>
           </div>
         ) : (
-          groups.map((group) => (
-            <div 
-              key={group.id}
-              className="grid grid-cols-12 gap-4 py-3 hover:bg-gray-50 rounded-lg px-2 transition-colors cursor-pointer"
-              onClick={() => setSelectedGroup(group.id)}
-            >
-              <div className="col-span-6 text-right">
-                <span className="text-sm text-gray-800">{group.name}</span>
+          <div className="space-y-3">
+            {groups.map((group) => (
+              <div 
+                key={group.id}
+                className="grid grid-cols-12 gap-4 py-3 hover:bg-gray-50 rounded-lg px-2 transition-colors cursor-pointer"
+                onClick={() => setSelectedGroup(group.id)}
+              >
+                <div className="col-span-6 text-right">
+                  <span className="text-sm text-gray-800">{group.name}</span>
+                </div>
+                <div className="col-span-5 text-right">
+                  <StatusIndicator status={group.status} />
+                </div>
+                <div className="col-span-1 flex justify-center">
+                  <input
+                    type="radio"
+                    name={`${type}-selection`}
+                    checked={selectedGroup === group.id}
+                    onChange={() => setSelectedGroup(group.id)}
+                    className="w-4 h-4"
+                    style={{ accentColor: theme.primary_color }}
+                  />
+                </div>
               </div>
-              <div className="col-span-5 text-right">
-                <StatusIndicator status={group.status} />
-              </div>
-              <div className="col-span-1 flex justify-center">
-                <input
-                  type="radio"
-                  name={`${type}-selection`}
-                  checked={selectedGroup === group.id}
-                  onChange={() => setSelectedGroup(group.id)}
-                  className="w-4 h-4"
-                  style={{ accentColor: theme.primary_color }}
-                />
-              </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -221,10 +228,11 @@ const MenuManagement = () => {
 
   return (
     <AppLayout activeNavItem="ניהול תפריט">
-      <div className="p-6" style={{ backgroundColor: theme.secondary_color }}>
-        <div className="max-w-7xl mx-auto">
+      <div className="h-full flex flex-col" style={{ backgroundColor: theme.secondary_color }}>
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 px-6 pt-6">
           {/* Page Header Controls */}
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center mb-6">
             {/* Tab Selector with Sliding Background */}
             <div className="relative flex bg-white rounded-lg shadow-sm p-1">
               {/* Sliding Background */}
@@ -251,7 +259,7 @@ const MenuManagement = () => {
                 >
                   {tab}
                 </button>
-              ))}
+                ))}
             </div>
 
             {/* Branch Dropdown */}
@@ -287,26 +295,33 @@ const MenuManagement = () => {
               )}
             </div>
           </div>
+        </div>
 
-          {/* Content Sections */}
-          <div className="space-y-8">
+        {/* Scrollable Content Area */}
+        <div className="flex-1 px-6 pb-6 overflow-y-auto">
+          {/* Content Sections - Full Height Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 h-full">
             {/* Product Groups Section */}
-            <GroupSection
-              title={strings.product_groups || 'קבוצות מוצרים'}
-              groups={productGroups}
-              selectedGroup={selectedProductGroup}
-              setSelectedGroup={setSelectedProductGroup}
-              type="product"
-            />
+            <div className="min-h-0 flex flex-col">
+              <GroupSection
+                title={strings.product_groups || 'קבוצות מוצרים'}
+                groups={productGroups}
+                selectedGroup={selectedProductGroup}
+                setSelectedGroup={setSelectedProductGroup}
+                type="product"
+              />
+            </div>
 
             {/* Ingredient Groups Section */}
-            <GroupSection
-              title={strings.ingredient_groups || 'קבוצות מרכיבים'}
-              groups={ingredientGroups}
-              selectedGroup={selectedIngredientGroup}
-              setSelectedGroup={setSelectedIngredientGroup}
-              type="ingredient"
-            />
+            <div className="min-h-0 flex flex-col">
+              <GroupSection
+                title={strings.ingredient_groups || 'קבוצות מרכיבים'}
+                groups={ingredientGroups}
+                selectedGroup={selectedIngredientGroup}
+                setSelectedGroup={setSelectedIngredientGroup}
+                type="ingredient"
+              />
+            </div>
           </div>
         </div>
       </div>

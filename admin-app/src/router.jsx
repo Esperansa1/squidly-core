@@ -1,27 +1,27 @@
 import React, { useState } from 'react';
 
-// Import all page components
-import MenuManagement from './components/MenuManagement.jsx';
-import ManagementAreaPage from './components/pages/ManagementAreaPage.jsx';
-import PerformancePage from './components/pages/PerformancePage.jsx';
-import PaymentsPage from './components/pages/PaymentsPage.jsx';
-import OrdersPage from './components/pages/OrdersPage.jsx';
-import SuppliersPage from './components/pages/SuppliersPage.jsx';
-import CustomersPage from './components/pages/CustomersPage.jsx';
-import TutorialsPage from './components/pages/TutorialsPage.jsx';
-import SettingsPage from './components/pages/SettingsPage.jsx';
+// Import content components for SPA behavior
+import MenuManagementSimple from './components/MenuManagementSimple.jsx';
+import ManagementAreaContent from './components/pages/ManagementAreaContent.jsx';
+import PerformanceContent from './components/pages/PerformanceContent.jsx';
+import PaymentsContent from './components/pages/PaymentsContent.jsx';
+import OrdersContent from './components/pages/OrdersContent.jsx';
+import SuppliersContent from './components/pages/SuppliersContent.jsx';
+import CustomersContent from './components/pages/CustomersContent.jsx';
+import TutorialsContent from './components/pages/TutorialsContent.jsx';
+import SettingsContent from './components/pages/SettingsContent.jsx';
 
 // Route configuration mapping navigation items to components
 const routes = {
-  'management-area': ManagementAreaPage,
-  'performance': PerformancePage,
-  'payments': PaymentsPage,
-  'orders': OrdersPage,
-  'suppliers': SuppliersPage,
-  'menu-management': MenuManagement,
-  'customers': CustomersPage,
-  'tutorials': TutorialsPage,
-  'settings': SettingsPage,
+  'management-area': ManagementAreaContent,
+  'performance': PerformanceContent,
+  'payments': PaymentsContent,
+  'orders': OrdersContent,
+  'suppliers': SuppliersContent,
+  'menu-management': MenuManagementSimple,
+  'customers': CustomersContent,
+  'tutorials': TutorialsContent,
+  'settings': SettingsContent,
 };
 
 // Simple router context
@@ -37,7 +37,7 @@ export const RouterProvider = ({ children }) => {
   };
 
   const getCurrentComponent = () => {
-    const Component = routes[currentRoute] || MenuManagement;
+    const Component = routes[currentRoute] || MenuManagementSimple;
     return Component;
   };
 

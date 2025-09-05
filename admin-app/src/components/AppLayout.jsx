@@ -18,7 +18,7 @@ const AppLayout = ({
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${className}`} dir="rtl">
+    <div className={`h-screen bg-gray-50 flex ${className}`} dir="rtl">
       {/* Sidebar */}
       <Sidebar 
         activeItem={activeNavItem}
@@ -29,12 +29,12 @@ const AppLayout = ({
 
       {/* Main Content Area */}
       <div 
-        className="transition-all duration-300 ease-out"
+        className="flex-1 transition-all duration-300 ease-out overflow-hidden"
         style={{ 
           marginRight: sidebarExpanded ? '280px' : '70px'
         }}
       >
-        <main className="min-h-screen">
+        <main className="h-full w-full">
           {children}
         </main>
       </div>
