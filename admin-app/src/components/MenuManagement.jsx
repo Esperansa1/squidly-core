@@ -214,8 +214,11 @@ const MenuManagement = () => {
                     name={`${type}-selection`}
                     checked={selectedGroup === group.id}
                     onChange={() => setSelectedGroup(group.id)}
-                    className="w-4 h-4"
-                    style={{ accentColor: theme.primary_color }}
+                    className="w-4 h-4 cursor-pointer focus:ring-2 focus:ring-offset-1"
+                    style={{ 
+                      accentColor: theme.primary_color,
+                      '--tw-ring-color': theme.primary_color + '40' // 25% opacity for focus ring
+                    }}
                   />
                 </div>
               </div>
