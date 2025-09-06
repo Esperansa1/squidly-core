@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import { DEFAULT_THEME } from '../../config/theme.js';
 
 const ThemedRadioButton = ({ 
   name, 
@@ -15,10 +16,7 @@ const ThemedRadioButton = ({
   apiTheme = {},
   ...props 
 }) => {
-  const primaryColor = '#D12525';
-  
-  // Debug log to confirm our component is rendering
-  console.log('ThemedRadioButton rendering:', { name, value, checked });
+  const theme = DEFAULT_THEME;
   
   const handleChange = () => {
     if (onChange) {
@@ -54,24 +52,23 @@ const ThemedRadioButton = ({
           width: '16px',
           height: '16px',
           borderRadius: '50%',
-          border: `2px solid ${checked ? primaryColor : '#d1d5db'}`,
-          backgroundColor: checked ? primaryColor : '#ffffff',
+          border: `2px solid ${checked ? theme.primary_color : theme.border_light}`,
+          backgroundColor: checked ? theme.primary_color : theme.bg_white,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           transition: 'all 0.2s ease-in-out',
           position: 'relative',
-          // Add a thick border so we can see if our component is rendering
-          boxShadow: checked ? `0 0 0 2px ${primaryColor}` : 'none'
+          boxShadow: checked ? `0 0 0 2px ${theme.primary_color}` : 'none'
         }}
         onMouseEnter={(e) => {
           if (!checked) {
-            e.target.style.borderColor = primaryColor;
+            e.target.style.borderColor = theme.primary_color;
           }
         }}
         onMouseLeave={(e) => {
           if (!checked) {
-            e.target.style.borderColor = '#d1d5db';
+            e.target.style.borderColor = theme.border_light;
           }
         }}
       >
@@ -82,7 +79,7 @@ const ThemedRadioButton = ({
               width: '6px',
               height: '6px',
               borderRadius: '50%',
-              backgroundColor: '#ffffff'
+              backgroundColor: theme.bg_white
             }}
           />
         )}

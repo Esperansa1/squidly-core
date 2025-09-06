@@ -8,11 +8,12 @@
 // Default theme configuration (fallback values)
 export const DEFAULT_THEME = {
   primary_color: '#D12525',      // Main brand color (red)
-  secondary_color: '#F2F2F2',    // Background color (light gray)
+  secondary_color: '#7cfd03ff',    // Background color (light gray)
   success_color: '#10B981',      // Success states (green)
   danger_color: '#EF4444',       // Error/danger states (red)
   warning_color: '#F59E0B',      // Warning states (yellow)
   info_color: '#3B82F6',         // Info states (blue)
+  
   
   // Text colors
   text_primary: '#111827',       // Primary text (dark gray)
@@ -20,13 +21,33 @@ export const DEFAULT_THEME = {
   text_muted: '#9CA3AF',         // Muted text (light gray)
   
   // Border and divider colors
-  border_color: '#E5E7EB',       // Standard borders
-  divider_color: '#F3F4F6',      // Section dividers
+  border_color: '#0055ffff',       // Standard borders
+  divider_color: '#ff0077ff',      // Section dividers
   
   // Background variations
-  bg_white: '#FFFFFF',           // Pure white backgrounds
-  bg_gray_50: '#F9FAFB',         // Very light gray
-  bg_gray_100: '#F3F4F6',        // Light gray hover states
+  bg_white: '#f08383ff',           // Pure white backgrounds
+  bg_gray_50: '#7ab2e9ff',         // Very light gray
+  bg_gray_100: '#1e386bff',        // Light gray hover states
+  bg_hover_light: 'rgba(249, 250, 251, 1)', // Hover states
+  
+  // Additional colors for components
+  text_disabled: '#374151',      // Disabled text color
+  border_light: '#2568ccff',       // Light borders
+  
+  // Shadow and overlay colors
+  shadow_light: 'rgba(0, 0, 0, 0.1)',
+  shadow_medium: 'rgba(0, 0, 0, 0.05)',
+  
+  // Scrollbar colors
+  scrollbar_track: '#050000ff',
+  scrollbar_thumb: '#a81212ff',
+  scrollbar_thumb_hover: '#a8a8a8',
+  
+  // Error/Success message backgrounds with opacity
+  error_bg: 'rgba(239, 68, 68, 0.1)',
+  error_border: 'rgba(239, 68, 68, 0.2)',
+  success_bg: 'rgba(16, 185, 129, 0.1)',
+  success_border: 'rgba(16, 185, 129, 0.2)'
 };
 
 /**

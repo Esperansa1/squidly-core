@@ -4,6 +4,8 @@
  * Handles all communication with the WordPress REST API backend
  */
 
+import { DEFAULT_THEME } from '../config/theme.js';
+
 class ApiService {
   constructor() {
     // Use wpConfig provided by WordPress template
@@ -27,12 +29,9 @@ class ApiService {
    */
   async init() {
     try {
-      console.log('Initializing API with base URL:', this.baseUrl);
-      console.log('Using nonce:', this.nonce);
       
       // Check authentication and get config
       const authResponse = await this.fetch('auth/check');
-      console.log('Auth response:', authResponse);
       
       if (!authResponse.authenticated || !authResponse.authorized) {
         throw new Error('Not authenticated');
@@ -176,12 +175,7 @@ class ApiService {
   }
 
   getTheme() {
-    return this.config?.theme || {
-      primary_color: '#D12525',
-      secondary_color: '#F2F2F2',
-      success_color: '#10B981',
-      danger_color: '#EF4444',
-    };
+    return this.config?.theme || DEFAULT_THEME;
   }
 
   getStrings() {

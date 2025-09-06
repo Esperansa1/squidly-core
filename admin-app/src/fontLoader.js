@@ -41,5 +41,4 @@ export function loadLiaDiplomatFonts() {
 
   document.head.appendChild(style);
   
-  console.log('LiaDiplomat fonts loaded from:', baseUrl);
 }

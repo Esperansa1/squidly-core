@@ -2,26 +2,18 @@ import React, { useState } from 'react';
 
 // Import content components for SPA behavior
 import MenuManagement from './components/MenuManagement.jsx';
-import ManagementAreaContent from './components/pages/ManagementAreaContent.jsx';
-import PerformanceContent from './components/pages/PerformanceContent.jsx';
-import PaymentsContent from './components/pages/PaymentsContent.jsx';
-import OrdersContent from './components/pages/OrdersContent.jsx';
-import SuppliersContent from './components/pages/SuppliersContent.jsx';
-import CustomersContent from './components/pages/CustomersContent.jsx';
-import TutorialsContent from './components/pages/TutorialsContent.jsx';
-import SettingsContent from './components/pages/SettingsContent.jsx';
 
-// Route configuration mapping navigation items to components
+// Route configuration - all routes redirect to Menu Management since other pages are deleted
 const routes = {
-  'management-area': ManagementAreaContent,
-  'performance': PerformanceContent,
-  'payments': PaymentsContent,
-  'orders': OrdersContent,
-  'suppliers': SuppliersContent,
+  'management-area': MenuManagement,
+  'performance': MenuManagement,
+  'payments': MenuManagement,
+  'orders': MenuManagement,
+  'suppliers': MenuManagement,
   'menu-management': MenuManagement,
-  'customers': CustomersContent,
-  'tutorials': TutorialsContent,
-  'settings': SettingsContent,
+  'customers': MenuManagement,
+  'tutorials': MenuManagement,
+  'settings': MenuManagement,
 };
 
 // Simple router context
@@ -33,7 +25,6 @@ export const RouterProvider = ({ children }) => {
 
   const navigate = (route) => {
     setCurrentRoute(route);
-    console.log('Navigating to:', route);
   };
 
   const getCurrentComponent = () => {

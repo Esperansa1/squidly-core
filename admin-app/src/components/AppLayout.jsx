@@ -14,11 +14,10 @@ const AppLayout = ({
       onNavigate(itemId, itemLabel);
     }
     // Navigation is now handled by the router
-    console.log('Navigated to:', itemId, itemLabel);
   };
 
   return (
-    <div className={`h-screen bg-gray-50 flex ${className}`} dir="rtl">
+    <div className={`h-screen flex ${className}`} dir="rtl">
       {/* Sidebar */}
       <Sidebar 
         activeItem={activeNavItem}

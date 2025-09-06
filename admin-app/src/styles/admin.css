@@ -2,14 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Root variables for theme colors - easily changeable */
-:root {
-  --squidly-primary: #D12525;
-  --squidly-secondary: #F2F2F2;
-  --squidly-success: #10B981;
-  --squidly-danger: #EF4444;
-  --squidly-white: #FFFFFF;
-}
+/* Theme colors are set dynamically by JavaScript in main.jsx */
 
 /* Admin App Container - Remove any WordPress styling influence */
 .squidly-admin-app {
@@ -17,8 +10,8 @@
   direction: rtl;
   text-align: right;
   line-height: 1.5;
-  color: #374151;
-  background-color: var(--squidly-secondary);
+  color: var(--theme-text-primary);
+  /* Background handled by PHP template */
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -50,18 +43,18 @@
 
 /* Custom component styles */
 .dropdown-shadow {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px var(--theme-shadow-light), 0 4px 6px -2px var(--theme-shadow-medium);
 }
 
 .card-shadow {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px 0 var(--theme-shadow-light), 0 1px 2px 0 var(--theme-shadow-medium);
 }
 
 /* Radio button custom styling */
 input[type="radio"] {
   width: 1rem;
   height: 1rem;
-  accent-color: var(--squidly-primary);
+  accent-color: var(--theme-primary-color);
 }
 
 /* Button hover effects */
@@ -80,7 +73,7 @@ input[type="radio"] {
 }
 
 .table-row:hover {
-  background-color: rgba(249, 250, 251, 1);
+  background-color: var(--theme-bg-hover-light);
 }
 
 /* Tab button styles */
@@ -90,17 +83,17 @@ input[type="radio"] {
 }
 
 .tab-button.active {
-  background-color: var(--squidly-primary);
+  background-color: var(--theme-primary-color);
   color: white;
 }
 
 .tab-button:not(.active) {
-  color: #6B7280;
+  color: var(--theme-text-secondary);
 }
 
 .tab-button:not(.active):hover {
-  color: #374151;
-  background-color: rgba(249, 250, 251, 1);
+  color: var(--theme-text-primary);
+  background-color: var(--theme-bg-hover-light);
 }
 
 /* Dropdown animation */
@@ -131,11 +124,11 @@ input[type="radio"] {
 }
 
 .status-dot.active {
-  background-color: var(--squidly-success);
+  background-color: var(--theme-success-color);
 }
 
 .status-dot.inactive {
-  background-color: var(--squidly-danger);
+  background-color: var(--theme-danger-color);
 }
 
 /* Loading spinner */
@@ -152,7 +145,7 @@ input[type="radio"] {
 button:focus,
 input:focus,
 select:focus {
-  outline: 2px solid var(--squidly-primary);
+  outline: 2px solid var(--theme-primary-color);
   outline-offset: 2px;
 }
 
@@ -164,9 +157,9 @@ select:focus {
 
 /* Error message styling */
 .error-message {
-  color: var(--squidly-danger);
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--theme-danger-color);
+  background-color: var(--theme-error-bg);
+  border: 1px solid var(--theme-error-border);
   padding: 1rem;
   border-radius: 0.5rem;
   margin: 1rem 0;
@@ -174,9 +167,9 @@ select:focus {
 
 /* Success message styling */
 .success-message {
-  color: var(--squidly-success);
-  background-color: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: var(--theme-success-color);
+  background-color: var(--theme-success-bg);
+  border: 1px solid var(--theme-success-border);
   padding: 1rem;
   border-radius: 0.5rem;
   margin: 1rem 0;
@@ -208,17 +201,17 @@ select:focus {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--theme-scrollbar-track);
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--theme-scrollbar-thumb);
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--theme-scrollbar-thumb-hover);
 }
 
 /* Ensure full viewport coverage */
@@ -230,5 +223,5 @@ html, body {
 
 #squidly-admin-root {
   min-height: 100vh;
-  background-color: var(--squidly-secondary);
+  /* Background handled by PHP template */
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDownIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import api from '../services/api.js';
+import { Card, TabButton, ActionButton, RadioButton } from './ui';
 
 const MenuManagement = () => {
   const [config, setConfig] = useState(null);
@@ -85,8 +86,8 @@ const MenuManagement = () => {
     }
   };
 
-  // Get theme and strings with fallbacks - don't block rendering
-  const theme = config ? api.getTheme() : { primary_color: '#D12525', secondary_color: '#F2F2F2', danger_color: '#ef4444' };
+  // Get strings with fallbacks - theme is now handled by Tailwind
+  const theme = config ? api.getTheme() : {};
   const strings = config ? api.getStrings() : {};
   const tabs = [strings.groups || 'קבוצות', strings.ingredients || 'מרכיבים', strings.products || 'מוצרים'];
 
@@ -103,43 +104,24 @@ const MenuManagement = () => {
     </div>
   );
 
-  const ActionButton = ({ icon: Icon, onClick, variant = 'primary', disabled = false }) => {
-    const bgColor = variant === 'danger' ? theme.danger_color : theme.primary_color;
-    
-    return (
-      <button
-        onClick={onClick}
-        disabled={disabled}
-        className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-all ${
-          disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80 hover:scale-105'
-        }`}
-        style={{ backgroundColor: bgColor }}
-      >
-        <Icon className="w-4 h-4" />
-      </button>
-    );
-  };
 
   const GroupSection = ({ title, groups, selectedGroup, setSelectedGroup, type }) => (
-    <div className="bg-white rounded-lg shadow-sm h-full flex flex-col">
+    <Card className="h-full flex flex-col" padding="none">
       {/* Section Header - Fixed */}
       <div className="flex-shrink-0 p-6 border-b border-gray-200">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg text-gray-800" style={{ fontWeight: 800 }}>{title}</h2>
+          <h2 className="text-lg text-neutral-800 font-bold">{title}</h2>
           <div className="flex gap-2 rtl:flex-row-reverse">
-            <ActionButton 
-              icon={PlusIcon} 
-              onClick={() => console.log('Add clicked', type)} 
-            />
+            <ActionButton icon={PlusIcon} variant="primary" />
             <ActionButton 
               icon={PencilIcon} 
-              onClick={() => console.log('Edit clicked', type, selectedGroup)}
+              variant="secondary"
               disabled={!selectedGroup}
             />
             <ActionButton 
               icon={TrashIcon} 
               onClick={() => selectedGroup && handleDeleteGroup(selectedGroup, type)}
-              variant="danger"
+              variant="error"
               disabled={!selectedGroup}
             />
           </div>
@@ -201,32 +183,20 @@ const MenuManagement = () => {
                   <StatusIndicator status={group.status} />
                 </div>
                 <div className="col-span-1 flex justify-center">
-                  {/* Custom red radio button */}
+                  {/* Radio button using Tailwind */}
                   <div
                     onClick={() => setSelectedGroup(group.id)}
-                    className="cursor-pointer"
-                    style={{
-                      width: '16px',
-                      height: '16px',
-                      borderRadius: '50%',
-                      border: `2px solid ${selectedGroup === group.id ? '#D12525' : '#d1d5db'}`,
-                      backgroundColor: selectedGroup === group.id ? '#D12525' : '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s ease-in-out'
-                    }}
+                    className={`
+                      w-4 h-4 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center
+                      ${selectedGroup === group.id 
+                        ? 'border-primary bg-primary' 
+                        : 'border-neutral-300 bg-white'
+                      }
+                    `}
                   >
                     {/* White dot when selected */}
                     {selectedGroup === group.id && (
-                      <div
-                        style={{
-                          width: '6px',
-                          height: '6px',
-                          borderRadius: '50%',
-                          backgroundColor: '#ffffff'
-                        }}
-                      />
+                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
                     )}
                   </div>
                   {/* Hidden native radio for form functionality */}
@@ -244,12 +214,12 @@ const MenuManagement = () => {
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 
   // Return ONLY the content, no AppLayout wrapper
   return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: theme.secondary_color }}>
+    <div className="h-full flex flex-col">
       {/* Fixed Header */}
       <div className="flex-shrink-0 px-6 pt-6">
         {/* Page Header Controls */}
@@ -268,18 +238,14 @@ const MenuManagement = () => {
             
             {/* Tab Buttons */}
             {tabs.map((tab) => (
-              <button
+              <TabButton
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`relative z-10 flex-1 px-6 py-2 text-sm transition-colors duration-300 focus:outline-none ${
-                  activeTab === tab
-                    ? 'text-white'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-                style={{ fontWeight: 600 }}
+                isActive={activeTab === tab}
+                className="relative z-10 flex-1 px-6 py-2 text-sm font-semibold"
               >
                 {tab}
-              </button>
+              </TabButton>
               ))}
           </div>
 
@@ -289,7 +255,7 @@ const MenuManagement = () => {
               onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
               className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
             >
-              <span className="text-sm text-gray-700" style={{ fontWeight: 600 }}>{selectedBranch}</span>
+              <span className="text-sm text-neutral-700 font-semibold">{selectedBranch}</span>
               <ChevronDownIcon 
                 className={`w-4 h-4 text-gray-500 transition-transform ${
                   branchDropdownOpen ? 'rotate-180' : ''

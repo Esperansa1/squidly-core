@@ -30,6 +30,19 @@
     }
     ?>
     
+    <style>
+        /* Basic reset and layout */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        
+        #squidly-admin {
+            min-height: 100vh;
+        }
+    </style>
+    
     <script>
         // Provide WordPress config to the React app
         window.wpConfig = {
