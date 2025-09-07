@@ -3,7 +3,7 @@ import Sidebar from './Sidebar.jsx';
 
 const AppLayout = ({ 
   children, 
-  activeNavItem = 'ניהול תפריט',
+  activeNavItem = 'menu-management',
   onNavigate,
   className = '' 
 }) => {

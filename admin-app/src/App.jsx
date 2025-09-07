@@ -10,18 +10,6 @@ const AppContent = () => {
   const { getCurrentComponent, navigate, currentRoute } = useRouter();
   const CurrentComponent = getCurrentComponent();
   
-  // Map route IDs to active nav item labels for sidebar
-  const routeToNavItem = {
-    'management-area': 'איזור ניהול',
-    'performance': 'מעקב ביצועים',
-    'payments': 'מערכת תשלומים',
-    'orders': 'ניהול הזמנות',
-    'suppliers': 'ניהול ספקים',
-    'menu-management': 'ניהול תפריט',
-    'customers': 'ניהול לקוחות',
-    'tutorials': 'מדריכים והדרכות',
-    'settings': 'הגדרות מערכת',
-  };
   
   const handleNavigation = (itemId, itemLabel) => {
     navigate(itemId);
@@ -30,7 +18,7 @@ const AppContent = () => {
   return (
     <div className="squidly-admin-app">
       <AppLayout 
-        activeNavItem={routeToNavItem[currentRoute] || 'ניהול תפריט'}
+        activeNavItem={currentRoute || 'menu-management'}
         onNavigate={handleNavigation}
       >
         <CurrentComponent />

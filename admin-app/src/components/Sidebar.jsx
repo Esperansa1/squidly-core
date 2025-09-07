@@ -19,7 +19,7 @@ import { useRouter } from '../router.jsx';
 import { DEFAULT_THEME } from '../config/theme.js';
 
 const Sidebar = ({ 
-  activeItem = 'ניהול תפריט', 
+  activeItem = 'menu-management', 
   onNavigate = () => {},
   onToggle = () => {},
   isExpanded = true,
@@ -157,7 +157,7 @@ const Sidebar = ({
                       <NavItem
                         key={item.id}
                         item={item}
-                        isActive={activeItem === item.label}
+                        isActive={activeItem === item.id}
                       />
                     ))}
                   </div>
