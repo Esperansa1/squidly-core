@@ -1,99 +1,83 @@
 /**
  * Button Component
  * 
- * Atomic component following Tailwind design system
+ * Base atomic component with consistent theming and no focus outlines
  */
 
 import React from 'react';
-import { cva } from 'class-variance-authority';
-
-const buttonVariants = cva(
-  // Base styles
-  "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
-  {
-    variants: {
-      variant: {
-        primary: "text-white focus:ring-2",
-        secondary: "border focus:ring-2",
-        outline: "border bg-white focus:ring-2",
-        ghost: "focus:ring-2",
-        success: "text-white focus:ring-2",
-        warning: "text-white focus:ring-2",
-        error: "text-white focus:ring-2",
-      },
-      size: {
-        sm: "px-3 py-1.5 text-sm",
-        md: "px-4 py-2 text-base",
-        lg: "px-6 py-3 text-lg",
-        icon: "p-2",
-      },
-    },
-    defaultVariants: {
-      variant: "primary",
-      size: "md",
-    },
-  }
-);
+import { DEFAULT_THEME } from '../../../config/theme.js';
 
 const Button = React.forwardRef(({ 
-  className = '', 
-  variant, 
-  size, 
+  variant = 'primary',
+  size = 'md',
+  className = '',
   children, 
-  disabled,
+  disabled = false,
   onClick,
   type = 'button',
   ...props 
 }, ref) => {
-  // Get theme-based styles for each variant
-  const getVariantStyles = (variant) => {
+  const theme = DEFAULT_THEME;
+
+  // Base styles - no focus outlines
+  const baseStyles = "inline-flex items-center justify-center font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
+  
+  // Conditional transition - exclude for tab buttons  
+  const transitionClass = className?.includes('tab-button') ? '' : 'transition-all duration-200';
+  
+  // Size variants
+  const sizeStyles = {
+    sm: "px-3 py-1.5 text-sm rounded",
+    md: "px-4 py-2 text-base rounded-lg", 
+    lg: "px-6 py-3 text-lg rounded-lg",
+    icon: "p-2 rounded-lg",
+  };
+
+  // Variant styles
+  const getVariantStyles = () => {
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: 'var(--theme-primary-color)',
+          backgroundColor: theme.primary_color,
           color: 'white',
-          '--tw-ring-color': 'var(--theme-primary-color)',
         };
       case 'secondary':
         return {
-          backgroundColor: 'var(--theme-primary-color)',
-          color: 'white',
-          borderColor: 'var(--theme-primary-color)',
-          '--tw-ring-color': 'var(--theme-primary-color)',
+          backgroundColor: 'transparent',
+          color: theme.primary_color,
+          border: `1px solid ${theme.primary_color}`,
         };
       case 'outline':
         return {
-          backgroundColor: 'var(--theme-bg-white)',
-          color: 'var(--theme-text-primary)',
-          borderColor: 'var(--theme-border-color)',
-          '--tw-ring-color': 'var(--theme-border-color)',
+          backgroundColor: theme.bg_white,
+          color: theme.text_primary,
+          border: `1px solid ${theme.border_color}`,
         };
       case 'ghost':
         return {
           backgroundColor: 'transparent',
-          color: 'var(--theme-text-secondary)',
-          '--tw-ring-color': 'var(--theme-border-color)',
+          color: theme.text_secondary,
         };
       case 'success':
         return {
-          backgroundColor: 'var(--theme-success-color)',
+          backgroundColor: theme.success_color,
           color: 'white',
-          '--tw-ring-color': 'var(--theme-success-color)',
         };
       case 'warning':
         return {
-          backgroundColor: 'var(--theme-warning-color)',
+          backgroundColor: theme.warning_color,
           color: 'white',
-          '--tw-ring-color': 'var(--theme-warning-color)',
         };
       case 'error':
         return {
-          backgroundColor: 'var(--theme-danger-color)',
+          backgroundColor: theme.danger_color,
           color: 'white',
-          '--tw-ring-color': 'var(--theme-danger-color)',
         };
       default:
-        return {};
+        return {
+          backgroundColor: theme.primary_color,
+          color: 'white',
+        };
     }
   };
 
@@ -101,8 +85,8 @@ const Button = React.forwardRef(({
     <button
       ref={ref}
       type={type}
-      className={buttonVariants({ variant, size, className })}
-      style={getVariantStyles(variant)}
+      className={`${baseStyles} ${transitionClass} ${sizeStyles[size]} ${className}`}
+      style={getVariantStyles()}
       disabled={disabled}
       onClick={onClick}
       {...props}

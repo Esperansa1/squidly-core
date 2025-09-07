@@ -236,3 +236,43 @@ html, body {
   min-height: 100vh;
   background: transparent;
 }
+
+/* Completely remove focus outlines from all buttons */
+button {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus,
+button:focus-visible,
+button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure focus classes work */
+.focus\:outline-none,
+.focus\:outline-none:focus {
+  outline: none !important;
+}
+
+/* Complete background override for TabButtons - maximum specificity */
+button.tab-button,
+button.tab-button:hover,
+button.tab-button:active,
+button.tab-button:focus,
+button.tab-button:visited,
+button.tab-button:link,
+button.tab-button[style] {
+  background-color: transparent !important;
+  background: transparent !important;
+  background-image: none !important;
+  transition: color 0.2s ease !important;
+}
+
+/* Force no background transitions */
+button.tab-button {
+  transition-property: color !important;
+  transition-duration: 0.2s !important;
+  transition-timing-function: ease !important;
+}

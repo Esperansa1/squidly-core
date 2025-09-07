@@ -58,17 +58,32 @@ const Sidebar = ({
   const NavItem = ({ item, isActive }) => {
     const IconComponent = item.icon;
     
+    const navItemStyles = {
+      backgroundColor: isActive ? theme.primary_color : 'transparent',
+      color: isActive ? 'white' : theme.text_primary,
+    };
+
+    const handleMouseEnter = (e) => {
+      if (!isActive) {
+        e.target.style.backgroundColor = `${theme.primary_color}20`;
+      }
+    };
+
+    const handleMouseLeave = (e) => {
+      if (!isActive) {
+        e.target.style.backgroundColor = 'transparent';
+      }
+    };
+    
     return (
       <button
         onClick={() => handleItemClick(item.id, item.label)}
         className={`w-full flex items-center gap-3 px-4 py-3 transition-all duration-200 ${
-          isActive 
-            ? 'text-white' 
-            : 'text-gray-800 hover:bg-gray-50'
-        } ${isExpanded ? 'justify-start' : 'justify-center px-2'}`}
-        style={{
-          backgroundColor: isActive ? theme.primary_color : 'transparent'
-        }}
+          isExpanded ? 'justify-start' : 'justify-center px-2'
+        }`}
+        style={navItemStyles}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <IconComponent className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-600'}`} />
         {isExpanded && (

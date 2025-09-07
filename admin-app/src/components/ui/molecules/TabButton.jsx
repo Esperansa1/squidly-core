@@ -1,10 +1,11 @@
 /**
  * TabButton Component
  * 
- * Molecular component for tab navigation
+ * Molecular component for tab navigation - extends base Button
  */
 
 import React from 'react';
+import Button from '../atoms/Button.jsx';
 import { DEFAULT_THEME } from '../../../config/theme.js';
 
 const TabButton = ({ 
@@ -16,26 +17,23 @@ const TabButton = ({
 }) => {
   const theme = DEFAULT_THEME;
   
+  // Clean tab styles - no background color changes, only text color
+  const tabStyles = {
+    backgroundColor: 'transparent', // Always transparent - let sliding background handle active state
+    color: isActive ? 'white' : theme.text_secondary,
+  };
+
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="sm"
       onClick={onClick}
-      className={`
-        px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
-        focus:outline-none focus:ring-2 focus:ring-offset-2
-        ${isActive 
-          ? 'text-white shadow-sm' 
-          : 'text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100'
-        }
-        ${className}
-      `}
-      style={{
-        backgroundColor: isActive ? theme.primary_color : 'transparent',
-        '--tw-ring-color': theme.primary_color,
-      }}
+      className={`tab-button rounded-lg font-semibold ${className}`}
+      style={tabStyles}
       {...props}
     >
       {children}
-    </button>
+    </Button>
   );
 };
 
