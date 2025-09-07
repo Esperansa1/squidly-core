@@ -13,13 +13,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-primary text-white hover:bg-primary-600 focus:ring-primary-500",
-        secondary: "bg-secondary-200 text-neutral-800 hover:bg-secondary-300 focus:ring-secondary-400",
-        outline: "border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50 focus:ring-neutral-500",
-        ghost: "text-neutral-600 hover:bg-neutral-100 focus:ring-neutral-500",
-        success: "bg-success text-white hover:bg-success-600 focus:ring-success-500",
-        warning: "bg-warning text-white hover:bg-warning-600 focus:ring-warning-500",
-        error: "bg-error text-white hover:bg-error-600 focus:ring-error-500",
+        primary: "text-white focus:ring-2",
+        secondary: "border focus:ring-2",
+        outline: "border bg-white focus:ring-2",
+        ghost: "focus:ring-2",
+        success: "text-white focus:ring-2",
+        warning: "text-white focus:ring-2",
+        error: "text-white focus:ring-2",
       },
       size: {
         sm: "px-3 py-1.5 text-sm",
@@ -45,11 +45,64 @@ const Button = React.forwardRef(({
   type = 'button',
   ...props 
 }, ref) => {
+  // Get theme-based styles for each variant
+  const getVariantStyles = (variant) => {
+    switch (variant) {
+      case 'primary':
+        return {
+          backgroundColor: 'var(--theme-primary-color)',
+          color: 'white',
+          '--tw-ring-color': 'var(--theme-primary-color)',
+        };
+      case 'secondary':
+        return {
+          backgroundColor: 'var(--theme-primary-color)',
+          color: 'white',
+          borderColor: 'var(--theme-primary-color)',
+          '--tw-ring-color': 'var(--theme-primary-color)',
+        };
+      case 'outline':
+        return {
+          backgroundColor: 'var(--theme-bg-white)',
+          color: 'var(--theme-text-primary)',
+          borderColor: 'var(--theme-border-color)',
+          '--tw-ring-color': 'var(--theme-border-color)',
+        };
+      case 'ghost':
+        return {
+          backgroundColor: 'transparent',
+          color: 'var(--theme-text-secondary)',
+          '--tw-ring-color': 'var(--theme-border-color)',
+        };
+      case 'success':
+        return {
+          backgroundColor: 'var(--theme-success-color)',
+          color: 'white',
+          '--tw-ring-color': 'var(--theme-success-color)',
+        };
+      case 'warning':
+        return {
+          backgroundColor: 'var(--theme-warning-color)',
+          color: 'white',
+          '--tw-ring-color': 'var(--theme-warning-color)',
+        };
+      case 'error':
+        return {
+          backgroundColor: 'var(--theme-danger-color)',
+          color: 'white',
+          '--tw-ring-color': 'var(--theme-danger-color)',
+        };
+      default:
+        return {};
+    }
+  };
+
   return (
     <button
       ref={ref}
       type={type}
       className={buttonVariants({ variant, size, className })}
+      style={getVariantStyles(variant)}
       disabled={disabled}
       onClick={onClick}
       {...props}

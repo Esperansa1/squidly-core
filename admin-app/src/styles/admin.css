@@ -11,7 +11,12 @@
   text-align: right;
   line-height: 1.5;
   color: var(--theme-text-primary);
-  /* Background handled by PHP template */
+  background-color: #F2F2F2;
+  background-image: var(--background-image-url, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -219,9 +224,15 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  background-color: #F2F2F2;
+  background-image: var(--background-image-url, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 #squidly-admin-root {
   min-height: 100vh;
-  /* Background handled by PHP template */
+  background: transparent;
 }

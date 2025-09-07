@@ -16,6 +16,7 @@ import {
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import { useRouter } from '../router.jsx';
+import { DEFAULT_THEME } from '../config/theme.js';
 
 const Sidebar = ({ 
   activeItem = 'ניהול תפריט', 
@@ -24,6 +25,7 @@ const Sidebar = ({
   isExpanded = true,
   className = '' 
 }) => {
+  const theme = DEFAULT_THEME;
   const { navigate } = useRouter();
   
   const toggleSidebar = () => {
@@ -61,9 +63,12 @@ const Sidebar = ({
         onClick={() => handleItemClick(item.id, item.label)}
         className={`w-full flex items-center gap-3 px-4 py-3 transition-all duration-200 ${
           isActive 
-            ? 'bg-red-600 text-white' 
+            ? 'text-white' 
             : 'text-gray-800 hover:bg-gray-50'
         } ${isExpanded ? 'justify-start' : 'justify-center px-2'}`}
+        style={{
+          backgroundColor: isActive ? theme.primary_color : 'transparent'
+        }}
       >
         <IconComponent className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-600'}`} />
         {isExpanded && (
@@ -102,7 +107,7 @@ const Sidebar = ({
           <div className="flex-grow">
             {/* Logo Area */}
             <div className={`flex items-center gap-3 mb-6 ${isExpanded ? '' : 'justify-center'}`}>
-              <div className="w-10 h-10 bg-red-600 rounded flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style={{backgroundColor: theme.primary_color}}>
                 <div className="w-6 h-0.5 bg-white transform rotate-45"></div>
                 <div className="w-6 h-0.5 bg-white transform -rotate-45 -ml-6"></div>
               </div>
@@ -165,8 +170,8 @@ const Sidebar = ({
             <div className={`pt-4 pb-4 ${isExpanded ? '' : 'flex justify-center'}`}>
               {isExpanded ? (
                 <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors rounded-lg">
-                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm text-red-600" style={{ fontWeight: 800 }}>נ</span>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: `${theme.primary_color}20`}}>
+                    <span className="text-sm" style={{ fontWeight: 800, color: theme.primary_color }}>נ</span>
                   </div>
                   <div className="flex-1 text-right">
                     <div className="text-sm text-gray-900" style={{ fontWeight: 800 }}>ניסים דיין</div>
@@ -175,8 +180,8 @@ const Sidebar = ({
                   <ChevronDownIcon className="w-4 h-4 text-gray-400" />
                 </button>
               ) : (
-                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                  <span className="text-sm text-red-600" style={{ fontWeight: 800 }}>נ</span>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{backgroundColor: `${theme.primary_color}20`}}>
+                  <span className="text-sm" style={{ fontWeight: 800, color: theme.primary_color }}>נ</span>
                 </div>
               )}
             </div>

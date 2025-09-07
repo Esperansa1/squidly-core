@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDownIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import api from '../services/api.js';
 import { Card, TabButton, ActionButton, RadioButton } from './ui';
+import { DEFAULT_THEME } from '../config/theme.js';
 
 const MenuManagement = () => {
+  const theme = DEFAULT_THEME;
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -87,7 +89,7 @@ const MenuManagement = () => {
   };
 
   // Get strings with fallbacks - theme is now handled by Tailwind
-  const theme = config ? api.getTheme() : {};
+  const apiTheme = config ? api.getTheme() : {};
   const strings = config ? api.getStrings() : {};
   const tabs = [strings.groups || 'קבוצות', strings.ingredients || 'מרכיבים', strings.products || 'מוצרים'];
 
@@ -183,16 +185,14 @@ const MenuManagement = () => {
                   <StatusIndicator status={group.status} />
                 </div>
                 <div className="col-span-1 flex justify-center">
-                  {/* Radio button using Tailwind */}
+                  {/* Radio button using theme colors */}
                   <div
                     onClick={() => setSelectedGroup(group.id)}
-                    className={`
-                      w-4 h-4 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center
-                      ${selectedGroup === group.id 
-                        ? 'border-primary bg-primary' 
-                        : 'border-neutral-300 bg-white'
-                      }
-                    `}
+                    className="w-4 h-4 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center"
+                    style={{
+                      borderColor: selectedGroup === group.id ? theme.primary_color : theme.border_light,
+                      backgroundColor: selectedGroup === group.id ? theme.primary_color : theme.bg_white
+                    }}
                   >
                     {/* White dot when selected */}
                     {selectedGroup === group.id && (
