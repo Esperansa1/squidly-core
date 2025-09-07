@@ -39,13 +39,16 @@ if (!current_user_can('manage_options')) {
 // Get plugin info
 $plugin_url = plugin_dir_url(__FILE__);
 $plugin_path = plugin_dir_path(__FILE__);
-$assets_url = $plugin_url . 'admin-app/dist/';
+$assets_url = $plugin_url . 'admin-app/dist/assets/';
 
-// Check if built assets exist
-$js_file = $plugin_path . 'admin-app/dist/main.js';
-$css_file = $plugin_path . 'admin-app/dist/main.css';
+// Check if built assets exist (with hashed names)
+$dist_path = $plugin_path . 'admin-app/dist/assets/';
+$js_files = glob($dist_path . 'main-*.js');
+$css_files = glob($dist_path . 'main-*.css');
 
-$has_built_assets = file_exists($js_file) && file_exists($css_file);
+$has_built_assets = !empty($js_files) && !empty($css_files);
+$js_file = $has_built_assets ? basename($js_files[0]) : '';
+$css_file = $has_built_assets ? basename($css_files[0]) : '';
 ?>
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -67,90 +70,18 @@ $has_built_assets = file_exists($js_file) && file_exists($css_file);
   
   <?php if ($has_built_assets): ?>
     <!-- Built CSS -->
-    <link rel="stylesheet" href="<?php echo $assets_url; ?>main.css?v=<?php echo filemtime($css_file); ?>">
+    <link rel="stylesheet" href="<?php echo $assets_url . $css_file; ?>">
   <?php else: ?>
     <!-- Development mode - load Tailwind from CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: {
-                DEFAULT: '#D12525',
-                50: '#F8E6E6',
-                500: '#D12525',
-                600: '#B01D1D',
-                700: '#8F1515',
-              }
-            }
-          }
-        }
-      }
-    </script>
   <?php endif; ?>
   
+  <!-- Minimal WordPress integration styles -->
   <style>
     body {
-      font-family: 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Arial', sans-serif;
       margin: 0;
       padding: 0;
-      direction: rtl;
-      text-align: right;
-      background-color: #F2F2F2;
-      color: #374151;
-    }
-    
-    .loading-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #F2F2F2;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-    
-    .loading-spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #D12525;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 20px;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .app-loaded .loading-screen {
-      display: none;
-    }
-    
-    .error-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #F2F2F2;
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      text-align: center;
-    }
-    
-    .error-screen.show {
-      display: flex;
+      font-family: system-ui, -apple-system, sans-serif;
     }
     
     #squidly-admin-root {
@@ -159,27 +90,7 @@ $has_built_assets = file_exists($js_file) && file_exists($css_file);
   </style>
 </head>
 <body>
-  <!-- Loading Screen -->
-  <div class="loading-screen" id="loading-screen">
-    <div class="loading-spinner"></div>
-    <div style="font-size: 16px; color: #6B7280; font-weight: 500;">
-      טוען מערכת ניהול המסעדה...
-    </div>
-  </div>
-  
-  <!-- Error Screen -->
-  <div class="error-screen" id="error-screen">
-    <div style="font-size: 48px; color: #EF4444; margin-bottom: 20px;">⚠️</div>
-    <h1 style="font-size: 24px; color: #1F2937; margin-bottom: 10px;">שגיאה בטעינת המערכת</h1>
-    <p style="font-size: 16px; color: #6B7280; margin-bottom: 30px; max-width: 500px;" id="error-message">
-      אירעה שגיאה בטעינת מערכת ניהול המסעדה. אנא נסה שוב או פנה לתמיכה טכנית.
-    </p>
-    <button onclick="window.location.reload()" style="background-color: #D12525; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer;">
-      טען מחדש
-    </button>
-  </div>
-  
-  <!-- Main App Container -->
+  <!-- React App Container -->
   <div id="squidly-admin-root"></div>
   
   <!-- Configuration for React App -->
@@ -195,48 +106,20 @@ $has_built_assets = file_exists($js_file) && file_exists($css_file);
       }
     };
     
-    // Global error handler
+    // Global error handler for debugging
     window.addEventListener('error', function(event) {
       console.error('Global error:', event.error);
-      showErrorScreen('שגיאה טכנית: ' + event.error.message);
     });
-    
-    function showErrorScreen(message) {
-      document.getElementById('error-message').textContent = message;
-      document.getElementById('error-screen').classList.add('show');
-      document.getElementById('loading-screen').style.display = 'none';
-    }
-    
-    function hideLoadingScreen() {
-      document.body.classList.add('app-loaded');
-    }
-    
-    // Timeout for loading
-    setTimeout(function() {
-      if (!document.body.classList.contains('app-loaded')) {
-        showErrorScreen('המערכת לא הצליחה להיטען בזמן הקצוב. אנא נסה שוב.');
-      }
-    }, 15000);
   </script>
   
   <?php if ($has_built_assets): ?>
     <!-- Built JavaScript -->
-    <script src="<?php echo $assets_url; ?>main.js?v=<?php echo filemtime($js_file); ?>"></script>
+    <script src="<?php echo $assets_url . $js_file; ?>"></script>
   <?php else: ?>
-    <!-- Development mode message -->
+    <!-- Development mode -->
     <script>
       console.warn('Admin assets not built. Run: npm run build in admin-app directory');
-      document.addEventListener('DOMContentLoaded', function() {
-        showErrorScreen('מערכת הניהול דורשת בנייה מחדש. אנא פנה למפתח המערכת.');
-      });
     </script>
   <?php endif; ?>
-  
-  <script>
-    // Signal that app loaded successfully
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(hideLoadingScreen, 100);
-    });
-  </script>
 </body>
 </html>

@@ -58,36 +58,23 @@ const Sidebar = ({
   const NavItem = ({ item, isActive }) => {
     const IconComponent = item.icon;
     
-    const navItemStyles = {
+    // Clean navigation item style
+    const getNavItemStyle = () => ({
       backgroundColor: isActive ? theme.primary_color : 'transparent',
-      color: isActive ? 'white' : theme.text_primary,
-    };
-
-    const handleMouseEnter = (e) => {
-      if (!isActive) {
-        e.target.style.backgroundColor = `${theme.primary_color}20`;
-      }
-    };
-
-    const handleMouseLeave = (e) => {
-      if (!isActive) {
-        e.target.style.backgroundColor = 'transparent';
-      }
-    };
+      color: isActive ? 'white' : theme.text_primary
+    });
     
     return (
       <button
         onClick={() => handleItemClick(item.id, item.label)}
-        className={`w-full flex items-center gap-3 px-4 py-3 transition-all duration-200 ${
+        className={`w-full flex items-center gap-3 px-4 py-3 transition-colors duration-200 hover:bg-opacity-20 ${
           isExpanded ? 'justify-start' : 'justify-center px-2'
-        }`}
-        style={navItemStyles}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        } ${!isActive ? 'hover:bg-red-100' : ''}`}
+        style={getNavItemStyle()}
       >
         <IconComponent className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-600'}`} />
         {isExpanded && (
-          <span className="text-sm" style={{ fontWeight: 600 }}>{item.label}</span>
+          <span className="text-sm font-semibold">{item.label}</span>
         )}
       </button>
     );

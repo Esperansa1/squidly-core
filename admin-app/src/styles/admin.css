@@ -237,42 +237,29 @@ html, body {
   background: transparent;
 }
 
-/* Completely remove focus outlines from all buttons */
-button {
-  outline: none !important;
+/* Base button reset - work with Tailwind, not against it */
+.btn-reset {
+  outline: none;
+  border: none;
+  background: none;
   -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
 }
 
-button:focus,
-button:focus-visible,
-button:active {
-  outline: none !important;
-  box-shadow: none !important;
+.btn-reset:focus,
+.btn-reset:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
-/* Ensure focus classes work */
-.focus\:outline-none,
-.focus\:outline-none:focus {
-  outline: none !important;
+/* Tab button specific behavior */
+.tab-button {
+  transition: color 0.2s ease;
+  background-color: transparent;
 }
 
-/* Complete background override for TabButtons - maximum specificity */
-button.tab-button,
-button.tab-button:hover,
-button.tab-button:active,
-button.tab-button:focus,
-button.tab-button:visited,
-button.tab-button:link,
-button.tab-button[style] {
-  background-color: transparent !important;
-  background: transparent !important;
-  background-image: none !important;
-  transition: color 0.2s ease !important;
-}
-
-/* Force no background transitions */
-button.tab-button {
-  transition-property: color !important;
-  transition-duration: 0.2s !important;
-  transition-timing-function: ease !important;
+.tab-button:hover,
+.tab-button:focus,
+.tab-button:active {
+  background-color: transparent;
 }

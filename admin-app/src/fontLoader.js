@@ -5,7 +5,7 @@ export function loadLiaDiplomatFonts() {
     return;
   }
 
-  const baseUrl = window.wpConfig.pluginUrl + 'fonts/';
+  const baseUrl = window.wpConfig.pluginUrl + 'admin-app/src/assets/fonts/';
   
   // Create font face declarations dynamically
   const fontFaces = [

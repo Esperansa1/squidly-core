@@ -1,7 +1,7 @@
 /**
  * TabButton Component
  * 
- * Molecular component for tab navigation - extends base Button
+ * Specialized button for tab navigation with sliding background support
  */
 
 import React from 'react';
@@ -17,19 +17,20 @@ const TabButton = ({
 }) => {
   const theme = DEFAULT_THEME;
   
-  // Clean tab styles - no background color changes, only text color
-  const tabStyles = {
-    backgroundColor: 'transparent', // Always transparent - let sliding background handle active state
-    color: isActive ? 'white' : theme.text_secondary,
-  };
+  // Override ghost variant color for active state
+  const getTabStyle = () => ({
+    backgroundColor: 'transparent', // Always transparent for sliding background
+    color: isActive ? 'white' : theme.text_secondary
+  });
 
   return (
     <Button
       variant="ghost"
       size="sm"
+      intent="tab" // This enables tab-specific behavior
       onClick={onClick}
-      className={`tab-button rounded-lg font-semibold ${className}`}
-      style={tabStyles}
+      className={`font-semibold ${className}`}
+      style={getTabStyle()}
       {...props}
     >
       {children}
