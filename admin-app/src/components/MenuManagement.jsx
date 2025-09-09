@@ -72,24 +72,9 @@ const MenuManagement = () => {
     }
   };
 
-  const handleDeleteGroup = async (groupId, type) => {
-    const strings = api.getStrings();
-    if (!confirm(strings.confirm_delete || 'האם אתה בטוח שברצונך למחוק?')) {
-      return;
-    }
-
-    try {
-      if (type === 'product') {
-        await api.deleteProductGroup(groupId);
-      } else {
-        await api.deleteIngredientGroup(groupId);
-      }
-      
-      // Reload data
-      loadData();
-    } catch (err) {
-      alert(`שגיאה במחיקה: ${err.message}`);
-    }
+  // Handle group changes (create/edit/delete) - refresh data
+  const handleGroupChange = () => {
+    loadData();
   };
 
   // Get strings with fallbacks
@@ -179,9 +164,10 @@ const MenuManagement = () => {
               sortField={productSorting.sortField}
               sortDirection={productSorting.sortDirection}
               onSort={productSorting.handleSort}
-              onDeleteGroup={handleDeleteGroup}
               loading={loading}
               error={error}
+              branches={branches}
+              onGroupChange={handleGroupChange}
             />
           </div>
 
@@ -197,9 +183,10 @@ const MenuManagement = () => {
               sortField={ingredientSorting.sortField}
               sortDirection={ingredientSorting.sortDirection}
               onSort={ingredientSorting.handleSort}
-              onDeleteGroup={handleDeleteGroup}
               loading={loading}
               error={error}
+              branches={branches}
+              onGroupChange={handleGroupChange}
             />
           </div>
         </div>

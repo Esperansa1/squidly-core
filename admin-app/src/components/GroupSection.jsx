@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChevronUpIcon, ChevronDownIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { Card, ActionButton } from './ui';
+import { Card, ActionButton, GroupModal } from './ui';
 import { DEFAULT_THEME } from '../config/theme.js';
 
 const GroupSection = ({ 
@@ -15,9 +15,48 @@ const GroupSection = ({
   onSort,
   onDeleteGroup,
   loading,
-  error 
+  error,
+  branches = [],
+  onGroupChange = () => {} // Called when groups are created/updated/deleted
 }) => {
   const theme = DEFAULT_THEME;
+  
+  // Modal state management
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    mode: 'create', // 'create' | 'edit' | 'delete'
+    selectedGroupData: null
+  });
+
+  const openModal = (mode, groupData = null) => {
+    setModalState({
+      isOpen: true,
+      mode,
+      selectedGroupData: groupData
+    });
+  };
+
+  const openDeleteModal = (groupData) => {
+    openModal('delete', groupData);
+  };
+
+  const closeModal = () => {
+    setModalState({
+      isOpen: false,
+      mode: 'create',
+      selectedGroupData: null
+    });
+  };
+
+  const handleModalSuccess = () => {
+    // Refresh the groups data
+    onGroupChange();
+    // Clear selection if we were editing/deleting the selected group
+    if (modalState.mode === 'delete' || 
+        (modalState.mode === 'edit' && selectedGroup?.id === modalState.selectedGroupData?.id)) {
+      setSelectedGroup(null);
+    }
+  };
 
   const SortableHeader = ({ field, label, sortField, sortDirection, onSort }) => {
     const isActive = sortField === field;
@@ -63,17 +102,35 @@ const GroupSection = ({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg text-neutral-800 font-bold">{title}</h2>
           <div className="flex gap-2 rtl:flex-row-reverse">
-            <ActionButton icon={PlusIcon} variant="primary" />
+            <ActionButton 
+              icon={PlusIcon} 
+              variant="primary" 
+              onClick={() => openModal('create')}
+              title={strings.create_group || 'צור קבוצה חדשה'}
+            />
             <ActionButton 
               icon={PencilIcon} 
               variant="secondary"
               disabled={!selectedGroup}
+              onClick={() => {
+                const groupData = groups.find(g => g.id === selectedGroup);
+                if (groupData) {
+                  openModal('edit', groupData);
+                }
+              }}
+              title={strings.edit_group || 'ערוך קבוצה'}
             />
             <ActionButton 
               icon={TrashIcon} 
-              onClick={() => selectedGroup && onDeleteGroup(selectedGroup, type)}
               variant="error"
               disabled={!selectedGroup}
+              onClick={() => {
+                const groupData = groups.find(g => g.id === selectedGroup);
+                if (groupData) {
+                  openDeleteModal(groupData);
+                }
+              }}
+              title={strings.delete_group || 'מחק קבוצה'}
             />
           </div>
         </div>
@@ -175,6 +232,20 @@ const GroupSection = ({
           </div>
         )}
       </div>
+
+      {/* Group Modal */}
+      <GroupModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        mode={modalState.mode}
+        groupType={type}
+        initialData={modalState.selectedGroupData}
+        branches={branches}
+        categories={[]} // TODO: Pass actual categories
+        groups={groups} // Pass all groups for selection
+        onSuccess={handleModalSuccess}
+        strings={strings}
+      />
     </Card>
   );
 };

@@ -10,5 +10,8 @@ export * from './atoms';
 // Molecules  
 export * from './molecules';
 
+// Organisms
+export * from './organisms';
+
 // Legacy components (to be gradually migrated)
 export { default as ThemedRadioButton } from './ThemedRadioButton.jsx';
