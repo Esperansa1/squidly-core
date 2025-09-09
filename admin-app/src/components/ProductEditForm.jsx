@@ -284,11 +284,13 @@ const ProductEditForm = ({
                     updateFormData('useNewCategory', false);
                   }}
                   disabled={formData.useNewCategory}
-                  className="w-full px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
+                  className="w-full py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
                   style={{ 
                     borderColor: theme.border_color,
                     backgroundColor: formData.useNewCategory ? theme.bg_gray_50 : theme.bg_white,
-                    opacity: formData.useNewCategory ? 0.6 : 1
+                    opacity: formData.useNewCategory ? 0.6 : 1,
+                    paddingRight: '12px',
+                    paddingLeft: '32px' // Extra space for dropdown arrow in RTL
                   }}
                 >
                   <option value="">בחר קטגוריה</option>
@@ -381,10 +383,12 @@ const ProductEditForm = ({
                     זמינות
                   </label>
                   <select
-                    className="w-full px-3 py-2 border rounded-lg text-right transition-colors"
+                    className="w-full py-2 border rounded-lg text-right transition-colors"
                     style={{ 
                       borderColor: theme.border_color,
-                      backgroundColor: theme.bg_white
+                      backgroundColor: theme.bg_white,
+                      paddingRight: '12px',
+                      paddingLeft: '32px' // Extra space for dropdown arrow in RTL
                     }}
                     defaultValue="available"
                   >
@@ -411,11 +415,13 @@ const ProductEditForm = ({
                 </Button>
                 <select
                   id="groupSelect"
-                  className="px-3 py-2 border rounded-lg text-right transition-colors"
+                  className="py-2 border rounded-lg text-right transition-colors"
                   style={{ 
                     borderColor: theme.border_color,
                     backgroundColor: theme.bg_white,
-                    minWidth: '200px'
+                    minWidth: '200px',
+                    paddingRight: '12px',
+                    paddingLeft: '32px' // Extra space for dropdown arrow in RTL
                   }}
                 >
                   <option value="">קבוצות קיימות</option>
