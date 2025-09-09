@@ -360,19 +360,38 @@ const ProductEditForm = ({
           >
             <div className="space-y-4 p-4 border rounded-lg" style={{ borderColor: theme.border_color }}>
               {/* Group Name Input Field */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
-                  שם הקבוצה
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
-                  style={{ 
-                    borderColor: theme.border_color,
-                    backgroundColor: theme.bg_white
-                  }}
-                  placeholder="הכנס שם קבוצה חדשה"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
+                    שם הקבוצה
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
+                    style={{ 
+                      borderColor: theme.border_color,
+                      backgroundColor: theme.bg_white
+                    }}
+                    placeholder="הכנס שם קבוצה חדשה"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
+                    זמינות
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-lg text-right transition-colors"
+                    style={{ 
+                      borderColor: theme.border_color,
+                      backgroundColor: theme.bg_white
+                    }}
+                    defaultValue="available"
+                  >
+                    <option value="available">זמין</option>
+                    <option value="unavailable">לא זמין</option>
+                  </select>
+                </div>
               </div>
               
               {/* Add Group Controls */}
