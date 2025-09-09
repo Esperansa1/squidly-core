@@ -200,44 +200,72 @@ const ProductEditForm = ({
                 />
               </div>
 
-              {/* Regular Price - Now first */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
-                  מחיר *
-                </label>
-                <input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => updateFormData('price', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
-                  style={{ 
-                    borderColor: theme.border_color,
-                    backgroundColor: theme.bg_white
-                  }}
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
 
-              {/* Discount Price - Now last */}
+              {/* Price Fields Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
+                    מחיר *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => updateFormData('price', e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
+                    style={{ 
+                      borderColor: theme.border_color,
+                      backgroundColor: theme.bg_white
+                    }}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
+                    מחיר אחרי הנחה
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.discountPrice}
+                    onChange={(e) => updateFormData('discountPrice', e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
+                    style={{ 
+                      borderColor: theme.border_color,
+                      backgroundColor: theme.bg_white
+                    }}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+              
+              {/* Availability - Global Product Setting */}
               <div>
                 <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
-                  מחיר אחרי הנחה (במידה ויש)
+                  זמינות
                 </label>
-                <input
-                  type="number"
-                  value={formData.discountPrice}
-                  onChange={(e) => updateFormData('discountPrice', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
+                <select
+                  className="w-full py-2 border rounded-lg text-right transition-colors"
                   style={{ 
                     borderColor: theme.border_color,
-                    backgroundColor: theme.bg_white
+                    backgroundColor: theme.bg_white,
+                    paddingRight: '32px',
+                    paddingLeft: '12px',
+                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                    backgroundPosition: 'right 8px center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '16px',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    appearance: 'none'
                   }}
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                />
+                  defaultValue="available"
+                >
+                  <option value="available">זמין</option>
+                  <option value="unavailable">לא זמין</option>
+                </select>
               </div>
             </div>
           </div>
@@ -289,8 +317,15 @@ const ProductEditForm = ({
                     borderColor: theme.border_color,
                     backgroundColor: formData.useNewCategory ? theme.bg_gray_50 : theme.bg_white,
                     opacity: formData.useNewCategory ? 0.6 : 1,
-                    paddingRight: '12px',
-                    paddingLeft: '32px' // Extra space for dropdown arrow in RTL
+                    paddingRight: '32px',
+                    paddingLeft: '12px',
+                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                    backgroundPosition: 'right 8px center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '16px',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    appearance: 'none'
                   }}
                 >
                   <option value="">בחר קטגוריה</option>
@@ -362,40 +397,19 @@ const ProductEditForm = ({
           >
             <div className="space-y-4 p-4 border rounded-lg" style={{ borderColor: theme.border_color }}>
               {/* Group Name Input Field */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
-                    שם הקבוצה
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
-                    style={{ 
-                      borderColor: theme.border_color,
-                      backgroundColor: theme.bg_white
-                    }}
-                    placeholder="הכנס שם קבוצה חדשה"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
-                    זמינות
-                  </label>
-                  <select
-                    className="w-full py-2 border rounded-lg text-right transition-colors"
-                    style={{ 
-                      borderColor: theme.border_color,
-                      backgroundColor: theme.bg_white,
-                      paddingRight: '12px',
-                      paddingLeft: '32px' // Extra space for dropdown arrow in RTL
-                    }}
-                    defaultValue="available"
-                  >
-                    <option value="available">זמין</option>
-                    <option value="unavailable">לא זמין</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
+                  שם הקבוצה
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
+                  style={{ 
+                    borderColor: theme.border_color,
+                    backgroundColor: theme.bg_white
+                  }}
+                  placeholder="הכנס שם קבוצה חדשה"
+                />
               </div>
               
               {/* Add Group Controls */}
@@ -420,8 +434,15 @@ const ProductEditForm = ({
                     borderColor: theme.border_color,
                     backgroundColor: theme.bg_white,
                     minWidth: '200px',
-                    paddingRight: '12px',
-                    paddingLeft: '32px' // Extra space for dropdown arrow in RTL
+                    paddingRight: '32px',
+                    paddingLeft: '12px',
+                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                    backgroundPosition: 'right 8px center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '16px',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    appearance: 'none'
                   }}
                 >
                   <option value="">קבוצות קיימות</option>
