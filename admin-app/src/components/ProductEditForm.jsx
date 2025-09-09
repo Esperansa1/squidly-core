@@ -118,19 +118,17 @@ const ProductEditForm = ({
             פרטים כלליים
           </h2>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Product Image - Left Side */}
-            <div className="lg:col-span-1">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Product Image - Properly sized and positioned */}
+            <div className="lg:col-span-3">
               <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
                 תמונת המוצר
               </label>
               <div 
-                className="relative border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-gray-400"
+                className="relative border-2 border-dashed rounded-lg cursor-pointer transition-colors hover:border-opacity-70 w-full aspect-square"
                 style={{ 
                   borderColor: theme.border_color,
-                  backgroundColor: theme.bg_gray_50,
-                  width: '280px', // Square dimensions
-                  height: '280px' // Height to span all 4 text fields (Product Name through Price after discount)
+                  backgroundColor: theme.bg_gray_50
                 }}
               >
                 {formData.image ? (
@@ -164,7 +162,7 @@ const ProductEditForm = ({
             </div>
 
             {/* Product Details - Right Side */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-9 space-y-4">
               {/* Product Name */}
               <div>
                 <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
@@ -361,6 +359,22 @@ const ProductEditForm = ({
             }`}
           >
             <div className="space-y-4 p-4 border rounded-lg" style={{ borderColor: theme.border_color }}>
+              {/* Group Name Input Field */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
+                  שם הקבוצה
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
+                  style={{ 
+                    borderColor: theme.border_color,
+                    backgroundColor: theme.bg_white
+                  }}
+                  placeholder="הכנס שם קבוצה חדשה"
+                />
+              </div>
+              
               {/* Add Group Controls */}
               <div className="flex gap-2 justify-end">
                 <Button
@@ -378,7 +392,7 @@ const ProductEditForm = ({
                 </Button>
                 <select
                   id="groupSelect"
-                  className="px-3 py-2 border rounded-lg text-right focus:outline-none focus:ring-2 transition-colors"
+                  className="px-3 py-2 border rounded-lg text-right transition-colors"
                   style={{ 
                     borderColor: theme.border_color,
                     backgroundColor: theme.bg_white,
@@ -428,29 +442,35 @@ const ProductEditForm = ({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4 justify-end">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-          >
-            חזור ללא שמירה
-          </Button>
+        {/* Action Buttons - RTL aligned with primary on far right */}
+        <div className="flex gap-4 justify-end mt-8 pt-6 border-t" style={{ borderColor: theme.border_color }}>
           <Button
             variant="primary"
             onClick={() => onSave(formData)}
           >
             שמור את ההגדרות
           </Button>
+          <Button
+            variant="outline"
+            onClick={onCancel}
+          >
+            חזור ללא שמירה
+          </Button>
         </div>
       </div>
 
       {/* Custom CSS for smooth animations and focus styles */}
       <style jsx>{`
-        input:focus, select:focus {
-          outline: none;
+        input:focus, textarea:focus {
+          outline: none !important;
           border-color: ${theme.primary_color} !important;
           box-shadow: 0 0 0 2px ${theme.primary_color}20 !important;
+        }
+        
+        select:focus {
+          outline: none !important;
+          border-color: ${theme.primary_color} !important;
+          box-shadow: none !important;
         }
         
         .transition-all {
@@ -467,7 +487,11 @@ const ProductEditForm = ({
             grid-template-columns: 1fr;
           }
           
-          .lg\\:col-span-1, .lg\\:col-span-2 {
+          .lg\\:grid-cols-12 {
+            grid-template-columns: 1fr;
+          }
+          
+          .lg\\:col-span-3, .lg\\:col-span-9 {
             grid-column: span 1;
           }
         }
