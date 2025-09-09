@@ -376,7 +376,7 @@ const ProductEditForm = ({
               </div>
               
               {/* Add Group Controls */}
-              <div className="flex gap-2 justify-end">
+              <div className="flex gap-2 justify-start">
                 <Button
                   variant="primary"
                   size="sm"
@@ -443,7 +443,7 @@ const ProductEditForm = ({
         </div>
 
         {/* Action Buttons - RTL aligned with primary on far right */}
-        <div className="flex gap-4 justify-end mt-8 pt-6 border-t" style={{ borderColor: theme.border_color }}>
+        <div className="flex gap-4 justify-start mt-8 pt-6 border-t" style={{ borderColor: theme.border_color }}>
           <Button
             variant="primary"
             onClick={() => onSave(formData)}
