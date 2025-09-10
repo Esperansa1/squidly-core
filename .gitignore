@@ -11,6 +11,7 @@ assets/main.css
 
 # CI/CD
 .circleci/
+CLAUDE.md
 
 # IDE and Editor files
 .claude/
