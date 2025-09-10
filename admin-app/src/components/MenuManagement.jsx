@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import api from '../services/api.js';
-import { TabButton } from './ui';
+import { TabButton, TabContent } from './ui';
 import { useSorting } from '../hooks/useSorting.js';
-import GroupSection from './GroupSection.jsx';
 
 const MenuManagement = () => {
   const [config, setConfig] = useState(null);
@@ -150,46 +149,23 @@ const MenuManagement = () => {
 
       {/* Scrollable Content Area */}
       <div className="flex-1 px-6 pb-6 overflow-y-auto">
-        {/* Content Sections - Full Height Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 h-full">
-          {/* Product Groups Section */}
-          <div className="min-h-0 flex flex-col">
-            <GroupSection
-              title={strings.product_groups || 'קבוצות מוצרים'}
-              groups={productSorting.sortedData}
-              selectedGroup={selectedProductGroup}
-              setSelectedGroup={setSelectedProductGroup}
-              type="product"
-              strings={strings}
-              sortField={productSorting.sortField}
-              sortDirection={productSorting.sortDirection}
-              onSort={productSorting.handleSort}
-              loading={loading}
-              error={error}
-              branches={branches}
-              onGroupChange={handleGroupChange}
-            />
-          </div>
-
-          {/* Ingredient Groups Section */}
-          <div className="min-h-0 flex flex-col">
-            <GroupSection
-              title={strings.ingredient_groups || 'קבוצות מרכיבים'}
-              groups={ingredientSorting.sortedData}
-              selectedGroup={selectedIngredientGroup}
-              setSelectedGroup={setSelectedIngredientGroup}
-              type="ingredient"
-              strings={strings}
-              sortField={ingredientSorting.sortField}
-              sortDirection={ingredientSorting.sortDirection}
-              onSort={ingredientSorting.handleSort}
-              loading={loading}
-              error={error}
-              branches={branches}
-              onGroupChange={handleGroupChange}
-            />
-          </div>
-        </div>
+        <TabContent
+          activeTab={activeTab}
+          productGroups={productGroups}
+          ingredientGroups={ingredientGroups}
+          selectedProductGroup={selectedProductGroup}
+          setSelectedProductGroup={setSelectedProductGroup}
+          selectedIngredientGroup={selectedIngredientGroup}
+          setSelectedIngredientGroup={setSelectedIngredientGroup}
+          productSorting={productSorting}
+          ingredientSorting={ingredientSorting}
+          strings={strings}
+          loading={loading}
+          error={error}
+          branches={branches}
+          selectedBranchId={selectedBranchId}
+          onGroupChange={handleGroupChange}
+        />
       </div>
     </div>
   );

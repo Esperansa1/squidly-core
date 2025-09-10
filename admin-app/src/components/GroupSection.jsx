@@ -83,9 +83,9 @@ const GroupSection = ({
   };
 
   const StatusIndicator = ({ status }) => (
-    <div className="flex items-center gap-2 rtl:gap-2">
+    <div className="flex items-center justify-end" style={{ gap: '8px' }}>
       <div 
-        className={`w-2 h-2 rounded-full ${
+        className={`w-2 h-2 rounded-full flex-shrink-0 ${
           status === 'active' ? 'bg-green-500' : 'bg-red-500'
         }`}
       />
@@ -94,6 +94,7 @@ const GroupSection = ({
       </span>
     </div>
   );
+
 
   return (
     <Card className="h-full flex flex-col" padding="none">
@@ -136,8 +137,17 @@ const GroupSection = ({
         </div>
 
         {/* Table Header with Sortable Columns */}
-        <div className="grid grid-cols-12 gap-4 pb-2">
-          <div className="col-span-6 text-right">
+        <div 
+          className="pb-2 px-2"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '40px 2fr 150px',
+            gap: '16px',
+            alignItems: 'center'
+          }}
+        >
+          <div></div>
+          <div className="text-right">
             <SortableHeader
               field="name"
               label={strings.group_name || 'שם הקבוצה'}
@@ -146,7 +156,7 @@ const GroupSection = ({
               onSort={onSort}
             />
           </div>
-          <div className="col-span-5 text-right">
+          <div className="text-right">
             <SortableHeader
               field="status"
               label={strings.group_status || 'סטטוס הקבוצה'}
@@ -155,7 +165,6 @@ const GroupSection = ({
               onSort={onSort}
             />
           </div>
-          <div className="col-span-1"></div>
         </div>
       </div>
 
@@ -193,17 +202,16 @@ const GroupSection = ({
             {groups.map((group) => (
               <div 
                 key={group.id}
-                className="grid grid-cols-12 gap-4 py-3 hover:bg-gray-50 rounded-lg px-2 transition-colors cursor-pointer"
+                className="py-3 hover:bg-gray-50 rounded-lg px-2 transition-colors cursor-pointer"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '40px 2fr 150px',
+                  gap: '16px',
+                  alignItems: 'center'
+                }}
                 onClick={() => setSelectedGroup(group.id)}
               >
-                <div className="col-span-6 text-right">
-                  <span className="text-sm text-gray-800">{group.name}</span>
-                </div>
-                <div className="col-span-5 text-right">
-                  <StatusIndicator status={group.status} />
-                </div>
-                <div className="col-span-1 flex justify-center">
-                  {/* Radio button using theme colors */}
+                <div className="flex justify-center">
                   <div
                     onClick={() => setSelectedGroup(group.id)}
                     className="w-4 h-4 rounded-full border-2 cursor-pointer transition-all flex items-center justify-center"
@@ -212,12 +220,10 @@ const GroupSection = ({
                       backgroundColor: selectedGroup === group.id ? theme.primary_color : theme.bg_white
                     }}
                   >
-                    {/* White dot when selected */}
                     {selectedGroup === group.id && (
                       <div className="w-1.5 h-1.5 rounded-full bg-white" />
                     )}
                   </div>
-                  {/* Hidden native radio for form functionality */}
                   <input
                     type="radio"
                     name={`${type}-selection`}
@@ -226,6 +232,12 @@ const GroupSection = ({
                     onChange={() => setSelectedGroup(group.id)}
                     style={{ display: 'none' }}
                   />
+                </div>
+                <div className="text-right">
+                  <span className="text-sm text-gray-800">{group.name}</span>
+                </div>
+                <div>
+                  <StatusIndicator status={group.status} />
                 </div>
               </div>
             ))}
