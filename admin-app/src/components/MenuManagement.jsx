@@ -127,7 +127,7 @@ const MenuManagement = () => {
             </button>
             
             {branchDropdownOpen && (
-              <div className="absolute top-full mt-1 right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+              <div className="absolute top-full mt-1 left-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                 {branches.map((branch) => (
                   <button
                     key={branch.id}
