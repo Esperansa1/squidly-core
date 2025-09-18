@@ -139,6 +139,7 @@ require_once __DIR__ . '/includes/domains/payments/bootstrap/PaymentBootstrap.ph
 
 // REST API Controllers
 require_once __DIR__ . '/includes/domains/products/rest/ProductGroupRestController.php';
+require_once __DIR__ . '/includes/domains/products/rest/IngredientRestController.php';
 require_once __DIR__ . '/includes/domains/products/rest/IngredientGroupRestController.php';
 require_once __DIR__ . '/includes/domains/stores/rest/StoreBranchRestController.php';
 require_once __DIR__ . '/includes/api/AdminApiBootstrap.php';

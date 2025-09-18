@@ -61,6 +61,7 @@ const TableHeader = ({
 }) => {
   return (
     <div className="flex justify-between items-center mb-4">
+      <h2 className="text-lg text-neutral-800 font-bold">{title}</h2>
       <div className="flex gap-2">
         <ActionButton
           icon={TrashIcon}
@@ -83,7 +84,6 @@ const TableHeader = ({
           title={strings.create || 'צור חדש'}
         />
       </div>
-      <h2 className="text-lg text-neutral-800 font-bold">{title}</h2>
     </div>
   );
 };

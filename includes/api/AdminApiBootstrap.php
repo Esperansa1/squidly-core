@@ -20,6 +20,10 @@ class AdminApiBootstrap
         $product_groups_controller = new ProductGroupRestController();
         $product_groups_controller->register_routes();
 
+        // Ingredients API
+        $ingredients_controller = new IngredientRestController();
+        $ingredients_controller->register_routes();
+
         // Ingredient Groups API  
         $ingredient_groups_controller = new IngredientGroupRestController();
         $ingredient_groups_controller->register_routes();

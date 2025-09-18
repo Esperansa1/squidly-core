@@ -47,9 +47,9 @@ const DataTable = ({
   }
 
   return (
-    <div className="overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Table Header */}
-      <div className="flex items-center pb-2 px-2 border-b border-gray-200">
+      <div className="flex-shrink-0 flex items-center pb-2 px-2 border-b border-gray-200">
         <div className="flex justify-center" style={{ width: '40px' }}>
           <span className="text-sm text-gray-700 font-semibold">
             בחר
@@ -79,7 +79,7 @@ const DataTable = ({
       </div>
 
       {/* Table Rows */}
-      <div className="overflow-y-auto max-h-96">
+      <div className="flex-1 overflow-y-auto">
         <div className="space-y-1">
           {data.map((item) => (
             <div 

@@ -40,19 +40,21 @@ const TabContent = ({
   );
 
   const renderIngredientsContent = () => (
-    <div className="h-full">
-      <IngredientsSection
-        title={strings.ingredients || 'מרכיבים'}
-        ingredients={[]}
-        selectedIngredient={selectedIngredient}
-        setSelectedIngredient={setSelectedIngredient}
-        strings={strings}
-        loading={loading}
-        error={error}
-        branches={branches}
-        selectedBranchId={selectedBranchId}
-        onIngredientChange={() => {}}
-      />
+    <div className="h-full flex justify-center">
+      <div className="w-3/4 h-full">
+        <IngredientsSection
+          title={strings.ingredients || 'מרכיבים'}
+          ingredients={[]}
+          selectedIngredient={selectedIngredient}
+          setSelectedIngredient={setSelectedIngredient}
+          strings={strings}
+          loading={loading}
+          error={error}
+          branches={branches}
+          selectedBranchId={selectedBranchId}
+          onIngredientChange={() => {}}
+        />
+      </div>
     </div>
   );
 

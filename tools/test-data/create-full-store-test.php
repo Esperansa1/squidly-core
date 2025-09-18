@@ -56,10 +56,10 @@ try {
     // Create store branches with correct data structure
     $branches = [
         [
-            'name' => 'Squidly Downtown',
+            'name' => 'סקווידלי מרכז העיר',
             'phone' => '+972-3-1234567',
-            'city' => 'Tel Aviv',
-            'address' => '123 Main Street, Tel Aviv, Israel',
+            'city' => 'תל אביב',
+            'address' => 'רחוב הראשי 123, תל אביב, ישראל',
             'is_open' => true,
             'activity_times' => [
                 'SUNDAY' => ['10:00-22:00'],
@@ -74,10 +74,10 @@ try {
             'accessibility_list' => ['wheelchair_accessible', 'braille_menu']
         ],
         [
-            'name' => 'Squidly Beach',
+            'name' => 'סקווידלי החוף',
             'phone' => '+972-3-2345678',
-            'city' => 'Tel Aviv',
-            'address' => '456 Beach Boulevard, Tel Aviv, Israel',
+            'city' => 'תל אביב',
+            'address' => 'שדרות החוף 456, תל אביב, ישראל',
             'is_open' => true,
             'activity_times' => [
                 'SUNDAY' => ['09:00-22:00'],
@@ -105,58 +105,89 @@ try {
     // Create base ingredients for hamburger restaurant
     $ingredients_data = [
         // Meat options
-        ['name' => 'Beef Patty (150g)', 'price' => 18.00],
-        ['name' => 'Double Beef Patty (300g)', 'price' => 32.00],
-        ['name' => 'Chicken Breast', 'price' => 15.00],
-        ['name' => 'Turkey Patty', 'price' => 16.00],
-        ['name' => 'Veggie Patty', 'price' => 14.00],
-        ['name' => 'Beyond Meat Patty', 'price' => 22.00],
+        ['name' => 'קציצת בקר (150 גרם)', 'price' => 18.00],
+        ['name' => 'קציצת בקר כפולה (300 גרם)', 'price' => 32.00],
+        ['name' => 'חזה עוף', 'price' => 15.00],
+        ['name' => 'קציצת הודו', 'price' => 16.00],
+        ['name' => 'קציצה צמחונית', 'price' => 14.00],
+        ['name' => 'קציצת בשר מעבר', 'price' => 22.00],
         
         // Bread options
-        ['name' => 'Classic Sesame Bun', 'price' => 3.00],
-        ['name' => 'Brioche Bun', 'price' => 4.50],
-        ['name' => 'Whole Wheat Bun', 'price' => 3.50],
-        ['name' => 'Gluten-Free Bun', 'price' => 5.00],
-        ['name' => 'Pretzel Bun', 'price' => 4.00],
+        ['name' => 'לחמנייה קלאסית עם שומשום', 'price' => 3.00],
+        ['name' => 'לחמנייה בריוש', 'price' => 4.50],
+        ['name' => 'לחמנייה מחיטה מלאה', 'price' => 3.50],
+        ['name' => 'לחמנייה ללא גלוטן', 'price' => 5.00],
+        ['name' => 'לחמנייה פרצל', 'price' => 4.00],
         
         // Cheese options
-        ['name' => 'American Cheese', 'price' => 2.00],
-        ['name' => 'Swiss Cheese', 'price' => 2.50],
-        ['name' => 'Cheddar Cheese', 'price' => 2.50],
-        ['name' => 'Blue Cheese', 'price' => 3.00],
-        ['name' => 'Goat Cheese', 'price' => 3.50],
-        ['name' => 'Vegan Cheese', 'price' => 3.00],
+        ['name' => 'גבינה אמריקאית', 'price' => 2.00],
+        ['name' => 'גבינה שוויצרית', 'price' => 2.50],
+        ['name' => 'גבינת צ\'דר', 'price' => 2.50],
+        ['name' => 'גבינה כחולה', 'price' => 3.00],
+        ['name' => 'גבינת עיזים', 'price' => 3.50],
+        ['name' => 'גבינה טבעונית', 'price' => 3.00],
         
         // Toppings
-        ['name' => 'Lettuce', 'price' => 1.00],
-        ['name' => 'Tomato', 'price' => 1.50],
-        ['name' => 'Red Onion', 'price' => 1.00],
-        ['name' => 'Pickles', 'price' => 1.50],
-        ['name' => 'Bacon', 'price' => 4.00],
-        ['name' => 'Avocado', 'price' => 3.00],
-        ['name' => 'Mushrooms', 'price' => 2.00],
-        ['name' => 'Jalapeños', 'price' => 1.50],
+        ['name' => 'חסה', 'price' => 1.00],
+        ['name' => 'עגבנייה', 'price' => 1.50],
+        ['name' => 'בצל אדום', 'price' => 1.00],
+        ['name' => 'חמוצים', 'price' => 1.50],
+        ['name' => 'בייקון', 'price' => 4.00],
+        ['name' => 'אבוקדו', 'price' => 3.00],
+        ['name' => 'פטריות', 'price' => 2.00],
+        ['name' => 'הלפיניו', 'price' => 1.50],
         
         // Sauces
-        ['name' => 'Ketchup', 'price' => 0.50],
-        ['name' => 'Mustard', 'price' => 0.50],
-        ['name' => 'Mayo', 'price' => 0.50],
-        ['name' => 'BBQ Sauce', 'price' => 1.00],
-        ['name' => 'Sriracha Mayo', 'price' => 1.50],
-        ['name' => 'Garlic Aioli', 'price' => 1.50],
+        ['name' => 'קטשופ', 'price' => 0.50],
+        ['name' => 'חרדל', 'price' => 0.50],
+        ['name' => 'מיונז', 'price' => 0.50],
+        ['name' => 'רוטב ברביקיו', 'price' => 1.00],
+        ['name' => 'מיונז סרירצ\'ה', 'price' => 1.50],
+        ['name' => 'איולי שום', 'price' => 1.50],
         
         // Sides
-        ['name' => 'Regular Fries', 'price' => 8.00],
-        ['name' => 'Sweet Potato Fries', 'price' => 10.00],
-        ['name' => 'Onion Rings', 'price' => 9.00],
-        ['name' => 'Side Salad', 'price' => 7.00],
+        ['name' => 'צ\'יפס רגיל', 'price' => 8.00],
+        ['name' => 'צ\'יפס בטטה', 'price' => 10.00],
+        ['name' => 'טבעות בצל', 'price' => 9.00],
+        ['name' => 'סלט קטן', 'price' => 7.00],
     ];
     
     $ingredient_ids = [];
     foreach ($ingredients_data as $ingredient_data) {
         $ingredient_id = $ingredientRepo->create($ingredient_data);
         $ingredient_ids[] = $ingredient_id;
-        echo "<div style='color: green;'>✅ Created ingredient: {$ingredient_data['name']} (ID: {$ingredient_id})</div>";
+        
+        // Set branch availability for each ingredient
+        // Make ingredients available in different branches for variety
+        foreach ($branch_ids as $index => $branch_id) {
+            // Make most ingredients available in all branches, but some only in specific branches for testing
+            $is_available = true;
+            
+            // Make some ingredients branch-specific for testing
+            if (in_array($ingredient_data['name'], ['קציצת בשר מעבר', 'לחמנייה ללא גלוטן', 'גבינה טבעונית'])) {
+                // These special items only available in branch 1 (index 0)
+                $is_available = ($index === 0);
+            } elseif (in_array($ingredient_data['name'], ['גבינה כחולה', 'לחמנייה פרצל', 'איולי שום'])) {
+                // These premium items only available in branch 2 (index 1)
+                $is_available = ($index === 1);
+            }
+            
+            update_post_meta($ingredient_id, '_branch_availability_' . $branch_id, $is_available ? '1' : '0');
+        }
+        
+        // Show branch availability info
+        $branch_info = [];
+        foreach ($branch_ids as $index => $branch_id) {
+            $is_available = true;
+            if (in_array($ingredient_data['name'], ['קציצת בשר מעבר', 'לחמנייה ללא גלוטן', 'גבינה טבעונית'])) {
+                $is_available = ($index === 0);
+            } elseif (in_array($ingredient_data['name'], ['גבינה כחולה', 'לחמנייה פרצל', 'איולי שום'])) {
+                $is_available = ($index === 1);
+            }
+            $branch_info[] = "Branch {$branch_id}: " . ($is_available ? "✅" : "❌");
+        }
+        
+        echo "<div style='color: green;'>✅ Created ingredient: {$ingredient_data['name']} (ID: {$ingredient_id}) - " . implode(", ", $branch_info) . "</div>";
     }
 
     echo "<h2>🍔 Creating Complex Hamburger Products with Product Groups</h2>";
@@ -164,8 +195,8 @@ try {
     // First create some actual products that will be used in product-type groups
     $simple_products_data = [
         [
-            'name' => 'Classic Cheeseburger',
-            'description' => 'Traditional cheeseburger with beef patty, cheese, lettuce, tomato',
+            'name' => 'צ\'יזבורגר קלאסי',
+            'description' => 'המבורגר מסורתי עם קציצת בקר, גבינה, חסה ועגבנייה',
             'price' => 28.00,
             'category' => 'burgers',
             'is_available' => true,
@@ -173,8 +204,8 @@ try {
             'preparation_time' => 12
         ],
         [
-            'name' => 'Chicken Deluxe',
-            'description' => 'Grilled chicken breast with premium toppings',
+            'name' => 'עוף דלוקס',
+            'description' => 'חזה עוף צלוי עם תוספות פרימיום',
             'price' => 26.00,
             'category' => 'burgers',
             'is_available' => true,
@@ -182,8 +213,8 @@ try {
             'preparation_time' => 14
         ],
         [
-            'name' => 'Veggie Supreme',
-            'description' => 'Plant-based patty with fresh vegetables',
+            'name' => 'צמחוני סופרים',
+            'description' => 'קציצה צמחית עם ירקות טריים',
             'price' => 24.00,
             'category' => 'burgers',
             'is_available' => true,
@@ -191,8 +222,8 @@ try {
             'preparation_time' => 10
         ],
         [
-            'name' => 'BBQ Bacon Burger',
-            'description' => 'Beef patty with crispy bacon and BBQ sauce',
+            'name' => 'המבורגר ברביקיו בייקון',
+            'description' => 'קציצת בקר עם בייקון פריך ורוטב ברביקיו',
             'price' => 32.00,
             'category' => 'burgers',
             'is_available' => true,
@@ -212,37 +243,37 @@ try {
     $ingredient_groups_data = [
         // Meat Selection Group
         [
-            'name' => 'Choose Your Protein',
+            'name' => 'בחר את החלבון שלך',
             'type' => 'ingredient',
             'ingredient_ids' => array_slice($ingredient_ids, 0, 6) // First 6 are meat options
         ],
         // Bread Selection Group  
         [
-            'name' => 'Choose Your Bun',
+            'name' => 'בחר את הלחמנייה שלך',
             'type' => 'ingredient',
             'ingredient_ids' => array_slice($ingredient_ids, 6, 5) // Bread options
         ],
         // Cheese Selection Group
         [
-            'name' => 'Add Cheese',
+            'name' => 'הוסף גבינה',
             'type' => 'ingredient', 
             'ingredient_ids' => array_slice($ingredient_ids, 11, 6) // Cheese options
         ],
         // Toppings Group
         [
-            'name' => 'Fresh Toppings',
+            'name' => 'תוספות טריות',
             'type' => 'ingredient',
             'ingredient_ids' => array_slice($ingredient_ids, 17, 8) // Toppings
         ],
         // Sauce Group
         [
-            'name' => 'Choose Your Sauce',
+            'name' => 'בחר את הרוטב שלך',
             'type' => 'ingredient',
             'ingredient_ids' => array_slice($ingredient_ids, 25, 6) // Sauces
         ],
         // Sides Group
         [
-            'name' => 'Add a Side',
+            'name' => 'הוסף תוספת',
             'type' => 'ingredient',
             'ingredient_ids' => array_slice($ingredient_ids, 31, 4) // Sides
         ]
@@ -251,17 +282,17 @@ try {
     // Create PRODUCT Product Groups (for grouping related products together)
     $product_groups_data = [
         [
-            'name' => 'Signature Burgers',
+            'name' => 'המבורגרים מיוחדים',
             'type' => 'product',
             'product_ids' => [$simple_product_ids[0], $simple_product_ids[1]] // Classic Cheeseburger, Chicken Deluxe
         ],
         [
-            'name' => 'Healthy Options',
+            'name' => 'אפשרויות בריאות',
             'type' => 'product', 
             'product_ids' => [$simple_product_ids[2]] // Veggie Supreme
         ],
         [
-            'name' => 'Premium Selection',
+            'name' => 'מבחר פרימיום',
             'type' => 'product',
             'product_ids' => [$simple_product_ids[3]] // BBQ Bacon Burger
         ]
@@ -326,8 +357,8 @@ try {
     // Create complex hamburger products with multiple INGREDIENT Product Groups (for customization)
     $complex_products_data = [
         [
-            'name' => 'Build Your Own Burger',
-            'description' => 'Create your perfect burger with our selection of premium ingredients',
+            'name' => 'בנה את ההמבורגר שלך',
+            'description' => 'צור את ההמבורגר המושלם שלך עם מבחר המרכיבים הפרימיום שלנו',
             'price' => 25.00, // Base price
             'category' => 'burgers',
             'image_url' => 'https://example.com/build-burger.jpg',
@@ -337,8 +368,8 @@ try {
             'product_groups' => [$ingredient_group_ids[0], $ingredient_group_ids[1], $ingredient_group_ids[2]] // Protein, Bun, Cheese
         ],
         [
-            'name' => 'Gourmet Deluxe Burger',
-            'description' => 'Our signature burger with premium toppings and artisanal ingredients',
+            'name' => 'המבורגר גורמה דלוקס',
+            'description' => 'ההמבורגר החתימה שלנו עם תוספות פרימיום ומרכיבים אומנותיים',
             'price' => 35.00,
             'category' => 'burgers',
             'image_url' => 'https://example.com/deluxe-burger.jpg',
@@ -348,8 +379,8 @@ try {
             'product_groups' => [$ingredient_group_ids[0], $ingredient_group_ids[1], $ingredient_group_ids[2], $ingredient_group_ids[3]] // Protein, Bun, Cheese, Toppings
         ],
         [
-            'name' => 'Ultimate Combo Meal',
-            'description' => 'Complete meal with burger, sauce, and side of your choice',
+            'name' => 'ארוחת קומבו אולטימט',
+            'description' => 'ארוחה מלאה עם המבורגר, רוטב ותוספת לבחירתך',
             'price' => 45.00,
             'category' => 'combo',
             'image_url' => 'https://example.com/combo-meal.jpg',
@@ -375,28 +406,28 @@ try {
     // Create test customers
     $customers_data = [
         [
-            'first_name' => 'David',
-            'last_name' => 'Cohen',
+            'first_name' => 'דוד',
+            'last_name' => 'כהן',
             'email' => 'david.cohen@example.com',
             'phone' => '+972-50-1234567',
             'auth_provider' => 'phone',
-            'address' => '789 Rothschild Blvd, Tel Aviv',
-            'city' => 'Tel Aviv',
+            'address' => 'שדרות רוטשילד 789, תל אביב',
+            'city' => 'תל אביב',
             'postal_code' => '6578912',
-            'country' => 'Israel',
+            'country' => 'ישראל',
             'dietary_preferences' => ['kosher', 'no_nuts'],
             'marketing_consent' => true
         ],
         [
-            'first_name' => 'Sarah',
-            'last_name' => 'Levy',
+            'first_name' => 'שרה',
+            'last_name' => 'לוי',
             'email' => 'sarah.levy@example.com',
             'phone' => '+972-52-7654321',
             'auth_provider' => 'google',
-            'address' => '456 Ben Yehuda St, Tel Aviv',
-            'city' => 'Tel Aviv',
+            'address' => 'רחוב בן יהודה 456, תל אביב',
+            'city' => 'תל אביב',
             'postal_code' => '6340567',
-            'country' => 'Israel',
+            'country' => 'ישראל',
             'dietary_preferences' => ['vegetarian'],
             'marketing_consent' => false
         ]
@@ -419,30 +450,30 @@ try {
             'items' => [
                 [
                     'product_id' => $product_ids[0], 
-                    'product_name' => 'Build Your Own Burger',
+                    'product_name' => 'בנה את ההמבורגר שלך',
                     'quantity' => 1, 
                     'unit_price' => 25.00,
                     'modifications' => [
-                        'protein' => 'Beef Patty (150g)',
-                        'bun' => 'Brioche Bun',
-                        'cheese' => 'Cheddar Cheese'
+                        'protein' => 'קציצת בקר (150 גרם)',
+                        'bun' => 'לחמנייה בריוש',
+                        'cheese' => 'גבינת צ\'דר'
                     ],
-                    'notes' => 'Medium-well, extra pickles'
+                    'notes' => 'צלייה בינונית, חמוצים נוספים'
                 ],
                 [
                     'product_id' => $product_ids[2], 
-                    'product_name' => 'Ultimate Combo Meal',
+                    'product_name' => 'ארוחת קומבו אולטימט',
                     'quantity' => 1, 
                     'unit_price' => 45.00,
                     'modifications' => [
-                        'protein' => 'Double Beef Patty (300g)',
-                        'bun' => 'Pretzel Bun',
-                        'cheese' => 'Swiss Cheese',
-                        'toppings' => ['Bacon', 'Avocado', 'Mushrooms'],
-                        'sauce' => 'Garlic Aioli',
-                        'side' => 'Sweet Potato Fries'
+                        'protein' => 'קציצת בקר כפולה (300 גרם)',
+                        'bun' => 'לחמנייה פרצל',
+                        'cheese' => 'גבינה שוויצרית',
+                        'toppings' => ['בייקון', 'אבוקדו', 'פטריות'],
+                        'sauce' => 'איולי שום',
+                        'side' => 'צ\'יפס בטטה'
                     ],
-                    'notes' => 'Well done, light on sauce'
+                    'notes' => 'צלוי היטב, מעט רוטב'
                 ]
             ]
         ],
@@ -452,28 +483,28 @@ try {
             'items' => [
                 [
                     'product_id' => $product_ids[1], 
-                    'product_name' => 'Gourmet Deluxe Burger',
+                    'product_name' => 'המבורגר גורמה דלוקס',
                     'quantity' => 2, 
                     'unit_price' => 35.00,
                     'modifications' => [
-                        'protein' => 'Beyond Meat Patty',
-                        'bun' => 'Whole Wheat Bun',
-                        'cheese' => 'Vegan Cheese',
-                        'toppings' => ['Lettuce', 'Tomato', 'Red Onion', 'Avocado']
+                        'protein' => 'קציצת בשר מעבר',
+                        'bun' => 'לחמנייה מחיטה מלאה',
+                        'cheese' => 'גבינה טבעונית',
+                        'toppings' => ['חסה', 'עגבנייה', 'בצל אדום', 'אבוקדו']
                     ],
-                    'notes' => 'Vegan option, no mayo'
+                    'notes' => 'אופציה טבעונית, ללא מיונז'
                 ],
                 [
                     'product_id' => $product_ids[0], 
-                    'product_name' => 'Build Your Own Burger',
+                    'product_name' => 'בנה את ההמבורגר שלך',
                     'quantity' => 1, 
                     'unit_price' => 25.00,
                     'modifications' => [
-                        'protein' => 'Chicken Breast',
-                        'bun' => 'Gluten-Free Bun',
-                        'cheese' => 'Goat Cheese'
+                        'protein' => 'חזה עוף',
+                        'bun' => 'לחמנייה ללא גלוטן',
+                        'cheese' => 'גבינת עיזים'
                     ],
-                    'notes' => 'Gluten-free option, grilled chicken'
+                    'notes' => 'אופציה ללא גלוטן, עוף צלוי'
                 ]
             ]
         ]
@@ -486,8 +517,8 @@ try {
             'customer_id' => $order_data['customer_id'],
             'branch_id' => $order_data['branch_id'],
             'items' => $order_data['items'],
-            'delivery_address' => '123 Test Address, Tel Aviv',
-            'special_instructions' => 'Test order created by script',
+            'delivery_address' => 'כתובת בדיקה 123, תל אביב',
+            'special_instructions' => 'הזמנת בדיקה שנוצרה על ידי סקריפט',
             'payment_method' => 'online'
         ];
         
@@ -502,7 +533,7 @@ try {
     echo "<h3>📊 Summary:</h3>";
     echo "<ul>";
     echo "<li><strong>Store Branches:</strong> " . count($branch_ids) . " created</li>";
-    echo "<li><strong>Ingredients:</strong> " . count($ingredient_ids) . " created (meats, buns, cheese, toppings, sauces, sides)</li>";
+    echo "<li><strong>Ingredients:</strong> " . count($ingredient_ids) . " created with branch-specific availability (meats, buns, cheese, toppings, sauces, sides)</li>";
     echo "<li><strong>Simple Products:</strong> " . count($simple_product_ids) . " created (pre-made burgers)</li>";
     echo "<li><strong>INGREDIENT Product Groups:</strong> " . count($ingredient_group_ids) . " created (for ingredient customization)</li>";
     echo "<li><strong>PRODUCT Product Groups:</strong> " . count($product_group_ids) . " created (for product collections)</li>";
@@ -510,6 +541,12 @@ try {
     echo "<li><strong>Total Products:</strong> " . count($product_ids) . " created (simple + complex)</li>";
     echo "<li><strong>Customers:</strong> " . count($customer_ids) . " created</li>";
     echo "<li><strong>Complete Orders:</strong> " . count($order_ids) . " created with detailed modifications</li>";
+    echo "</ul>";
+    echo "<h4>🏢 Branch-Specific Ingredients:</h4>";
+    echo "<ul>";
+    echo "<li><strong>Branch 1 Only:</strong> קציצת בשר מעבר, לחמנייה ללא גלוטן, גבינה טבעונית</li>";
+    echo "<li><strong>Branch 2 Only:</strong> גבינה כחולה, לחמנייה פרצל, איולי שום</li>";
+    echo "<li><strong>All Branches:</strong> All other ingredients</li>";
     echo "</ul>";
     echo "<h4>🍔 Group Types:</h4>";
     echo "<ul>";

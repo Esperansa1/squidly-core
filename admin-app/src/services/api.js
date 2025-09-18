@@ -134,6 +134,38 @@ class ApiService {
     });
   }
 
+  // ===== INGREDIENTS API =====
+  
+  async getIngredients(filters = {}) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `ingredients?${queryParams}` : 'ingredients';
+    return await this.fetch(endpoint);
+  }
+
+  async getIngredient(id) {
+    return await this.fetch(`ingredients/${id}`);
+  }
+
+  async createIngredient(data) {
+    return await this.fetch('ingredients', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateIngredient(id, data) {
+    return await this.fetch(`ingredients/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteIngredient(id) {
+    return await this.fetch(`ingredients/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // ===== INGREDIENT GROUPS API =====
   
   async getIngredientGroups(filters = {}) {

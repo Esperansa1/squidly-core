@@ -65,16 +65,70 @@ class IngredientRepository implements RepositoryInterface
     /**
      * Get all published Ingredients.
      *
+     * @param array $filters Optional filters: branch_id, search, price_min, price_max
      * @return Ingredient[]
      */
-    public function getAll(): array
+    public function getAll(array $filters = []): array
     {
-        $query = new WP_Query([
+        $query_args = [
             'post_type'      => IngredientPostType::POST_TYPE,
             'posts_per_page' => -1,
             'post_status'    => 'publish',
-        ]);
+        ];
 
+        // Add meta query for filters
+        $meta_query = [];
+
+        // Filter by price range
+        if (!empty($filters['price_min']) || !empty($filters['price_max'])) {
+            $price_query = ['key' => '_price'];
+            
+            if (!empty($filters['price_min']) && !empty($filters['price_max'])) {
+                $price_query['value'] = [(float)$filters['price_min'], (float)$filters['price_max']];
+                $price_query['compare'] = 'BETWEEN';
+                $price_query['type'] = 'NUMERIC';
+            } elseif (!empty($filters['price_min'])) {
+                $price_query['value'] = (float)$filters['price_min'];
+                $price_query['compare'] = '>=';
+                $price_query['type'] = 'NUMERIC';
+            } elseif (!empty($filters['price_max'])) {
+                $price_query['value'] = (float)$filters['price_max'];
+                $price_query['compare'] = '<=';
+                $price_query['type'] = 'NUMERIC';
+            }
+            
+            $meta_query[] = $price_query;
+        }
+
+        // Filter by branch availability (if branch system is implemented)
+        if (!empty($filters['branch_id'])) {
+            // Include ingredients that either:
+            // 1. Have the branch availability meta set to '1' OR
+            // 2. Don't have any branch availability meta set (default to available)
+            $meta_query[] = [
+                'relation' => 'OR',
+                [
+                    'key' => '_branch_availability_' . (int)$filters['branch_id'],
+                    'value' => '1',
+                    'compare' => '='
+                ],
+                [
+                    'key' => '_branch_availability_' . (int)$filters['branch_id'],
+                    'compare' => 'NOT EXISTS'
+                ]
+            ];
+        }
+
+        if (!empty($meta_query)) {
+            $query_args['meta_query'] = $meta_query;
+        }
+
+        // Search by name
+        if (!empty($filters['search'])) {
+            $query_args['s'] = sanitize_text_field($filters['search']);
+        }
+
+        $query = new WP_Query($query_args);
         $ingredients = [];
 
         foreach ($query->posts as $post) {
