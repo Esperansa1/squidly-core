@@ -15,3 +15,8 @@ export * from './organisms';
 
 // Legacy components (to be gradually migrated)
 export { default as ThemedRadioButton } from './ThemedRadioButton.jsx';
+
+// New reusable components
+export { default as TableHeader } from './TableHeader.jsx';
+export { default as SearchBar } from './SearchBar.jsx';
+export { default as DataTable } from './DataTable.jsx';

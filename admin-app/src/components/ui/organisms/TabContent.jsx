@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import GroupSection from '../../GroupSection.jsx';
-import ProductsSection from '../../ProductsSection.jsx';
 import IngredientsSection from '../../IngredientsSection.jsx';
 
 const TabContent = ({
@@ -24,59 +22,20 @@ const TabContent = ({
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const renderGroupsContent = () => (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 h-full">
-      <div className="min-h-0 flex flex-col">
-        <GroupSection
-          title={strings.product_groups || 'קבוצות מוצרים'}
-          groups={productSorting.sortedData}
-          selectedGroup={selectedProductGroup}
-          setSelectedGroup={setSelectedProductGroup}
-          type="product"
-          strings={strings}
-          sortField={productSorting.sortField}
-          sortDirection={productSorting.sortDirection}
-          onSort={productSorting.handleSort}
-          loading={loading}
-          error={error}
-          branches={branches}
-          onGroupChange={onGroupChange}
-        />
-      </div>
-
-      <div className="min-h-0 flex flex-col">
-        <GroupSection
-          title={strings.ingredient_groups || 'קבוצות מרכיבים'}
-          groups={ingredientSorting.sortedData}
-          selectedGroup={selectedIngredientGroup}
-          setSelectedGroup={setSelectedIngredientGroup}
-          type="ingredient"
-          strings={strings}
-          sortField={ingredientSorting.sortField}
-          sortDirection={ingredientSorting.sortDirection}
-          onSort={ingredientSorting.handleSort}
-          loading={loading}
-          error={error}
-          branches={branches}
-          onGroupChange={onGroupChange}
-        />
+    <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="text-center">
+        <div className="text-6xl mb-4">🏗️</div>
+        <p className="text-lg">תוכן הקבוצות יתווסף בקרוב</p>
       </div>
     </div>
   );
 
   const renderProductsContent = () => (
-    <div className="h-full">
-      <ProductsSection
-        title={strings.products || 'מוצרים'}
-        products={[]}
-        selectedProduct={selectedProduct}
-        setSelectedProduct={setSelectedProduct}
-        strings={strings}
-        loading={loading}
-        error={error}
-        branches={branches}
-        selectedBranchId={selectedBranchId}
-        onProductChange={() => {}}
-      />
+    <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="text-center">
+        <div className="text-6xl mb-4">🍕</div>
+        <p className="text-lg">תוכן המוצרים יתווסף בקרוב</p>
+      </div>
     </div>
   );
 
