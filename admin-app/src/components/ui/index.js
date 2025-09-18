@@ -20,3 +20,4 @@ export { default as ThemedRadioButton } from './ThemedRadioButton.jsx';
 export { default as TableHeader } from './TableHeader.jsx';
 export { default as SearchBar } from './SearchBar.jsx';
 export { default as DataTable } from './DataTable.jsx';
+export { default as ConfirmationModal } from './ConfirmationModal.jsx';

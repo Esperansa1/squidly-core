@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Card, TableHeader, SearchBar, DataTable } from './ui';
+import { Card, TableHeader, SearchBar, DataTable, ConfirmationModal } from './ui';
 import api from '../services/api.js';
 
 const IngredientsSection = ({
@@ -20,6 +20,10 @@ const IngredientsSection = ({
   const [apiError, setApiError] = useState(null);
   const [lastFetchedBranchId, setLastFetchedBranchId] = useState(null);
   const branchDataCache = useRef(new Map());
+  
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Stable fetch function with useCallback
   const fetchIngredients = useCallback(async () => {
@@ -117,6 +121,45 @@ const IngredientsSection = ({
     fetchIngredients();
   }, [fetchIngredients]);
 
+  // Delete functionality
+  const handleDeleteClick = () => {
+    if (selectedIngredient) {
+      setShowDeleteModal(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedIngredient) return;
+
+    try {
+      setIsDeleting(true);
+      await api.deleteIngredient(selectedIngredient);
+      
+      // Clear selection
+      setSelectedIngredient(null);
+      
+      // Clear cache and refetch data
+      branchDataCache.current.clear();
+      setLastFetchedBranchId(null);
+      await fetchIngredients();
+      
+      // Call change handler
+      onIngredientChange();
+      
+      // Close modal
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error('Failed to delete ingredient:', error);
+      setApiError(error.message || 'Failed to delete ingredient');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+  };
+
   // Determine data source and loading/error states
   const dataToUse = apiIngredients;
   const loading = externalLoading || apiLoading;
@@ -198,7 +241,7 @@ const IngredientsSection = ({
           title={title}
           onCreateClick={() => {}}
           onEditClick={() => {}}
-          onDeleteClick={() => {}}
+          onDeleteClick={handleDeleteClick}
           hasSelectedItem={!!selectedIngredient}
           strings={{
             create: strings.create_ingredient || 'צור מרכיב חדש',
@@ -225,6 +268,22 @@ const IngredientsSection = ({
           emptyMessage={strings.no_ingredients || 'אין מרכיבים להצגה'}
         />
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="מחיקת מרכיב"
+        message={`האם אתה בטוח שברצונך למחוק את המרכיב "${
+          selectedIngredient ? 
+            filteredData.find(item => item.id === selectedIngredient)?.name || 'מרכיב לא ידוע'
+            : ''
+        }"? פעולה זו תמחק את המרכיב מכל הסניפים ולא ניתן לבטלה.`}
+        confirmText="כן, מחק"
+        cancelText="ביטול"
+        loading={isDeleting}
+      />
     </Card>
   );
 };
