@@ -11,7 +11,7 @@ class IngredientRestController extends \WP_REST_Controller
     protected $namespace = 'squidly/v1';
     protected $rest_base = 'ingredients';
     
-    private IngredientRepository $repository;
+    private $repository;
 
     public function __construct()
     {
@@ -138,6 +138,11 @@ class IngredientRestController extends \WP_REST_Controller
                 'price' => (float)($request['price'] ?? 0),
             ];
 
+            // Handle branch availability if provided
+            if (!empty($request['availability']) && is_array($request['availability'])) {
+                $data['availability'] = $request['availability'];
+            }
+
             $ingredient_id = $this->repository->create($data);
             $ingredient = $this->repository->get($ingredient_id);
 
@@ -168,13 +173,18 @@ class IngredientRestController extends \WP_REST_Controller
             if (isset($request['name'])) {
                 $data['name'] = sanitize_text_field($request['name']);
             }
-            
+
             if (isset($request['price'])) {
                 $data['price'] = (float)$request['price'];
             }
 
+            // Handle branch availability updates if provided
+            if (!empty($request['availability']) && is_array($request['availability'])) {
+                $data['availability'] = $request['availability'];
+            }
+
             $success = $this->repository->update($id, $data);
-            
+
             if (!$success) {
                 return new \WP_REST_Response([
                     'error' => 'Ingredient not found'
@@ -230,29 +240,20 @@ class IngredientRestController extends \WP_REST_Controller
      */
     public function prepare_item_for_response($item, $request)
     {
-        // Get branch availability from post meta
+        // Get actual branch IDs from the database
+        $branch_repository = new StoreBranchRepository();
+        $branches = $branch_repository->getAll();
+
+        // Get branch availability from post meta using actual branch IDs
         $availability = [];
-        
-        // Check availability for different branches (0-5 for example)
-        for ($branch_id = 0; $branch_id <= 5; $branch_id++) {
-            $availability[$branch_id] = (bool) get_post_meta($item->id, '_branch_availability_' . $branch_id, true);
+
+        foreach ($branches as $branch) {
+            $availability[$branch->id] = (bool) get_post_meta($item->id, '_branch_availability_' . $branch->id, true);
         }
-        
-        // If no branch availability is set, default to available for all branches
-        if (empty(array_filter($availability))) {
-            $availability = [
-                0 => true,  // Default branch availability
-                1 => true,  // Branch 1 availability
-                2 => true,  // Branch 2 availability
-                3 => true,  // Branch 3 availability
-                4 => true,  // Branch 4 availability
-                5 => true,  // Branch 5 availability
-            ];
-            
-            // Store the default availability in post meta for future filtering
-            for ($branch_id = 0; $branch_id <= 5; $branch_id++) {
-                update_post_meta($item->id, '_branch_availability_' . $branch_id, '1');
-            }
+
+        // If no branches exist, return empty availability
+        if (empty($branches)) {
+            $availability = [];
         }
 
         $data = [
@@ -312,12 +313,16 @@ class IngredientRestController extends \WP_REST_Controller
             'price_min' => [
                 'description' => 'Minimum price filter',
                 'type' => 'number',
-                'sanitize_callback' => 'floatval',
+                'sanitize_callback' => function($param) {
+                    return floatval($param);
+                },
             ],
             'price_max' => [
                 'description' => 'Maximum price filter',
                 'type' => 'number',
-                'sanitize_callback' => 'floatval',
+                'sanitize_callback' => function($param) {
+                    return floatval($param);
+                },
             ],
         ];
     }
@@ -345,9 +350,41 @@ class IngredientRestController extends \WP_REST_Controller
                 'type' => 'number',
                 'required' => false,
                 'default' => 0,
-                'sanitize_callback' => 'floatval',
+                'sanitize_callback' => function($param) {
+                    return floatval($param);
+                },
                 'validate_callback' => function($param) {
                     return is_numeric($param) && $param >= 0;
+                },
+            ];
+            
+            $args['availability'] = [
+                'description' => 'Branch availability mapping (object with branch_id as keys and boolean as values)',
+                'type' => 'object',
+                'required' => false,
+                'validate_callback' => function($param) {
+                    // Allow empty or null
+                    if (empty($param)) {
+                        return true;
+                    }
+                    
+                    // Must be an array/object
+                    if (!is_array($param)) {
+                        return false;
+                    }
+                    
+                    // All keys should be numeric (branch IDs) and values should be boolean-ish
+                    foreach ($param as $key => $value) {
+                        if (!is_numeric($key)) {
+                            return false;
+                        }
+                        // Allow boolean, numeric 0/1, or string "0"/"1"/"true"/"false"
+                        if (!is_bool($value) && !is_numeric($value) && !in_array($value, ['true', 'false', '0', '1'], true)) {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
                 },
             ];
         }

@@ -11,6 +11,7 @@ class IngredientRepository implements RepositoryInterface
      * @param array $data Should contain:
      *  - name (string)
      *  - price (float)
+     *  - availability (array, optional) - branch_id => boolean
      * @return int The post ID of the created ingredient
      */
     public function create(array $data): int
@@ -37,6 +38,11 @@ class IngredientRepository implements RepositoryInterface
         }
 
         update_post_meta($post_id, '_price', $price);
+
+        // Handle branch availability if provided
+        if (isset($data['availability']) && is_array($data['availability'])) {
+            $this->updateAvailability($post_id, $data['availability']);
+        }
 
         return $post_id;
     }
@@ -100,24 +106,9 @@ class IngredientRepository implements RepositoryInterface
             $meta_query[] = $price_query;
         }
 
-        // Filter by branch availability (if branch system is implemented)
-        if (!empty($filters['branch_id'])) {
-            // Include ingredients that either:
-            // 1. Have the branch availability meta set to '1' OR
-            // 2. Don't have any branch availability meta set (default to available)
-            $meta_query[] = [
-                'relation' => 'OR',
-                [
-                    'key' => '_branch_availability_' . (int)$filters['branch_id'],
-                    'value' => '1',
-                    'compare' => '='
-                ],
-                [
-                    'key' => '_branch_availability_' . (int)$filters['branch_id'],
-                    'compare' => 'NOT EXISTS'
-                ]
-            ];
-        }
+        // Note: We no longer filter by branch availability here
+        // Instead, we return all ingredients and let the frontend show availability status
+        // This allows users to see which ingredients exist but are unavailable in their branch
 
         if (!empty($meta_query)) {
             $query_args['meta_query'] = $meta_query;
@@ -147,7 +138,7 @@ class IngredientRepository implements RepositoryInterface
     /**
      * Update an existing ingredient.
      *
-     * Accepts any subset of ['name','price'].
+     * Accepts any subset of ['name','price','availability'].
      * Returns true on success, false if the post does not exist / wrong type.
      *
      * @throws InvalidArgumentException
@@ -181,7 +172,64 @@ class IngredientRepository implements RepositoryInterface
             update_post_meta($id, '_price', (float) $data['price']);
         }
 
+        // --- update branch availability meta ------------------------------
+        if (array_key_exists('availability', $data)) {
+            $this->updateAvailability($id, $data['availability']);
+        }
+
         return true;
+    }
+
+    /**
+     * Update branch availability for an ingredient
+     *
+     * @param int $id Ingredient ID
+     * @param array $availability Array of branch_id => boolean availability
+     * @return bool Success
+     */
+    public function updateAvailability(int $id, array $availability): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== IngredientPostType::POST_TYPE) {
+            return false;
+        }
+
+        foreach ($availability as $branch_id => $is_available) {
+            $branch_id = (int) $branch_id;
+            $is_available = (bool) $is_available;
+            $meta_key = '_branch_availability_' . $branch_id;
+            $meta_value = $is_available ? '1' : '0';
+
+            update_post_meta($id, $meta_key, $meta_value);
+        }
+
+        return true;
+    }
+
+    /**
+     * Get branch availability for an ingredient
+     *
+     * @param int $id Ingredient ID
+     * @return array Array of branch_id => boolean availability
+     */
+    public function getAvailability(int $id): array
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== IngredientPostType::POST_TYPE) {
+            return [];
+        }
+
+        // Get actual branch IDs from the database
+        $branch_repository = new StoreBranchRepository();
+        $branches = $branch_repository->getAll();
+
+        $availability = [];
+
+        foreach ($branches as $branch) {
+            $availability[$branch->id] = (bool) get_post_meta($id, '_branch_availability_' . $branch->id, true);
+        }
+
+        return $availability;
     }
 
     /* ----------------------------------------------------------------------
