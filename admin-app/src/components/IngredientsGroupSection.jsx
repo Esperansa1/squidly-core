@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { api } from '../services/api.js';
-import DataSection from './DataSection.jsx';
+import api from '../services/api.js';
+import DataSection from './ui/DataSection.jsx';
 import IngredientsGroupModal from './ui/IngredientsGroupModal.jsx';
 
 const IngredientsGroupSection = ({ strings }) => {

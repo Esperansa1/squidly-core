@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { api } from '../../services/api.js';
+import api from '../../services/api.js';
 import DropdownButton from './DropdownButton.jsx';
 
 const IngredientsGroupModal = ({
