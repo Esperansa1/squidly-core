@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../services/api.js';
-import DataSection from './ui/DataSection.jsx';
+import { DataTable, SearchBar, Card } from './ui';
 import IngredientsGroupModal from './ui/IngredientsGroupModal.jsx';
 
 const IngredientsGroupSection = ({ strings }) => {
@@ -9,15 +9,14 @@ const IngredientsGroupSection = ({ strings }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const loadIngredientGroups = useCallback(async (filters = {}) => {
     setIsLoading(true);
     try {
       const response = await api.getIngredientGroups(filters);
-      console.log('API Response:', response); // Debug log
       const groups = response.data || response || [];
-      console.log('Groups data:', groups); // Debug log
-      setIngredientGroups(groups);
+      setIngredientGroups(Array.isArray(groups) ? groups : []);
     } catch (error) {
       console.error('Error loading ingredient groups:', error);
       setIngredientGroups([]);
@@ -121,23 +120,61 @@ const IngredientsGroupSection = ({ strings }) => {
     }
   ], [strings]);
 
+  // Filter data based on search term
+  const filteredData = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return ingredientGroups;
+    }
+    return ingredientGroups.filter(group =>
+      group && group.name && group.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [ingredientGroups, searchTerm]);
+
   return (
     <>
-      <DataSection
-        title={strings.ingredientGroups || 'קבוצות'}
-        data={ingredientGroups}
-        columns={columns}
-        searchTerm={searchTerm}
-        onSearch={handleSearch}
-        onAdd={handleCreate}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        isLoading={isLoading}
-        addButtonText={strings.addIngredientGroup || 'הוסף קבוצה'}
-        searchPlaceholder={strings.searchIngredientGroups || 'חפש קבוצות...'}
-        noDataMessage={strings.noIngredientGroups || 'לא נמצאו קבוצות'}
-        strings={strings}
-      />
+      <Card className="h-full flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">{strings.ingredientGroups || 'קבוצות'}</h2>
+          <button
+            onClick={handleCreate}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+          >
+            {strings.addIngredientGroup || 'הוסף קבוצה'}
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="p-6 border-b border-gray-200">
+          <SearchBar
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder={strings.searchIngredientGroups || 'חפש קבוצות...'}
+          />
+        </div>
+
+        {/* Data Table */}
+        <div className="flex-1 p-6">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="text-gray-500">טוען...</div>
+            </div>
+          ) : filteredData.length === 0 ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="text-gray-500">{strings.noIngredientGroups || 'לא נמצאו קבוצות'}</div>
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={filteredData}
+              selectedId={selectedItem}
+              onSelectionChange={setSelectedItem}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
+        </div>
+      </Card>
 
       <IngredientsGroupModal
         isOpen={showModal}
