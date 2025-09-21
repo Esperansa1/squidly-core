@@ -28,12 +28,11 @@ const AvailabilityDisplay = ({
     }
 
     const branchText = availableBranches.join(', ');
-    const truncatedText = branchText.length > 25 ? branchText.substring(0, 22) + '...' : branchText;
 
     return (
       <div className="flex items-center justify-center gap-2 w-full">
         <span className="text-sm text-gray-800 font-medium" title={branchText}>
-          {truncatedText}
+          {branchText}
         </span>
       </div>
     );

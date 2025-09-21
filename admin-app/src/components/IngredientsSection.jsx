@@ -36,7 +36,8 @@ const IngredientsSection = ({
     {
       key: 'availability',
       label: strings.availability || 'זמינות',
-      width: '140px',
+      width: 'auto',
+      maxWidth: '280px',
       cellStyle: {
         whiteSpace: 'normal',
         overflow: 'visible',

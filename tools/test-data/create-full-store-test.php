@@ -338,7 +338,7 @@ try {
             $group_item_id = $groupItemRepo->create($group_item_data);
             $group_item_ids[] = $group_item_id;
         }
-        
+
         // Create ProductGroup of type 'product'
         $product_group_data = [
             'name' => $group_data['name'],
@@ -348,6 +348,35 @@ try {
         $group_id = $productGroupRepo->create($product_group_data);
         $product_group_ids[] = $group_id;
         echo "<div style='color: purple;'>✅ Created PRODUCT group: {$group_data['name']} (ID: {$group_id}) with " . count($group_item_ids) . " products</div>";
+    }
+
+    echo "<h3>🔗 Assigning Product Groups to Simple Products</h3>";
+    // Now assign product groups to the simple products to make them more complex
+    $product_group_assignments = [
+        $simple_product_ids[0] => [$product_group_ids[0]], // Classic Cheeseburger → Special Burgers
+        $simple_product_ids[1] => [$product_group_ids[0]], // Chicken Deluxe → Special Burgers
+        $simple_product_ids[2] => [$product_group_ids[1]], // Veggie Supreme → Healthy Options
+        $simple_product_ids[3] => [$product_group_ids[2]], // BBQ Bacon Burger → Premium Selection
+    ];
+
+    foreach ($product_group_assignments as $product_id => $assigned_group_ids) {
+        // Update the product to include the product group IDs
+        $product = $productRepo->get($product_id);
+        if ($product) {
+            $update_data = [
+                'product_group_ids' => $assigned_group_ids
+            ];
+            $productRepo->update($product_id, $update_data);
+
+            $group_names = [];
+            foreach ($assigned_group_ids as $group_id) {
+                $group = $productGroupRepo->get($group_id);
+                if ($group) {
+                    $group_names[] = $group->name;
+                }
+            }
+            echo "<div style='color: blue;'>🔗 Assigned product ID {$product_id} to groups: " . implode(', ', $group_names) . "</div>";
+        }
     }
 
     // Combine all group IDs for backward compatibility with existing complex products
@@ -396,6 +425,37 @@ try {
         $product_id = $productRepo->create($product_data);
         $complex_product_ids[] = $product_id;
         echo "<div style='color: green;'>✅ Created complex product: {$product_data['name']} (ID: {$product_id}) with " . count($product_data['product_groups']) . " ingredient groups</div>";
+    }
+
+    echo "<h3>🔗 Assigning Additional Product Groups to Complex Products</h3>";
+    // Add product groups to complex products to make them even more complex
+    $complex_product_group_assignments = [
+        $complex_product_ids[0] => [$product_group_ids[0]], // Build Your Own Burger → Special Burgers
+        $complex_product_ids[1] => [$product_group_ids[2]], // Gourmet Deluxe → Premium Selection
+        $complex_product_ids[2] => [$product_group_ids[0], $product_group_ids[2]], // Ultimate Combo → Special Burgers + Premium Selection
+    ];
+
+    foreach ($complex_product_group_assignments as $product_id => $assigned_group_ids) {
+        // Get existing product groups from the product
+        $product = $productRepo->get($product_id);
+        if ($product) {
+            $existing_groups = $product->product_group_ids ?? [];
+            $all_groups = array_merge($existing_groups, $assigned_group_ids);
+
+            $update_data = [
+                'product_group_ids' => array_unique($all_groups)
+            ];
+            $productRepo->update($product_id, $update_data);
+
+            $group_names = [];
+            foreach ($assigned_group_ids as $group_id) {
+                $group = $productGroupRepo->get($group_id);
+                if ($group) {
+                    $group_names[] = $group->name;
+                }
+            }
+            echo "<div style='color: blue;'>🔗 Added to complex product ID {$product_id} additional groups: " . implode(', ', $group_names) . "</div>";
+        }
     }
 
     // Combine all product IDs for backward compatibility
@@ -555,10 +615,20 @@ try {
     echo "</ul>";
     echo "<h4>🍔 Product Structure:</h4>";
     echo "<ul>";
-    echo "<li><strong>Simple Products:</strong> Ready-made burgers (Classic Cheeseburger, Chicken Deluxe, etc.)</li>";
-    echo "<li><strong>Build Your Own Burger:</strong> 3 ingredient groups (protein, bun, cheese)</li>";
-    echo "<li><strong>Gourmet Deluxe Burger:</strong> 4 ingredient groups (+ toppings)</li>";
-    echo "<li><strong>Ultimate Combo Meal:</strong> 6 ingredient groups (all customization options)</li>";
+    echo "<li><strong>Simple Products:</strong> Ready-made burgers with assigned product groups (Classic Cheeseburger, Chicken Deluxe, etc.)</li>";
+    echo "<li><strong>Build Your Own Burger:</strong> 3 ingredient groups (protein, bun, cheese) + 1 product group (Special Burgers)</li>";
+    echo "<li><strong>Gourmet Deluxe Burger:</strong> 4 ingredient groups (+ toppings) + 1 product group (Premium Selection)</li>";
+    echo "<li><strong>Ultimate Combo Meal:</strong> 6 ingredient groups (all customization options) + 2 product groups (Special Burgers + Premium Selection)</li>";
+    echo "</ul>";
+
+    echo "<h4>🔗 Product Group Relationships:</h4>";
+    echo "<ul>";
+    echo "<li><strong>Classic Cheeseburger & Chicken Deluxe:</strong> → Special Burgers</li>";
+    echo "<li><strong>Veggie Supreme:</strong> → Healthy Options</li>";
+    echo "<li><strong>BBQ Bacon Burger:</strong> → Premium Selection</li>";
+    echo "<li><strong>Build Your Own Burger:</strong> → Special Burgers</li>";
+    echo "<li><strong>Gourmet Deluxe Burger:</strong> → Premium Selection</li>";
+    echo "<li><strong>Ultimate Combo Meal:</strong> → Special Burgers + Premium Selection</li>";
     echo "</ul>";
     echo "</div>";
     

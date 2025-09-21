@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import IngredientsSection from '../../IngredientsSection.jsx';
+import ProductSection from '../../ProductSection.jsx';
 
 const TabContent = ({
   activeTab,
@@ -31,30 +32,37 @@ const TabContent = ({
   );
 
   const renderProductsContent = () => (
-    <div className="flex items-center justify-center h-full text-gray-500">
-      <div className="text-center">
-        <div className="text-6xl mb-4">🍕</div>
-        <p className="text-lg">תוכן המוצרים יתווסף בקרוב</p>
-      </div>
+    <div className="h-full">
+      <ProductSection
+        title={strings.products || 'מוצרים'}
+        products={[]}
+        selectedProduct={selectedProduct}
+        setSelectedProduct={setSelectedProduct}
+        strings={strings}
+        loading={loading}
+        error={error}
+        branches={branches}
+        selectedBranchId={selectedBranchId}
+        onProductChange={() => {}}
+        productGroups={productGroups}
+      />
     </div>
   );
 
   const renderIngredientsContent = () => (
-    <div className="h-full flex justify-center">
-      <div className="w-3/4 h-full">
-        <IngredientsSection
-          title={strings.ingredients || 'מרכיבים'}
-          ingredients={[]}
-          selectedIngredient={selectedIngredient}
-          setSelectedIngredient={setSelectedIngredient}
-          strings={strings}
-          loading={loading}
-          error={error}
-          branches={branches}
-          selectedBranchId={selectedBranchId}
-          onIngredientChange={() => {}}
-        />
-      </div>
+    <div className="h-full">
+      <IngredientsSection
+        title={strings.ingredients || 'מרכיבים'}
+        ingredients={[]}
+        selectedIngredient={selectedIngredient}
+        setSelectedIngredient={setSelectedIngredient}
+        strings={strings}
+        loading={loading}
+        error={error}
+        branches={branches}
+        selectedBranchId={selectedBranchId}
+        onIngredientChange={() => {}}
+      />
     </div>
   );
 

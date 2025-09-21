@@ -166,8 +166,40 @@ class ApiService {
     });
   }
 
+  // ===== PRODUCTS API =====
+
+  async getProducts(filters = {}) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `products?${queryParams}` : 'products';
+    return await this.fetch(endpoint);
+  }
+
+  async getProduct(id) {
+    return await this.fetch(`products/${id}`);
+  }
+
+  async createProduct(data) {
+    return await this.fetch('products', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateProduct(id, data) {
+    return await this.fetch(`products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProduct(id) {
+    return await this.fetch(`products/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // ===== INGREDIENT GROUPS API =====
-  
+
   async getIngredientGroups(filters = {}) {
     // Add item_type filter to get only ingredient groups, using product-groups endpoint
     const ingredientFilters = { ...filters, item_type: 'ingredient' };
