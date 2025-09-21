@@ -282,7 +282,12 @@ class IngredientRepository implements RepositoryInterface
 
         /* Every matching GroupItem itself counts as a dependant ------------- */
         foreach ($giIds as $giId) {
-            $names[] = "GroupItem #{$giId}";
+            $giPost = get_post($giId);
+            if ($giPost && !empty($giPost->post_title)) {
+                $names[] = $giPost->post_title;
+            } else {
+                $names[] = "Group Item #{$giId}";
+            }
         }
 
         /* --- 2. product-groups containing those group-items ---------------- */
