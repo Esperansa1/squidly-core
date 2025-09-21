@@ -111,7 +111,7 @@ const IngredientsGroupSection = ({ strings }) => {
   return (
     <>
       <DataSection
-        title={strings.ingredientGroups || 'Ingredient Groups'}
+        title={strings.ingredientGroups || 'קבוצות'}
         data={ingredientGroups}
         columns={columns}
         searchTerm={searchTerm}
@@ -120,9 +120,9 @@ const IngredientsGroupSection = ({ strings }) => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         isLoading={isLoading}
-        addButtonText={strings.addIngredientGroup || 'Add Ingredient Group'}
-        searchPlaceholder={strings.searchIngredientGroups || 'Search ingredient groups...'}
-        noDataMessage={strings.noIngredientGroups || 'No ingredient groups found'}
+        addButtonText={strings.addIngredientGroup || 'הוסף קבוצה'}
+        searchPlaceholder={strings.searchIngredientGroups || 'חפש קבוצות...'}
+        noDataMessage={strings.noIngredientGroups || 'לא נמצאו קבוצות'}
         strings={strings}
       />
 

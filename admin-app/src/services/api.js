@@ -201,10 +201,8 @@ class ApiService {
   // ===== INGREDIENT GROUPS API =====
 
   async getIngredientGroups(filters = {}) {
-    // Add item_type filter to get only ingredient groups, using product-groups endpoint
-    const ingredientFilters = { ...filters, item_type: 'ingredient' };
-    const queryParams = new URLSearchParams(ingredientFilters).toString();
-    const endpoint = queryParams ? `product-groups?${queryParams}` : 'product-groups?item_type=ingredient';
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `ingredient-groups?${queryParams}` : 'ingredient-groups';
     return await this.fetch(endpoint);
   }
 
