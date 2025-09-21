@@ -6,6 +6,7 @@ class ProductGroup
 {
     public int $id;
     public string $name;
+    public string $description;
     public ItemType $type;
     public array $group_item_ids; // int[]
 
@@ -13,6 +14,7 @@ class ProductGroup
     {
         $this->id              = (int) $data['id'];
         $this->name            = (string) $data['name'];
+        $this->description     = (string) ($data['description'] ?? '');
         $this->type            = ItemType::from($data['type']);
         $this->group_item_ids  = $data['group_item_ids'] ?? [];
     }
@@ -22,6 +24,7 @@ class ProductGroup
         return [
             'id'              => $this->id,
             'name'            => $this->name,
+            'description'     => $this->description,
             'type'            => $this->type->value,
             'group_item_ids'  => $this->group_item_ids,
         ];

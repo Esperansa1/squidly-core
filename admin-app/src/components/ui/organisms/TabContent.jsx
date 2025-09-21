@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import IngredientsSection from '../../IngredientsSection.jsx';
 import ProductSection from '../../ProductSection.jsx';
+import IngredientsGroupSection from '../../IngredientsGroupSection.jsx';
 
 const TabContent = ({
   activeTab,
@@ -23,11 +24,10 @@ const TabContent = ({
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const renderGroupsContent = () => (
-    <div className="flex items-center justify-center h-full text-gray-500">
-      <div className="text-center">
-        <div className="text-6xl mb-4">🏗️</div>
-        <p className="text-lg">תוכן הקבוצות יתווסף בקרוב</p>
-      </div>
+    <div className="h-full">
+      <IngredientsGroupSection
+        strings={strings}
+      />
     </div>
   );
 

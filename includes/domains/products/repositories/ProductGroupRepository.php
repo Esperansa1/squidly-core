@@ -12,9 +12,10 @@ class ProductGroupRepository implements RepositoryInterface
         }
 
         $post_id = wp_insert_post([
-            'post_title'  => sanitize_text_field($data['name']),
-            'post_type'   => ProductGroupPostType::POST_TYPE,
-            'post_status' => 'publish',
+            'post_title'   => sanitize_text_field($data['name']),
+            'post_content' => isset($data['description']) ? sanitize_textarea_field($data['description']) : '',
+            'post_type'    => ProductGroupPostType::POST_TYPE,
+            'post_status'  => 'publish',
         ]);
 
         if (is_wp_error($post_id)) {
@@ -44,6 +45,7 @@ class ProductGroupRepository implements RepositoryInterface
         return new ProductGroup([
             'id'              => $id,
             'name'            => $post->post_title,
+            'description'     => $post->post_content,
             'type'            => $type,
             'group_item_ids'  => get_post_meta($id, '_group_item_ids', true) ?? [],
         ]);
@@ -67,11 +69,15 @@ class ProductGroupRepository implements RepositoryInterface
             throw new InvalidArgumentException('Invalid type for ProductGroup.');
         }
 
+        $update_data = ['ID' => $id];
         if (isset($data['name'])) {
-            wp_update_post([
-                'ID'         => $id,
-                'post_title' => sanitize_text_field($data['name']),
-            ]);
+            $update_data['post_title'] = sanitize_text_field($data['name']);
+        }
+        if (isset($data['description'])) {
+            $update_data['post_content'] = sanitize_textarea_field($data['description']);
+        }
+        if (count($update_data) > 1) {
+            wp_update_post($update_data);
         }
         if (array_key_exists('type', $data)) {
             update_post_meta($id, '_type', $data['type']);
@@ -228,6 +234,7 @@ class ProductGroupRepository implements RepositoryInterface
         foreach ($criteria as $key => $value) {
             switch ($key) {
                 case 'name':
+                case 'search':
                     // Search in post title
                     $search_query['s'] = $value;
                     break;

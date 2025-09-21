@@ -68,14 +68,21 @@ class IngredientGroupRestController extends \WP_REST_Controller
     public function get_items($request)
     {
         try {
-            // Get only ingredient type groups using the convenience method
-            $groups = $this->repository->getIngredientGroups();
-            
+            $filters = ['type' => 'ingredient'];
+
+            // Add search filter if provided
+            if (!empty($request['search'])) {
+                $filters['search'] = sanitize_text_field($request['search']);
+            }
+
+            // Get only ingredient type groups
+            $groups = $this->repository->findBy($filters);
+
             $data = array_map(function($group) {
                 return $this->prepare_item_for_response($group, new \WP_REST_Request())->get_data();
             }, $groups);
 
-            return new \WP_REST_Response($data, 200);
+            return new \WP_REST_Response(['data' => $data], 200);
             
         } catch (Exception $e) {
             return new \WP_REST_Response([
@@ -93,6 +100,7 @@ class IngredientGroupRestController extends \WP_REST_Controller
         try {
             $data = [
                 'name' => sanitize_text_field($request['name']),
+                'description' => isset($request['description']) ? sanitize_textarea_field($request['description']) : '',
                 'type' => 'ingredient', // Force ingredient type
                 'group_item_ids' => $request['group_item_ids'] ?? [],
                 'status' => $request['status'] ?? 'active',
@@ -153,6 +161,10 @@ class IngredientGroupRestController extends \WP_REST_Controller
 
             if (isset($request['name'])) {
                 $data['name'] = sanitize_text_field($request['name']);
+            }
+
+            if (isset($request['description'])) {
+                $data['description'] = sanitize_textarea_field($request['description']);
             }
             
             if (isset($request['group_item_ids'])) {
@@ -223,6 +235,7 @@ class IngredientGroupRestController extends \WP_REST_Controller
         $data = [
             'id' => $item->id,
             'name' => $item->name,
+            'description' => $item->description ?? '',
             'type' => $item->type->value,
             'group_item_ids' => $item->group_item_ids,
             'status' => 'active', // Add status logic based on your requirements
@@ -266,16 +279,61 @@ class IngredientGroupRestController extends \WP_REST_Controller
     public function get_collection_params(): array
     {
         return [
-            'branch_id' => [
-                'description' => 'Filter by branch ID',
+            'search' => [
+                'description' => 'Search ingredient groups by name',
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'type' => [
+                'description' => 'Filter by type',
+                'type' => 'string',
+                'default' => 'ingredient',
+            ],
+            'per_page' => [
+                'description' => 'Number of items per page',
                 'type' => 'integer',
+                'default' => 20,
                 'sanitize_callback' => 'absint',
             ],
-            'status' => [
-                'description' => 'Filter by status',
+        ];
+    }
+
+    /**
+     * Get endpoint args for item schema
+     */
+    public function get_endpoint_args_for_item_schema($method = \WP_REST_Server::CREATABLE): array
+    {
+        $args = [
+            'name' => [
+                'description' => 'Ingredient group name',
                 'type' => 'string',
-                'enum' => ['active', 'inactive'],
+                'required' => true,
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'description' => [
+                'description' => 'Ingredient group description',
+                'type' => 'string',
+                'required' => false,
+                'sanitize_callback' => 'sanitize_textarea_field',
+            ],
+            'type' => [
+                'description' => 'Group type',
+                'type' => 'string',
+                'default' => 'ingredient',
+                'enum' => ['ingredient', 'product'],
+            ],
+            'group_item_ids' => [
+                'description' => 'Array of item IDs in this group',
+                'type' => 'array',
+                'items' => ['type' => 'integer'],
+                'default' => [],
             ],
         ];
+
+        if ($method === \WP_REST_Server::EDITABLE) {
+            $args['name']['required'] = false;
+        }
+
+        return $args;
     }
 }
