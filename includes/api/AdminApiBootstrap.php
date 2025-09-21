@@ -10,8 +10,8 @@ class AdminApiBootstrap
 {
     public static function init(): void
     {
-        add_action('rest_api_init', [self::class, 'register_routes']);
-        add_action('rest_api_init', [self::class, 'setup_cors']);
+        add_action('rest_api_init', [self::class, 'register_routes'], 5); // Earlier priority
+        add_action('rest_api_init', [self::class, 'setup_cors'], 5);
     }
 
     public static function register_routes(): void

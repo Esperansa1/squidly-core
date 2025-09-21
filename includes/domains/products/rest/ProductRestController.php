@@ -40,7 +40,7 @@ class ProductRestController extends \WP_REST_Controller
         ]);
 
         // GET/PUT/DELETE /squidly/v1/products/{id}
-        register_rest_route($this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', [
+        $route_registered = register_rest_route($this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', [
             [
                 'methods' => \WP_REST_Server::READABLE,
                 'callback' => [$this, 'get_item'],
@@ -282,9 +282,10 @@ class ProductRestController extends \WP_REST_Controller
      */
     public function prepare_item_for_response($item, $request)
     {
-        // Get actual branch IDs from the database
-        $branch_repository = new StoreBranchRepository();
-        $branches = $branch_repository->getAll();
+        try {
+            // Get actual branch IDs from the database
+            $branch_repository = new StoreBranchRepository();
+            $branches = $branch_repository->getAll();
 
         // Get branch availability from post meta using actual branch IDs
         $availability = [];
@@ -298,19 +299,27 @@ class ProductRestController extends \WP_REST_Controller
             $availability = [];
         }
 
-        $data = [
-            'id' => $item->id,
-            'name' => $item->name,
-            'description' => $item->description,
-            'price' => $item->price,
-            'discounted_price' => $item->discounted_price,
-            'category' => $item->category,
-            'tags' => $item->tags,
-            'product_group_ids' => $item->product_group_ids,
-            'availability' => $availability,
-        ];
+            $data = [
+                'id' => $item->id,
+                'name' => $item->name,
+                'description' => $item->description,
+                'price' => $item->price,
+                'discounted_price' => $item->discounted_price,
+                'category' => $item->category,
+                'tags' => $item->tags,
+                'product_group_ids' => $item->product_group_ids,
+                'availability' => $availability,
+            ];
 
-        return new \WP_REST_Response($data, 200);
+            return new \WP_REST_Response($data, 200);
+
+        } catch (Exception $e) {
+            // Return a minimal response to avoid breaking the API
+            return new \WP_REST_Response([
+                'error' => 'Failed to prepare response',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

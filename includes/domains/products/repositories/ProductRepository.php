@@ -356,7 +356,10 @@ class ProductRepository implements RepositoryInterface
             function($id) { return $id > 0; }
         );
 
-        $result = update_post_meta($post_id, '_product_group_ids', $valid_group_ids);
+        // Delete the meta first, then add it (to avoid update_post_meta issues)
+        delete_post_meta($post_id, '_product_group_ids');
+        $result = add_post_meta($post_id, '_product_group_ids', $valid_group_ids, true);
+
         if ($result === false) {
             throw new RuntimeException('Failed to set product groups meta.');
         }
