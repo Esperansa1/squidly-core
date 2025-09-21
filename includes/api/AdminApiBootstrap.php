@@ -16,6 +16,10 @@ class AdminApiBootstrap
 
     public static function register_routes(): void
     {
+        // Products API
+        $products_controller = new ProductRestController();
+        $products_controller->register_routes();
+
         // Product Groups API
         $product_groups_controller = new ProductGroupRestController();
         $product_groups_controller->register_routes();
@@ -24,7 +28,7 @@ class AdminApiBootstrap
         $ingredients_controller = new IngredientRestController();
         $ingredients_controller->register_routes();
 
-        // Ingredient Groups API  
+        // Ingredient Groups API
         $ingredient_groups_controller = new IngredientGroupRestController();
         $ingredient_groups_controller->register_routes();
 

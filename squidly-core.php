@@ -66,6 +66,10 @@ spl_autoload_register(function ($class) {
         'includes/domains/orders/repositories/',
         'includes/domains/products/repositories/',
         'includes/domains/stores/repositories/',
+
+        // Domain REST controllers
+        'includes/domains/products/rest/',
+        'includes/domains/stores/rest/',
         
         // Domain post types
         'includes/domains/customers/post-types/',

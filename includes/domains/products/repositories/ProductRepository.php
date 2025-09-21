@@ -52,6 +52,11 @@ class ProductRepository implements RepositoryInterface
             // Set product groups safely
             $this->setProductGroupsSafely($post_id, $data['product_group_ids'] ?? []);
 
+            // Handle branch availability if provided
+            if (isset($data['availability']) && is_array($data['availability'])) {
+                $this->updateAvailability($post_id, $data['availability']);
+            }
+
         } catch (Exception $e) {
             // Rollback: delete the created post
             wp_delete_post($post_id, true);
@@ -110,16 +115,60 @@ class ProductRepository implements RepositoryInterface
     /* ======================================================================
      *  GETALL
      * ====================================================================*/
-    public function getAll(): array
+    public function getAll(array $filters = []): array
     {
         try {
-            $query = new WP_Query([
+            $query_args = [
                 'post_type'      => ProductPostType::POST_TYPE,
                 'posts_per_page' => -1,
                 'post_status'    => 'publish',
                 'no_found_rows'  => true,
                 'fields'         => 'ids',
-            ]);
+            ];
+
+            // Add meta query for filters
+            $meta_query = [];
+
+            // Filter by price range
+            if (!empty($filters['price_min']) || !empty($filters['price_max'])) {
+                $price_query = ['key' => '_price'];
+
+                if (!empty($filters['price_min']) && !empty($filters['price_max'])) {
+                    $price_query['value'] = [(float)$filters['price_min'], (float)$filters['price_max']];
+                    $price_query['compare'] = 'BETWEEN';
+                    $price_query['type'] = 'NUMERIC';
+                } elseif (!empty($filters['price_min'])) {
+                    $price_query['value'] = (float)$filters['price_min'];
+                    $price_query['compare'] = '>=';
+                    $price_query['type'] = 'NUMERIC';
+                } elseif (!empty($filters['price_max'])) {
+                    $price_query['value'] = (float)$filters['price_max'];
+                    $price_query['compare'] = '<=';
+                    $price_query['type'] = 'NUMERIC';
+                }
+
+                $meta_query[] = $price_query;
+            }
+
+            // Filter by category
+            if (!empty($filters['category'])) {
+                $meta_query[] = [
+                    'key' => '_category',
+                    'value' => sanitize_text_field($filters['category']),
+                    'compare' => '='
+                ];
+            }
+
+            if (!empty($meta_query)) {
+                $query_args['meta_query'] = $meta_query;
+            }
+
+            // Search by name and description
+            if (!empty($filters['search'])) {
+                $query_args['s'] = sanitize_text_field($filters['search']);
+            }
+
+            $query = new WP_Query($query_args);
 
             if (is_wp_error($query)) {
                 error_log('Failed to query products: ' . $query->get_error_message());
@@ -174,6 +223,11 @@ class ProductRepository implements RepositoryInterface
 
             // Update product groups if provided
             $this->updateProductGroups($id, $data);
+
+            // Update branch availability if provided
+            if (array_key_exists('availability', $data)) {
+                $this->updateAvailability($id, $data['availability']);
+            }
 
             return true;
 
@@ -813,6 +867,58 @@ class ProductRepository implements RepositoryInterface
     public function findOrderedBySort(string $order = 'ASC'): array
     {
         return $this->findBy(['orderby' => 'sort_order', 'order' => $order]);
+    }
+
+    /**
+     * Update branch availability for a product
+     *
+     * @param int $id Product ID
+     * @param array $availability Array of branch_id => boolean availability
+     * @return bool Success
+     */
+    public function updateAvailability(int $id, array $availability): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== ProductPostType::POST_TYPE) {
+            return false;
+        }
+
+        foreach ($availability as $branch_id => $is_available) {
+            $branch_id = (int) $branch_id;
+            $is_available = (bool) $is_available;
+            $meta_key = '_branch_availability_' . $branch_id;
+            $meta_value = $is_available ? '1' : '0';
+
+            update_post_meta($id, $meta_key, $meta_value);
+        }
+
+        return true;
+    }
+
+    /**
+     * Get branch availability for a product
+     *
+     * @param int $id Product ID
+     * @return array Array of branch_id => boolean availability
+     */
+    public function getAvailability(int $id): array
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== ProductPostType::POST_TYPE) {
+            return [];
+        }
+
+        // Get actual branch IDs from the database
+        $branch_repository = new StoreBranchRepository();
+        $branches = $branch_repository->getAll();
+
+        $availability = [];
+
+        foreach ($branches as $branch) {
+            $availability[$branch->id] = (bool) get_post_meta($id, '_branch_availability_' . $branch->id, true);
+        }
+
+        return $availability;
     }
 
 
