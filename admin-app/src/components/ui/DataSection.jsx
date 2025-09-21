@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Card, TableHeader, SearchBar, DataTable, ConfirmationModal } from './index';
+import { Card, TableHeader, SearchBar, DataTable, ConfirmationModal, Toast } from './index';
 
 const DataSection = ({
   title = '',
@@ -17,7 +17,8 @@ const DataSection = ({
   Modal = null,
   editingItemProp = 'editingItem',
   itemIdProp = 'id',
-  itemNameProp = 'name'
+  itemNameProp = 'name',
+  productGroups = []
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [apiData, setApiData] = useState([]);
@@ -34,6 +35,10 @@ const DataSection = ({
   const [showItemModal, setShowItemModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Toast state
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   // Stable fetch function with useCallback
   const fetchData = useCallback(async () => {
@@ -74,7 +79,10 @@ const DataSection = ({
       setLastFetchedBranchId(selectedBranchId);
     } catch (error) {
       console.error(`Failed to fetch ${title.toLowerCase()}:`, error);
-      setApiError(error.message || `Failed to load ${title.toLowerCase()}`);
+      // Show toast instead of setting error state
+      setToastMessage(error.message || `שגיאה בטעינת ${title.toLowerCase()}`);
+      setShowToast(true);
+      // Don't clear existing data on error
     } finally {
       setApiLoading(false);
     }
@@ -114,7 +122,9 @@ const DataSection = ({
       setShowDeleteModal(false);
     } catch (error) {
       console.error(`Failed to delete ${title.toLowerCase()}:`, error);
-      setApiError(error.message || `Failed to delete ${title.toLowerCase()}`);
+      // Show toast for delete errors
+      setToastMessage(error.message || `שגיאה במחיקת ${title.toLowerCase()}`);
+      setShowToast(true);
     } finally {
       setIsDeleting(false);
     }
@@ -183,7 +193,9 @@ const DataSection = ({
       setEditingItem(null);
     } catch (error) {
       console.error(`Failed to save ${title.toLowerCase()}:`, error);
-      setApiError(error.message || `Failed to save ${title.toLowerCase()}`);
+      // Show toast for save errors
+      setToastMessage(error.message || `שגיאה בשמירת ${title.toLowerCase()}`);
+      setShowToast(true);
     } finally {
       setIsSaving(false);
     }
@@ -197,7 +209,7 @@ const DataSection = ({
   // Determine data source and loading/error states
   const dataToUse = apiData;
   const loading = externalLoading || apiLoading;
-  const error = externalError || apiError;
+  const error = externalError; // Don't show API errors inline anymore
 
   // Filter data based on search term
   const filteredData = useMemo(() => {
@@ -214,19 +226,21 @@ const DataSection = ({
 
   return (
     <Card className="h-full flex flex-col" padding="none">
-      <div className="flex-shrink-0 p-6 border-b border-gray-200">
-        <TableHeader
-          title={title}
-          onCreateClick={handleCreateClick}
-          onEditClick={handleEditClick}
-          onDeleteClick={handleDeleteClick}
-          hasSelectedItem={!!selectedItem}
-          strings={{
-            create: strings.create || 'צור חדש',
-            edit: strings.edit || 'ערוך',
-            delete: strings.delete || 'מחק'
-          }}
-        />
+      <div className="flex-shrink-0 p-8 border-b border-gray-200">
+        <div className="mb-6">
+          <TableHeader
+            title={title}
+            onCreateClick={handleCreateClick}
+            onEditClick={handleEditClick}
+            onDeleteClick={handleDeleteClick}
+            hasSelectedItem={!!selectedItem}
+            strings={{
+              create: strings.create || 'צור חדש',
+              edit: strings.edit || 'ערוך',
+              delete: strings.delete || 'מחק'
+            }}
+          />
+        </div>
 
         <SearchBar
           value={searchTerm}
@@ -235,7 +249,7 @@ const DataSection = ({
         />
       </div>
 
-      <div className="flex-1 p-6 pt-4 min-h-0">
+      <div className="flex-1 p-8 pt-6 min-h-0">
         <DataTable
           columns={columns}
           data={filteredData}
@@ -269,10 +283,21 @@ const DataSection = ({
           onSubmit={handleItemSubmit}
           {...{[editingItemProp]: editingItem}}
           branches={branches}
+          productGroups={productGroups}
           strings={strings}
           loading={isSaving}
         />
       )}
+
+      {/* Toast for API errors */}
+      <Toast
+        message={toastMessage}
+        type="error"
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+        duration={3000}
+        position="top-right"
+      />
     </Card>
   );
 };

@@ -198,7 +198,9 @@ try {
             'name' => 'צ\'יזבורגר קלאסי',
             'description' => 'המבורגר מסורתי עם קציצת בקר, גבינה, חסה ועגבנייה',
             'price' => 28.00,
+            'discounted_price' => 24.90, // 11% discount - popular item promotion
             'category' => 'burgers',
+            'tags' => ['בשר', 'קלאסי', 'גבינה'],
             'is_available' => true,
             'allergens' => ['gluten', 'dairy'],
             'preparation_time' => 12
@@ -208,6 +210,7 @@ try {
             'description' => 'חזה עוף צלוי עם תוספות פרימיום',
             'price' => 26.00,
             'category' => 'burgers',
+            'tags' => ['עוף', 'פרימיום', 'דלוקס'],
             'is_available' => true,
             'allergens' => ['gluten', 'dairy'],
             'preparation_time' => 14
@@ -216,7 +219,9 @@ try {
             'name' => 'צמחוני סופרים',
             'description' => 'קציצה צמחית עם ירקות טריים',
             'price' => 24.00,
+            'discounted_price' => 19.99, // 17% discount - healthy eating promotion
             'category' => 'burgers',
+            'tags' => ['צמחוני', 'בריא', 'ירקות'],
             'is_available' => true,
             'allergens' => ['gluten'],
             'preparation_time' => 10
@@ -226,6 +231,7 @@ try {
             'description' => 'קציצת בקר עם בייקון פריך ורוטב ברביקיו',
             'price' => 32.00,
             'category' => 'burgers',
+            'tags' => ['בשר', 'בייקון', 'ברביקיו', 'פיקנטי'],
             'is_available' => true,
             'allergens' => ['gluten', 'dairy'],
             'preparation_time' => 16
@@ -390,6 +396,7 @@ try {
             'description' => 'צור את ההמבורגר המושלם שלך עם מבחר המרכיבים הפרימיום שלנו',
             'price' => 25.00, // Base price
             'category' => 'burgers',
+            'tags' => ['מותאם אישית', 'בנה בעצמך', 'פרימיום'],
             'image_url' => 'https://example.com/build-burger.jpg',
             'is_available' => true,
             'allergens' => ['gluten', 'dairy', 'eggs'],
@@ -400,7 +407,9 @@ try {
             'name' => 'המבורגר גורמה דלוקס',
             'description' => 'ההמבורגר החתימה שלנו עם תוספות פרימיום ומרכיבים אומנותיים',
             'price' => 35.00,
+            'discounted_price' => 29.99, // 14% discount - signature item special offer
             'category' => 'burgers',
+            'tags' => ['גורמה', 'דלוקס', 'חתימה', 'אומנותי'],
             'image_url' => 'https://example.com/deluxe-burger.jpg',
             'is_available' => true,
             'allergens' => ['gluten', 'dairy', 'eggs'],
@@ -411,7 +420,9 @@ try {
             'name' => 'ארוחת קומבו אולטימט',
             'description' => 'ארוחה מלאה עם המבורגר, רוטב ותוספת לבחירתך',
             'price' => 45.00,
+            'discounted_price' => 39.90, // 11% discount - combo value deal
             'category' => 'combo',
+            'tags' => ['ארוחה מלאה', 'קומבו', 'אולטימט', 'חסכון'],
             'image_url' => 'https://example.com/combo-meal.jpg',
             'is_available' => true,
             'allergens' => ['gluten', 'dairy', 'eggs'],

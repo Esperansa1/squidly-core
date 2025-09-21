@@ -46,83 +46,102 @@ const DataTable = ({
     );
   }
 
-  return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* Table Header */}
-      <div className="flex-shrink-0 flex items-center pb-2 px-2 border-b border-gray-200">
-        <div className="flex justify-center" style={{ width: '40px' }}>
-          <span className="text-sm text-gray-700 font-semibold">
-            בחר
-          </span>
-        </div>
-        {columns.map((column, index) => (
-          <div 
-            key={column.key} 
-            className={`${column.className || ''}`}
-            style={{ 
-              width: column.width, 
-              minWidth: column.width,
-              maxWidth: column.width,
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              ...(column.headerStyle || {}) 
-            }}
-          >
-            <span className="text-sm text-gray-700 font-semibold">
-              {column.label}
-            </span>
-          </div>
-        ))}
-      </div>
+  // Calculate minimum table width based on column widths
+  const calculateMinWidth = () => {
+    const columnWidths = columns.reduce((total, column) => {
+      const width = parseInt(column.width) || 150; // Default width if not specified
+      return total + width;
+    }, 0);
+    return columnWidths + 40 + (columns.length * 24); // Add selection column + padding
+  };
 
-      {/* Table Rows */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="space-y-1">
-          {data.map((item) => (
-            <div 
-              key={item.id}
-              className="flex items-center py-3 px-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-              style={{ 
-                borderBottom: `1px solid ${theme.divider_color}`,
-                minHeight: '60px'
-              }}
-              onClick={() => onSelectionChange(item.id)}
-            >
-              <div className="flex justify-center" style={{ width: '40px' }}>
-                <ThemedRadioButton
-                  name="table-selection"
-                  value={item.id}
-                  checked={selectedId === item.id}
-                  onChange={() => onSelectionChange(item.id)}
-                />
+  const minTableWidth = calculateMinWidth();
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Table Container with synchronized scrolling */}
+      <div className="flex-1 overflow-auto">
+        <div style={{ minWidth: `${minTableWidth}px` }} className="h-full flex flex-col">
+          {/* Table Header - Fixed at top */}
+          <div className="flex-shrink-0 sticky top-0 bg-white z-10 border-b border-gray-200 pb-2 pt-4 px-6 mx-2">
+            <div className="flex items-center">
+              <div className="flex justify-center flex-shrink-0" style={{ width: '40px' }}>
+                <span className="text-sm text-gray-700 font-semibold">
+                  בחר
+                </span>
               </div>
-              {columns.map((column) => (
-                <div 
+              {columns.map((column, index) => (
+                <div
                   key={column.key}
-                  className={`${column.className || ''}`}
-                  style={{ 
+                  className={`${column.className || ''} px-3 flex-shrink-0`}
+                  style={{
                     width: column.width,
                     minWidth: column.width,
                     maxWidth: column.width,
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     textAlign: 'center',
-                    ...(column.cellStyle || {}) 
+                    ...(column.headerStyle || {})
                   }}
                 >
-                  {column.render ? column.render(item[column.key], item) : item[column.key]}
+                  <span className="text-sm text-gray-700 font-semibold px-2">
+                    {column.label}
+                  </span>
                 </div>
               ))}
-              
             </div>
-          ))}
+          </div>
+
+          {/* Table Rows */}
+          <div className="flex-1 px-6">
+            <div className="space-y-3 pt-4">
+              {data.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center py-4 px-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+                  style={{
+                    borderBottom: `1px solid ${theme.divider_color}`,
+                    minHeight: '70px'
+                  }}
+                  onClick={() => onSelectionChange(item.id)}
+                >
+                  <div className="flex justify-center flex-shrink-0" style={{ width: '40px' }}>
+                    <ThemedRadioButton
+                      name="table-selection"
+                      value={item.id}
+                      checked={selectedId === item.id}
+                      onChange={() => onSelectionChange(item.id)}
+                    />
+                  </div>
+                  {columns.map((column) => (
+                    <div
+                      key={column.key}
+                      className={`${column.className || ''} px-3 flex-shrink-0`}
+                      style={{
+                        width: column.width,
+                        minWidth: column.width,
+                        maxWidth: column.width,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        ...(column.cellStyle || {})
+                      }}
+                    >
+                      <div className="px-2 w-full">
+                        {column.render ? column.render(item[column.key], item) : item[column.key]}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { DataSection, PriceDisplay, AvailabilityDisplay } from './ui';
+import { DataSection, PriceDisplay, AvailabilityDisplay, ProductModal } from './ui';
 import api from '../services/api.js';
 
 const ProductSection = ({
@@ -51,13 +51,13 @@ const ProductSection = ({
     return (
       <div className="text-center w-full" style={{ fontFeatureSettings: '"tnum"' }}>
         <div className="flex flex-col items-center gap-1">
-          {/* Original price with strikethrough */}
-          <span className="text-xs text-gray-500 line-through" dir="ltr">
-            ₪{price.toFixed(2)}
-          </span>
-          {/* Discounted price in red */}
+          {/* Discounted price in red - shown first */}
           <span className="text-sm text-red-600 font-semibold" dir="ltr">
             ₪{discounted_price.toFixed(2)}
+          </span>
+          {/* Original price with strikethrough - shown below */}
+          <span className="text-xs text-gray-500 line-through" dir="ltr">
+            ₪{price.toFixed(2)}
           </span>
         </div>
       </div>
@@ -183,10 +183,11 @@ const ProductSection = ({
         update: (id, data) => api.updateProduct(id, data),
         delete: (id) => api.deleteProduct(id)
       }}
-      Modal={null} // Will be implemented later
+      Modal={ProductModal}
       editingItemProp="product"
       itemIdProp="id"
       itemNameProp="name"
+      productGroups={productGroups}
     />
   );
 };
