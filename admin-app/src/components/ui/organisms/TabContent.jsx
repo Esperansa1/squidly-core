@@ -26,7 +26,14 @@ const TabContent = ({
   const renderGroupsContent = () => (
     <div className="h-full">
       <IngredientsGroupSection
+        title={strings.ingredient_groups || 'קבוצות מרכיבים'}
+        ingredientGroups={ingredientGroups}
+        selectedIngredientGroup={selectedIngredientGroup}
+        setSelectedIngredientGroup={setSelectedIngredientGroup}
         strings={strings}
+        loading={loading}
+        error={error}
+        onIngredientGroupChange={() => {}}
       />
     </div>
   );

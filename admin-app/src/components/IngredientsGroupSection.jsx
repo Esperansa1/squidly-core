@@ -1,189 +1,91 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import api from '../services/api.js';
-import { DataTable, SearchBar, Card } from './ui';
+import React, { useMemo } from 'react';
+import { DataSection } from './ui';
 import IngredientsGroupModal from './ui/IngredientsGroupModal.jsx';
+import api from '../services/api.js';
 
-const IngredientsGroupSection = ({ strings }) => {
-  const [ingredientGroups, setIngredientGroups] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [editingGroup, setEditingGroup] = useState(null);
-  const [selectedItem, setSelectedItem] = useState(null);
+const IngredientsGroupSection = ({
+  title = 'קבוצות',
+  ingredientGroups = [],
+  selectedIngredientGroup,
+  setSelectedIngredientGroup,
+  strings = {},
+  loading: externalLoading = false,
+  error: externalError = null,
+  onIngredientGroupChange = () => {}
+}) => {
 
-  const loadIngredientGroups = useCallback(async (filters = {}) => {
-    setIsLoading(true);
-    try {
-      const response = await api.getIngredientGroups(filters);
-      const groups = response.data || response || [];
-      setIngredientGroups(Array.isArray(groups) ? groups : []);
-    } catch (error) {
-      console.error('Error loading ingredient groups:', error);
-      setIngredientGroups([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadIngredientGroups();
-  }, [loadIngredientGroups]);
-
-  const handleSearch = useCallback((term) => {
-    setSearchTerm(term);
-    const filters = term ? { search: term } : {};
-    loadIngredientGroups(filters);
-  }, [loadIngredientGroups]);
-
-  const handleCreate = useCallback(() => {
-    setEditingGroup(null);
-    setShowModal(true);
-  }, []);
-
-  const handleEdit = useCallback((group) => {
-    if (!group) return;
-    setEditingGroup(group);
-    setShowModal(true);
-  }, []);
-
-  const handleDelete = useCallback(async (group) => {
-    if (!group || !group.id) return;
-
-    const groupName = group.name || 'this group';
-    if (!window.confirm(strings.confirmDelete?.replace('%s', groupName) || `Delete ${groupName}?`)) {
-      return;
-    }
-
-    try {
-      await api.deleteIngredientGroup(group.id);
-      loadIngredientGroups();
-    } catch (error) {
-      console.error('Error deleting ingredient group:', error);
-      // Show error message - will be handled by Toast component later
-    }
-  }, [strings.confirmDelete, loadIngredientGroups]);
-
-  const handleModalSave = useCallback(async (groupData) => {
-    try {
-      if (editingGroup) {
-        await api.updateIngredientGroup(editingGroup.id, groupData);
-      } else {
-        await api.createIngredientGroup(groupData);
-      }
-      setShowModal(false);
-      setEditingGroup(null);
-      loadIngredientGroups();
-    } catch (error) {
-      console.error('Error saving ingredient group:', error);
-      throw error; // Let modal handle the error
-    }
-  }, [editingGroup, loadIngredientGroups]);
-
+  // Define columns for ingredient groups
   const columns = useMemo(() => [
     {
       key: 'name',
-      label: strings.name || 'Name',
-      className: 'text-right flex-1',
-      render: (group) => {
-        if (!group) return <span>-</span>;
-        return <span className="font-medium text-gray-900">{group.name || ''}</span>;
-      }
+      label: strings.group_name || 'שם הקבוצה',
+      width: '200px',
+      render: (name) => (
+        <span className="text-sm text-gray-800 font-medium w-full text-center" title={name}>
+          {name}
+        </span>
+      )
     },
     {
       key: 'description',
-      label: strings.description || 'Description',
-      className: 'text-right flex-1',
-      render: (group) => {
-        if (!group) return <span>-</span>;
-        if (!group.description) {
-          return <span className="text-gray-400 italic">{strings.noDescription || 'No description'}</span>;
+      label: strings.description || 'תיאור',
+      width: '300px',
+      render: (description, item) => {
+        if (!description) {
+          return <span className="text-gray-400 italic text-sm">אין תיאור</span>;
         }
-        const truncated = group.description.length > 50
-          ? group.description.substring(0, 50) + '...'
-          : group.description;
-        return <span className="text-gray-700">{truncated}</span>;
+        const truncated = description.length > 50
+          ? description.substring(0, 50) + '...'
+          : description;
+        return <span className="text-sm text-gray-700" title={description}>{truncated}</span>;
       }
     },
     {
-      key: 'item_count',
-      label: strings.itemCount || 'Items',
-      className: 'text-center w-24',
-      render: (group) => {
-        if (!group) return <span>0</span>;
-        const itemCount = Array.isArray(group.group_item_ids) ? group.group_item_ids.length : 0;
-        return (
-          <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
-            {itemCount}
-          </span>
-        );
-      }
+      key: 'group_item_ids',
+      label: strings.item_count || 'כמות פריטים',
+      width: '120px',
+      render: (group_item_ids) => (
+        <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
+          {Array.isArray(group_item_ids) ? group_item_ids.length : 0}
+        </span>
+      )
     }
   ], [strings]);
 
-  // Filter data based on search term
-  const filteredData = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return ingredientGroups;
-    }
-    return ingredientGroups.filter(group =>
-      group && group.name && group.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [ingredientGroups, searchTerm]);
-
   return (
-    <>
-      <Card className="h-full flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">{strings.ingredientGroups || 'קבוצות'}</h2>
-          <button
-            onClick={handleCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-          >
-            {strings.addIngredientGroup || 'הוסף קבוצה'}
-          </button>
-        </div>
-
-        {/* Search */}
-        <div className="p-6 border-b border-gray-200">
-          <SearchBar
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder={strings.searchIngredientGroups || 'חפש קבוצות...'}
-          />
-        </div>
-
-        {/* Data Table */}
-        <div className="flex-1 p-6">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="text-gray-500">טוען...</div>
-            </div>
-          ) : filteredData.length === 0 ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="text-gray-500">{strings.noIngredientGroups || 'לא נמצאו קבוצות'}</div>
-            </div>
-          ) : (
-            <DataTable
-              columns={columns}
-              data={filteredData}
-              selectedId={selectedItem}
-              onSelectionChange={setSelectedItem}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          )}
-        </div>
-      </Card>
-
-      <IngredientsGroupModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSave={handleModalSave}
-        group={editingGroup}
-        strings={strings}
-      />
-    </>
+    <DataSection
+      title={title}
+      data={ingredientGroups}
+      selectedItem={selectedIngredientGroup}
+      setSelectedItem={setSelectedIngredientGroup}
+      strings={{
+        ...strings,
+        create: strings.create_ingredient_group || 'צור קבוצת מרכיבים חדשה',
+        edit: strings.edit_ingredient_group || 'ערוך קבוצת מרכיבים',
+        delete: strings.delete_ingredient_group || 'מחק קבוצת מרכיבים',
+        search_placeholder: strings.search_ingredient_groups || 'חפש קבוצות מרכיבים...',
+        no_items: strings.no_ingredient_groups || 'אין קבוצות מרכיבים להצגה',
+        delete_title: 'מחיקת קבוצת מרכיבים',
+        delete_message_prefix: 'האם אתה בטוח שברצונך למחוק את קבוצת המרכיבים',
+        delete_message_suffix: 'פעולה זו תמחק את הקבוצה ולא ניתן לבטלה.',
+        delete_confirm: 'כן, מחק',
+        cancel: 'ביטול'
+      }}
+      loading={externalLoading}
+      error={externalError}
+      onItemChange={onIngredientGroupChange}
+      columns={columns}
+      apiService={{
+        getAll: () => api.getIngredientGroups(),
+        create: (data) => api.createIngredientGroup(data),
+        update: (id, data) => api.updateIngredientGroup(id, data),
+        delete: (id) => api.deleteIngredientGroup(id)
+      }}
+      Modal={IngredientsGroupModal}
+      editingItemProp="ingredientGroup"
+      itemIdProp="id"
+      itemNameProp="name"
+    />
   );
 };
 
