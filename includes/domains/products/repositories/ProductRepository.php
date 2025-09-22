@@ -924,5 +924,40 @@ class ProductRepository implements RepositoryInterface
         return $availability;
     }
 
+    /**
+     * Calculate final availability for a product (considering group dependencies)
+     *
+     * @param int $id Product ID
+     * @return array Array of branch_id => boolean final availability
+     */
+    public function calculateFinalAvailability(int $id): array
+    {
+        $product = $this->get($id);
+        if (!$product) {
+            return [];
+        }
+
+        return $product->calculateFinalAvailability($this, new ProductGroupRepository());
+    }
+
+    /**
+     * Get comprehensive availability info for a product
+     *
+     * @param int $id Product ID
+     * @return array Availability info including direct, final, and group restrictions
+     */
+    public function getAvailabilityInfo(int $id): array
+    {
+        $product = $this->get($id);
+        if (!$product) {
+            return [
+                'direct_availability' => [],
+                'final_availability' => [],
+                'group_restrictions' => [],
+            ];
+        }
+
+        return $product->getAvailabilityInfo($this, new ProductGroupRepository());
+    }
 
 }

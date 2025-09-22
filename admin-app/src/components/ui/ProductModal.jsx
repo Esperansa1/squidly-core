@@ -25,6 +25,7 @@ const ProductModal = ({
   });
   const [errors, setErrors] = useState({});
   const [selectAllBranches, setSelectAllBranches] = useState(false);
+  const [availabilityWarnings, setAvailabilityWarnings] = useState([]);
 
   const theme = DEFAULT_THEME;
 
@@ -78,6 +79,45 @@ const ProductModal = ({
       setErrors({});
     }
   }, [isOpen, product, branches]);
+
+  // Validate availability against group dependencies
+  useEffect(() => {
+    const warnings = [];
+
+    if (formData.product_group_ids.length > 0 && formData.availability) {
+      const filteredBranches = branches.filter(branch =>
+        branch.name !== 'כל הסניפים' &&
+        branch.name !== 'All Branches' &&
+        branch.id !== 0
+      );
+
+      filteredBranches.forEach(branch => {
+        const isProductAvailable = formData.availability[branch.id];
+
+        if (isProductAvailable) {
+          // Product is enabled - check if all associated groups are available
+          const unavailableGroups = formData.product_group_ids.filter(groupId => {
+            const group = productGroups.find(g => g.id === groupId);
+            return group && group.final_availability && !group.final_availability[branch.id];
+          });
+
+          if (unavailableGroups.length > 0) {
+            const groupNames = unavailableGroups.map(groupId => {
+              const group = productGroups.find(g => g.id === groupId);
+              return group ? group.name : `קבוצה ${groupId}`;
+            });
+
+            warnings.push({
+              branch: branch.name,
+              message: `מוצר זמין ב${branch.name} אך קבוצות לא זמינות: ${groupNames.join(', ')}`
+            });
+          }
+        }
+      });
+    }
+
+    setAvailabilityWarnings(warnings);
+  }, [formData.availability, formData.product_group_ids, productGroups, branches]);
 
   if (!isOpen) return null;
 
@@ -249,6 +289,20 @@ const ProductModal = ({
         {/* Form */}
         <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
           <form onSubmit={handleSubmit} className="p-6">
+            {/* Availability Warnings */}
+            {availabilityWarnings.length > 0 && (
+              <div className="mb-6 space-y-2">
+                {availabilityWarnings.map((warning, index) => (
+                  <div key={index} className="p-3 rounded-md" style={{ backgroundColor: '#fbbf24' + '20', border: `1px solid #fbbf24`, color: '#92400e' }}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">⚠️</span>
+                      <span className="text-sm">{warning.message}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left Column */}
               <div className="space-y-4">

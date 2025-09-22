@@ -144,6 +144,7 @@ class ProductGroupRestController extends \WP_REST_Controller
                 'description' => isset($request['description']) ? sanitize_textarea_field($request['description']) : '',
                 'type' => sanitize_text_field($request['type']),
                 'group_item_ids' => $request['group_item_ids'] ?? [],
+                'availability' => $request['availability'] ?? [],
                 'status' => $request['status'] ?? 'active',
                 'branch_id' => $request['branch_id'] ?? null,
             ];
@@ -189,6 +190,10 @@ class ProductGroupRestController extends \WP_REST_Controller
 
             if (isset($request['group_item_ids'])) {
                 $data['group_item_ids'] = $request['group_item_ids'];
+            }
+
+            if (isset($request['availability'])) {
+                $data['availability'] = $request['availability'];
             }
 
             if (isset($request['status'])) {
@@ -252,12 +257,19 @@ class ProductGroupRestController extends \WP_REST_Controller
      */
     public function prepare_item_for_response($item, $request)
     {
+        // Get final availability (combines manual and calculated)
+        $final_availability = $item->getFinalAvailability();
+        $calculated_availability = $item->calculateAvailability();
+
         $data = [
             'id' => $item->id,
             'name' => $item->name,
             'description' => $item->description ?? '',
             'type' => $item->type->value,
             'group_item_ids' => $item->group_item_ids,
+            'availability' => $item->availability, // Manual availability settings
+            'calculated_availability' => $calculated_availability, // Auto-calculated based on items
+            'final_availability' => $final_availability, // Final combined availability
             'status' => 'active', // Add status logic based on your requirements
             'items_count' => count($item->group_item_ids),
         ];

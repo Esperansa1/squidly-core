@@ -9,6 +9,7 @@ const ProductGroupModal = ({
   onClose,
   onSave,
   group = null,
+  branches = [],
   strings = {},
   loading = false
 }) => {
@@ -16,13 +17,16 @@ const ProductGroupModal = ({
     name: '',
     description: '',
     type: 'ingredient',
-    group_item_ids: []
+    group_item_ids: [],
+    availability: {}
   });
 
   const [availableItems, setAvailableItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectAllBranches, setSelectAllBranches] = useState(false);
+  const [warnings, setWarnings] = useState([]);
 
   const theme = DEFAULT_THEME;
 
@@ -36,23 +40,46 @@ const ProductGroupModal = ({
   // Populate form when editing existing group
   useEffect(() => {
     if (group) {
+      const availability = group.availability || {};
       setFormData({
         name: group.name || '',
         description: group.description || '',
         type: group.type || 'ingredient',
-        group_item_ids: group.group_item_ids || []
+        group_item_ids: group.group_item_ids || [],
+        availability: availability
       });
+
+      // Check if all branches are selected (excluding "All Branches" entries)
+      const filteredBranches = branches.filter(branch =>
+        branch.name !== 'כל הסניפים' &&
+        branch.name !== 'All Branches' &&
+        branch.id !== 0
+      );
+      const allSelected = filteredBranches.every(branch => availability[branch.id] === true);
+      setSelectAllBranches(allSelected);
       // We'll need to resolve the selected items after available items load
     } else {
+      // Create mode - set all branches as available by default (excluding "All Branches" entries)
+      const defaultAvailability = {};
+      branches.filter(branch =>
+        branch.name !== 'כל הסניפים' &&
+        branch.name !== 'All Branches' &&
+        branch.id !== 0
+      ).forEach(branch => {
+        defaultAvailability[branch.id] = true;
+      });
+
       setFormData({
         name: '',
         description: '',
         type: 'ingredient',
-        group_item_ids: []
+        group_item_ids: [],
+        availability: defaultAvailability
       });
       setSelectedItems([]);
+      setSelectAllBranches(true);
     }
-  }, [group]);
+  }, [group, branches]);
 
   // Resolve selected items when editing and available items are loaded
   useEffect(() => {
@@ -161,12 +188,111 @@ const ProductGroupModal = ({
     }
   };
 
+  const handleAvailabilityChange = useCallback((branchId, isAvailable) => {
+    setFormData(prev => ({
+      ...prev,
+      availability: {
+        ...prev.availability,
+        [branchId]: isAvailable
+      }
+    }));
+
+    // Update "select all" state
+    const filteredBranches = branches.filter(branch =>
+      branch.name !== 'כל הסניפים' &&
+      branch.name !== 'All Branches' &&
+      branch.id !== 0
+    );
+
+    const newAvailability = {
+      ...formData.availability,
+      [branchId]: isAvailable
+    };
+
+    const allSelected = filteredBranches.every(branch => newAvailability[branch.id] === true);
+    setSelectAllBranches(allSelected);
+  }, [formData.availability, branches]);
+
+  const handleSelectAllBranches = useCallback((selectAll) => {
+    const filteredBranches = branches.filter(branch =>
+      branch.name !== 'כל הסניפים' &&
+      branch.name !== 'All Branches' &&
+      branch.id !== 0
+    );
+
+    const newAvailability = {};
+    filteredBranches.forEach(branch => {
+      newAvailability[branch.id] = selectAll;
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      availability: newAvailability
+    }));
+
+    setSelectAllBranches(selectAll);
+  }, [branches]);
+
+  // Validate availability consistency when items or availability changes
+  useEffect(() => {
+    const newWarnings = [];
+
+    if (selectedItems.length > 0 && formData.availability) {
+      // Check if group is enabled for branches where some items are not available
+      const filteredBranches = branches.filter(branch =>
+        branch.name !== 'כל הסניפים' &&
+        branch.name !== 'All Branches' &&
+        branch.id !== 0
+      );
+
+      filteredBranches.forEach(branch => {
+        const isGroupAvailable = formData.availability[branch.id];
+
+        if (isGroupAvailable) {
+          // Group is enabled - check if all items are available
+          const unavailableItems = selectedItems.filter(item => {
+            // In a real scenario, we'd check item availability from API
+            // For now, we'll simulate this check
+            return item.availability && !item.availability[branch.id];
+          });
+
+          if (unavailableItems.length > 0) {
+            newWarnings.push({
+              type: 'availability',
+              message: `קבוצה זמינה ב${branch.name} אך חלק מהפריטים לא זמינים`,
+              branch: branch.name,
+              items: unavailableItems.map(item => item.name)
+            });
+          }
+        }
+      });
+    }
+
+    setWarnings(newWarnings);
+  }, [selectedItems, formData.availability, branches]);
+
   const handleClose = useCallback(() => {
-    setFormData({ name: '', description: '', type: 'ingredient', group_item_ids: [] });
+    const defaultAvailability = {};
+    branches.filter(branch =>
+      branch.name !== 'כל הסניפים' &&
+      branch.name !== 'All Branches' &&
+      branch.id !== 0
+    ).forEach(branch => {
+      defaultAvailability[branch.id] = true;
+    });
+
+    setFormData({
+      name: '',
+      description: '',
+      type: 'ingredient',
+      group_item_ids: [],
+      availability: defaultAvailability
+    });
     setSelectedItems([]);
     setError('');
+    setSelectAllBranches(true);
     onClose();
-  }, [onClose]);
+  }, [onClose, branches]);
 
   // Get items not yet selected
   const unselectedItems = availableItems.filter(
@@ -214,6 +340,25 @@ const ProductGroupModal = ({
             {error && (
               <div className="mb-4 p-3 rounded" style={{ backgroundColor: theme.danger_color + '20', border: `1px solid ${theme.danger_color}`, color: theme.danger_color }}>
                 {error}
+              </div>
+            )}
+
+            {/* Warnings */}
+            {warnings.length > 0 && (
+              <div className="mb-4 space-y-2">
+                {warnings.map((warning, index) => (
+                  <div key={index} className="p-3 rounded" style={{ backgroundColor: '#fbbf24' + '20', border: `1px solid #fbbf24`, color: '#92400e' }}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">⚠️</span>
+                      <span className="text-sm">{warning.message}</span>
+                    </div>
+                    {warning.items && warning.items.length > 0 && (
+                      <div className="mt-2 text-xs">
+                        פריטים לא זמינים: {warning.items.join(', ')}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
 
@@ -337,6 +482,55 @@ const ProductGroupModal = ({
                     }
                   </p>
                 )}
+              </div>
+
+              {/* Branch Availability */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
+                  {strings.availability || 'זמינות בסניפים'}
+                </label>
+
+                {/* Select All Branches Toggle */}
+                <div className="mb-3 p-3 rounded-md" style={{ backgroundColor: theme.bg_gray_50 }}>
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectAllBranches}
+                      onChange={(e) => handleSelectAllBranches(e.target.checked)}
+                      className="w-4 h-4 rounded focus:ring-2"
+                      style={{
+                        accentColor: theme.primary_color,
+                      }}
+                      disabled={isLoading}
+                    />
+                    <span className="text-sm font-medium" style={{ color: theme.text_primary }}>
+                      {strings.select_all_branches || 'בחר את כל הסניפים'}
+                    </span>
+                  </label>
+                </div>
+
+                {/* Individual Branch Checkboxes */}
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {branches.filter(branch =>
+                    branch.name !== 'כל הסניפים' &&
+                    branch.name !== 'All Branches' &&
+                    branch.id !== 0
+                  ).map((branch) => (
+                    <label key={branch.id} className="flex items-center justify-between p-2 rounded-md" style={{ backgroundColor: theme.bg_gray_50 }}>
+                      <input
+                        type="checkbox"
+                        checked={formData.availability[branch.id] || false}
+                        onChange={(e) => handleAvailabilityChange(branch.id, e.target.checked)}
+                        className="w-4 h-4 rounded focus:ring-2"
+                        style={{
+                          accentColor: theme.primary_color,
+                        }}
+                        disabled={isLoading}
+                      />
+                      <span className="text-sm" style={{ color: theme.text_secondary }}>{branch.name}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </form>
           </div>

@@ -36,6 +36,8 @@ const TabContent = ({
         strings={strings}
         loading={loading}
         error={error}
+        branches={branches}
+        selectedBranchId={selectedBranchId}
         onProductGroupChange={() => {}}
       />
     </div>

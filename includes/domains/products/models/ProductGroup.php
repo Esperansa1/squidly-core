@@ -9,6 +9,7 @@ class ProductGroup
     public string $description;
     public ItemType $type;
     public array $group_item_ids; // int[]
+    public array $availability; // array [branch_id => boolean]
 
     public function __construct(array $data)
     {
@@ -17,6 +18,7 @@ class ProductGroup
         $this->description     = (string) ($data['description'] ?? '');
         $this->type            = ItemType::from($data['type']);
         $this->group_item_ids  = $data['group_item_ids'] ?? [];
+        $this->availability    = $data['availability'] ?? [];
     }
 
     public function toArray(): array
@@ -27,6 +29,7 @@ class ProductGroup
             'description'     => $this->description,
             'type'            => $this->type->value,
             'group_item_ids'  => $this->group_item_ids,
+            'availability'    => $this->availability,
         ];
     }
 
@@ -76,5 +79,89 @@ class ProductGroup
         }
 
         return $out;
+    }
+
+    /**
+     * Calculate availability based on constituent items
+     * A group is available in a branch only if ALL its items are available in that branch
+     *
+     * @param ProductRepository|null $prodRepo
+     * @param IngredientRepository|null $ingRepo
+     * @return array [branch_id => boolean]
+     */
+    public function calculateAvailability(
+        ?ProductRepository $prodRepo = null,
+        ?IngredientRepository $ingRepo = null
+    ): array {
+        $prodRepo ??= new ProductRepository();
+        $ingRepo ??= new IngredientRepository();
+
+        // Get all branch IDs from the database
+        $branch_repository = new StoreBranchRepository();
+        $branches = $branch_repository->getAll();
+
+        $calculated_availability = [];
+
+        foreach ($branches as $branch) {
+            $branch_id = $branch->id;
+            $all_items_available = true;
+
+            foreach ($this->group_item_ids as $item_id) {
+                $item_availability = [];
+
+                if ($this->type->value === 'ingredient') {
+                    $item_availability = $ingRepo->getAvailability($item_id);
+                } else {
+                    $item_availability = $prodRepo->getAvailability($item_id);
+                }
+
+                // If this item is not available in this branch, group is not available
+                if (!($item_availability[$branch_id] ?? false)) {
+                    $all_items_available = false;
+                    break;
+                }
+            }
+
+            $calculated_availability[$branch_id] = $all_items_available;
+        }
+
+        return $calculated_availability;
+    }
+
+    /**
+     * Get final availability combining manual settings with calculated availability
+     * Manual availability can override calculated availability (for business decisions)
+     *
+     * @param ProductRepository|null $prodRepo
+     * @param IngredientRepository|null $ingRepo
+     * @return array [branch_id => boolean]
+     */
+    public function getFinalAvailability(
+        ?ProductRepository $prodRepo = null,
+        ?IngredientRepository $ingRepo = null
+    ): array {
+        $calculated = $this->calculateAvailability($prodRepo, $ingRepo);
+
+        // If no manual availability is set, use calculated
+        if (empty($this->availability)) {
+            return $calculated;
+        }
+
+        // Merge manual and calculated availability
+        // Manual availability can only restrict (false), not enable when calculated is false
+        $final_availability = [];
+        foreach ($calculated as $branch_id => $is_calculated_available) {
+            $is_manually_set = $this->availability[$branch_id] ?? null;
+
+            if ($is_manually_set === null) {
+                // No manual override, use calculated
+                $final_availability[$branch_id] = $is_calculated_available;
+            } else {
+                // Manual override exists, but can only restrict availability
+                $final_availability[$branch_id] = $is_calculated_available && $is_manually_set;
+            }
+        }
+
+        return $final_availability;
     }
 }

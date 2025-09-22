@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { DataSection } from './ui';
+import { DataSection, AvailabilityDisplay } from './ui';
 import ProductGroupModal from './ui/ProductGroupModal.jsx';
 import api from '../services/api.js';
 
@@ -11,6 +11,8 @@ const ProductGroupSection = ({
   strings = {},
   loading: externalLoading = false,
   error: externalError = null,
+  branches = [],
+  selectedBranchId = 0,
   onProductGroupChange = () => {}
 }) => {
 
@@ -74,8 +76,21 @@ const ProductGroupSection = ({
           </span>
         );
       }
+    },
+    {
+      key: 'final_availability',
+      label: strings.availability || 'זמינות',
+      width: '120px',
+      render: (_, item) => (
+        <AvailabilityDisplay
+          availability={item.final_availability || item.availability}
+          selectedBranchId={selectedBranchId}
+          branches={branches}
+          strings={strings}
+        />
+      )
     }
-  ], [strings]);
+  ], [strings, branches, selectedBranchId]);
 
   return (
     <DataSection
@@ -98,6 +113,8 @@ const ProductGroupSection = ({
       }}
       loading={externalLoading}
       error={externalError}
+      branches={branches}
+      selectedBranchId={selectedBranchId}
       onItemChange={onProductGroupChange}
       columns={columns}
       apiService={{

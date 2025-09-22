@@ -287,17 +287,8 @@ class ProductRestController extends \WP_REST_Controller
             $branch_repository = new StoreBranchRepository();
             $branches = $branch_repository->getAll();
 
-        // Get branch availability from post meta using actual branch IDs
-        $availability = [];
-
-        foreach ($branches as $branch) {
-            $availability[$branch->id] = (bool) get_post_meta($item->id, '_branch_availability_' . $branch->id, true);
-        }
-
-        // If no branches exist, return empty availability
-        if (empty($branches)) {
-            $availability = [];
-        }
+        // Get comprehensive availability info (direct, final, and group restrictions)
+        $availability_info = $this->repository->getAvailabilityInfo($item->id);
 
             $data = [
                 'id' => $item->id,
@@ -308,7 +299,9 @@ class ProductRestController extends \WP_REST_Controller
                 'category' => $item->category,
                 'tags' => $item->tags,
                 'product_group_ids' => $item->product_group_ids,
-                'availability' => $availability,
+                'availability' => $availability_info['direct_availability'], // Direct product availability
+                'final_availability' => $availability_info['final_availability'], // Availability considering groups
+                'group_restrictions' => $availability_info['group_restrictions'], // Branches where groups restrict
             ];
 
             return new \WP_REST_Response($data, 200);

@@ -106,4 +106,88 @@ class Product
         return $dto;
     }
 
+    /**
+     * Calculate final availability based on product availability and group dependencies
+     * A product is only available if:
+     * 1. The product itself is marked as available for the branch
+     * 2. ALL associated groups are available for the branch
+     *
+     * @param ProductRepository|null $prodRepo
+     * @param ProductGroupRepository|null $pgRepo
+     * @return array [branch_id => boolean]
+     */
+    public function calculateFinalAvailability(
+        ?ProductRepository $prodRepo = null,
+        ?ProductGroupRepository $pgRepo = null
+    ): array {
+        $prodRepo ??= new ProductRepository();
+        $pgRepo ??= new ProductGroupRepository();
+
+        // Get product's direct availability
+        $product_availability = $prodRepo->getAvailability($this->id);
+
+        // Get all branch IDs from the database
+        $branch_repository = new StoreBranchRepository();
+        $branches = $branch_repository->getAll();
+
+        $final_availability = [];
+
+        foreach ($branches as $branch) {
+            $branch_id = $branch->id;
+            $product_available = $product_availability[$branch_id] ?? false;
+
+            // If product itself is not available, final availability is false
+            if (!$product_available) {
+                $final_availability[$branch_id] = false;
+                continue;
+            }
+
+            // Check if all associated groups are available
+            $all_groups_available = true;
+            foreach ($this->product_group_ids as $group_id) {
+                $group_final_availability = $pgRepo->getFinalAvailability($group_id);
+                if (!($group_final_availability[$branch_id] ?? false)) {
+                    $all_groups_available = false;
+                    break;
+                }
+            }
+
+            // Product is available only if both product and all groups are available
+            $final_availability[$branch_id] = $product_available && $all_groups_available;
+        }
+
+        return $final_availability;
+    }
+
+    /**
+     * Get availability info including direct, group-dependent, and final availability
+     *
+     * @param ProductRepository|null $prodRepo
+     * @param ProductGroupRepository|null $pgRepo
+     * @return array
+     */
+    public function getAvailabilityInfo(
+        ?ProductRepository $prodRepo = null,
+        ?ProductGroupRepository $pgRepo = null
+    ): array {
+        $prodRepo ??= new ProductRepository();
+        $pgRepo ??= new ProductGroupRepository();
+
+        $direct_availability = $prodRepo->getAvailability($this->id);
+        $final_availability = $this->calculateFinalAvailability($prodRepo, $pgRepo);
+
+        // Calculate which branches are affected by group dependencies
+        $group_restrictions = [];
+        foreach ($direct_availability as $branch_id => $is_direct_available) {
+            $is_final_available = $final_availability[$branch_id] ?? false;
+            $group_restrictions[$branch_id] = $is_direct_available && !$is_final_available;
+        }
+
+        return [
+            'direct_availability' => $direct_availability,
+            'final_availability' => $final_availability,
+            'group_restrictions' => $group_restrictions, // branches where groups prevent availability
+        ];
+    }
+
 }

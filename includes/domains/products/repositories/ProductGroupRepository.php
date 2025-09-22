@@ -28,6 +28,11 @@ class ProductGroupRepository implements RepositoryInterface
         update_post_meta($post_id, '_type', $data['type']);
         update_post_meta($post_id, '_group_item_ids', array_map('intval', $data['group_item_ids'] ?? []));
 
+        // Handle branch availability if provided
+        if (isset($data['availability']) && is_array($data['availability'])) {
+            $this->updateAvailability($post_id, $data['availability']);
+        }
+
         return $post_id;
     }
 
@@ -51,6 +56,7 @@ class ProductGroupRepository implements RepositoryInterface
             'description'     => $post->post_content,
             'type'            => $type,
             'group_item_ids'  => get_post_meta($id, '_group_item_ids', true) ?? [],
+            'availability'    => $this->getAvailability($id),
         ]);
     }
 
@@ -93,6 +99,11 @@ class ProductGroupRepository implements RepositoryInterface
         }
         if (array_key_exists('group_item_ids', $data)) {
             update_post_meta($id, '_group_item_ids', array_map('intval', $data['group_item_ids']));
+        }
+
+        // Update branch availability if provided
+        if (array_key_exists('availability', $data)) {
+            $this->updateAvailability($id, $data['availability']);
         }
 
         return true;
@@ -409,6 +420,90 @@ class ProductGroupRepository implements RepositoryInterface
                 }
             }
         }
+    }
+
+    /**
+     * Update branch availability for a product group
+     *
+     * @param int $id ProductGroup ID
+     * @param array $availability Array of branch_id => boolean availability
+     * @return bool Success
+     */
+    public function updateAvailability(int $id, array $availability): bool
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== ProductGroupPostType::POST_TYPE) {
+            return false;
+        }
+
+        foreach ($availability as $branch_id => $is_available) {
+            $branch_id = (int) $branch_id;
+            $is_available = (bool) $is_available;
+            $meta_key = '_branch_availability_' . $branch_id;
+            $meta_value = $is_available ? '1' : '0';
+
+            update_post_meta($id, $meta_key, $meta_value);
+        }
+
+        return true;
+    }
+
+    /**
+     * Get branch availability for a product group
+     *
+     * @param int $id ProductGroup ID
+     * @return array Array of branch_id => boolean availability
+     */
+    public function getAvailability(int $id): array
+    {
+        $post = get_post($id);
+        if (!$post || $post->post_type !== ProductGroupPostType::POST_TYPE) {
+            return [];
+        }
+
+        // Get actual branch IDs from the database
+        $branch_repository = new StoreBranchRepository();
+        $branches = $branch_repository->getAll();
+
+        $availability = [];
+
+        foreach ($branches as $branch) {
+            $availability[$branch->id] = (bool) get_post_meta($id, '_branch_availability_' . $branch->id, true);
+        }
+
+        return $availability;
+    }
+
+    /**
+     * Calculate availability for a product group based on its constituent items
+     *
+     * @param int $id ProductGroup ID
+     * @return array Array of branch_id => boolean calculated availability
+     */
+    public function calculateAvailability(int $id): array
+    {
+        $group = $this->get($id);
+        if (!$group) {
+            return [];
+        }
+
+        return $group->calculateAvailability();
+    }
+
+    /**
+     * Get final availability for a product group (combining manual and calculated)
+     *
+     * @param int $id ProductGroup ID
+     * @return array Array of branch_id => boolean final availability
+     */
+    public function getFinalAvailability(int $id): array
+    {
+        $group = $this->get($id);
+        if (!$group) {
+            return [];
+        }
+
+        return $group->getFinalAvailability();
     }
 
 }
