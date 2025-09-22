@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import IngredientsSection from '../../IngredientsSection.jsx';
 import ProductSection from '../../ProductSection.jsx';
-import IngredientsGroupSection from '../../IngredientsGroupSection.jsx';
+import ProductGroupSection from '../../ProductGroupSection.jsx';
 
 const TabContent = ({
   activeTab,
@@ -25,15 +25,18 @@ const TabContent = ({
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const renderGroupsContent = () => (
     <div className="h-full">
-      <IngredientsGroupSection
-        title={strings.ingredient_groups || 'קבוצות מרכיבים'}
-        ingredientGroups={ingredientGroups}
-        selectedIngredientGroup={selectedIngredientGroup}
-        setSelectedIngredientGroup={setSelectedIngredientGroup}
+      <ProductGroupSection
+        title={strings.groups || 'קבוצות'}
+        productGroups={[
+          ...(Array.isArray(productGroups) ? productGroups : []),
+          ...(Array.isArray(ingredientGroups) ? ingredientGroups : [])
+        ]}
+        selectedProductGroup={selectedProductGroup}
+        setSelectedProductGroup={setSelectedProductGroup}
         strings={strings}
         loading={loading}
         error={error}
-        onIngredientGroupChange={() => {}}
+        onProductGroupChange={() => {}}
       />
     </div>
   );

@@ -230,6 +230,34 @@ class ApiService {
     });
   }
 
+  // Get all groups (both ingredient and product groups combined)
+  async getAllGroups(filters = {}) {
+    try {
+      // Get only product groups by using the filtered endpoint
+      const allProductGroupsResponse = await this.getProductGroups(filters);
+      const ingredientGroupsResponse = await this.getIngredientGroups(filters);
+
+      // Handle different response formats - some endpoints return data directly, others wrap in {data: [...]}
+      const allProductGroups = allProductGroupsResponse.data || allProductGroupsResponse || [];
+      const ingredientGroups = ingredientGroupsResponse.data || ingredientGroupsResponse || [];
+
+      const combinedData = [...allProductGroups, ...ingredientGroups];
+
+      return {
+        data: combinedData,
+        success: true
+      };
+    } catch (error) {
+      console.error('❌ Error fetching all groups:', error);
+      console.error('❌ Error stack:', error.stack);
+      return {
+        data: [],
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
   // ===== UTILITY METHODS =====
 
   getConfig() {

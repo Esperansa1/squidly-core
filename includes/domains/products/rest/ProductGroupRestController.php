@@ -141,6 +141,7 @@ class ProductGroupRestController extends \WP_REST_Controller
         try {
             $data = [
                 'name' => sanitize_text_field($request['name']),
+                'description' => isset($request['description']) ? sanitize_textarea_field($request['description']) : '',
                 'type' => sanitize_text_field($request['type']),
                 'group_item_ids' => $request['group_item_ids'] ?? [],
                 'status' => $request['status'] ?? 'active',
@@ -177,15 +178,19 @@ class ProductGroupRestController extends \WP_REST_Controller
             if (isset($request['name'])) {
                 $data['name'] = sanitize_text_field($request['name']);
             }
-            
+
+            if (isset($request['description'])) {
+                $data['description'] = sanitize_textarea_field($request['description']);
+            }
+
             if (isset($request['type'])) {
                 $data['type'] = sanitize_text_field($request['type']);
             }
-            
+
             if (isset($request['group_item_ids'])) {
                 $data['group_item_ids'] = $request['group_item_ids'];
             }
-            
+
             if (isset($request['status'])) {
                 $data['status'] = sanitize_text_field($request['status']);
             }
@@ -250,6 +255,7 @@ class ProductGroupRestController extends \WP_REST_Controller
         $data = [
             'id' => $item->id,
             'name' => $item->name,
+            'description' => $item->description ?? '',
             'type' => $item->type->value,
             'group_item_ids' => $item->group_item_ids,
             'status' => 'active', // Add status logic based on your requirements

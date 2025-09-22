@@ -11,6 +11,9 @@ class ProductGroupRepository implements RepositoryInterface
             throw new InvalidArgumentException('Invalid ProductGroup data.');
         }
 
+        // Validate group items to prevent mixed types
+        $this->validateGroupItems($data['group_item_ids'] ?? [], $data['type']);
+
         $post_id = wp_insert_post([
             'post_title'   => sanitize_text_field($data['name']),
             'post_content' => isset($data['description']) ? sanitize_textarea_field($data['description']) : '',
@@ -67,6 +70,12 @@ class ProductGroupRepository implements RepositoryInterface
         }
         if (isset($data['type']) && ItemType::tryFrom($data['type']) === null) {
             throw new InvalidArgumentException('Invalid type for ProductGroup.');
+        }
+
+        // Validate group items to prevent mixed types if both type and group_item_ids are being updated
+        if (array_key_exists('group_item_ids', $data)) {
+            $type = $data['type'] ?? get_post_meta($id, '_type', true);
+            $this->validateGroupItems($data['group_item_ids'], $type);
         }
 
         $update_data = ['ID' => $id];
@@ -340,6 +349,66 @@ class ProductGroupRepository implements RepositoryInterface
     public function findContainingGroupItem(int $group_item_id): array
     {
         return $this->findBy(['contains_group_item' => $group_item_id]);
+    }
+
+    /**
+     * Validate that group items match the specified type to prevent mixed types
+     *
+     * @param array $group_item_ids Array of item IDs to validate
+     * @param string $expected_type The expected type ('ingredient' or 'product')
+     * @throws InvalidArgumentException If mixed types are found
+     */
+    private function validateGroupItems(array $group_item_ids, string $expected_type): void
+    {
+        if (empty($group_item_ids)) {
+            return;
+        }
+
+        $ingredient_ids = [];
+        $product_ids = [];
+
+        // Get all ingredient IDs
+        $ingredients_query = get_posts([
+            'post_type' => 'ingredient',
+            'post_status' => 'publish',
+            'fields' => 'ids',
+            'nopaging' => true,
+        ]);
+        $ingredient_ids = array_map('intval', $ingredients_query);
+
+        // Get all product IDs
+        $products_query = get_posts([
+            'post_type' => 'product',
+            'post_status' => 'publish',
+            'fields' => 'ids',
+            'nopaging' => true,
+        ]);
+        $product_ids = array_map('intval', $products_query);
+
+        // Check each group item ID
+        foreach ($group_item_ids as $item_id) {
+            $item_id = intval($item_id);
+
+            $is_ingredient = in_array($item_id, $ingredient_ids);
+            $is_product = in_array($item_id, $product_ids);
+
+            // Validate that the item type matches the expected type
+            if ($expected_type === 'ingredient' && !$is_ingredient) {
+                if ($is_product) {
+                    throw new InvalidArgumentException('Cannot mix products and ingredients in the same group.');
+                } else {
+                    throw new InvalidArgumentException("Invalid ingredient ID: {$item_id}");
+                }
+            }
+
+            if ($expected_type === 'product' && !$is_product) {
+                if ($is_ingredient) {
+                    throw new InvalidArgumentException('Cannot mix products and ingredients in the same group.');
+                } else {
+                    throw new InvalidArgumentException("Invalid product ID: {$item_id}");
+                }
+            }
+        }
     }
 
 }

@@ -41,14 +41,14 @@ const DataSection = ({
   const [toastMessage, setToastMessage] = useState('');
 
   // Stable fetch function with useCallback
-  const fetchData = useCallback(async () => {
-    // Skip if we already have data for this branch and it hasn't changed
-    if (lastFetchedBranchId === selectedBranchId && branchDataCache.current.has(selectedBranchId)) {
+  const fetchData = useCallback(async (forceRefresh = false) => {
+    // Skip if we already have data for this branch and it hasn't changed (unless forced)
+    if (!forceRefresh && lastFetchedBranchId === selectedBranchId && branchDataCache.current.has(selectedBranchId)) {
       return;
     }
 
-    if (data.length > 0) {
-      // Use provided data if available
+    if (data.length > 0 && !apiService) {
+      // Use provided data only if no apiService is available
       setApiData(data);
       setLastFetchedBranchId(selectedBranchId);
       return;
@@ -103,9 +103,16 @@ const DataSection = ({
   const handleDeleteConfirm = async () => {
     if (!selectedItem || !apiService) return;
 
+    // Find the full item object from the selected ID
+    const selectedItemData = filteredData.find(item => item[itemIdProp] === selectedItem);
+    if (!selectedItemData) {
+      console.error('Selected item not found in data');
+      return;
+    }
+
     try {
       setIsDeleting(true);
-      await apiService.delete(selectedItem);
+      await apiService.delete(selectedItemData);
 
       // Clear selection
       setSelectedItem(null);
@@ -113,7 +120,7 @@ const DataSection = ({
       // Clear cache and refetch data
       branchDataCache.current.clear();
       setLastFetchedBranchId(null);
-      await fetchData();
+      await fetchData(true); // Force refresh
 
       // Call change handler
       onItemChange();
@@ -183,7 +190,7 @@ const DataSection = ({
       // Clear cache and refetch data
       branchDataCache.current.clear();
       setLastFetchedBranchId(null);
-      await fetchData();
+      await fetchData(true); // Force refresh
 
       // Call change handler
       onItemChange();
@@ -280,7 +287,7 @@ const DataSection = ({
         <Modal
           isOpen={showItemModal}
           onClose={handleItemModalClose}
-          onSubmit={handleItemSubmit}
+          onSave={handleItemSubmit}
           {...{[editingItemProp]: editingItem}}
           branches={branches}
           productGroups={productGroups}
