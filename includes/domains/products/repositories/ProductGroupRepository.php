@@ -365,7 +365,7 @@ class ProductGroupRepository implements RepositoryInterface
     /**
      * Validate that group items match the specified type to prevent mixed types
      *
-     * @param array $group_item_ids Array of item IDs to validate
+     * @param array $group_item_ids Array of GroupItem IDs to validate
      * @param string $expected_type The expected type ('ingredient' or 'product')
      * @throws InvalidArgumentException If mixed types are found
      */
@@ -375,49 +375,23 @@ class ProductGroupRepository implements RepositoryInterface
             return;
         }
 
-        $ingredient_ids = [];
-        $product_ids = [];
-
-        // Get all ingredient IDs
-        $ingredients_query = get_posts([
-            'post_type' => 'ingredient',
-            'post_status' => 'publish',
-            'fields' => 'ids',
-            'nopaging' => true,
-        ]);
-        $ingredient_ids = array_map('intval', $ingredients_query);
-
-        // Get all product IDs
-        $products_query = get_posts([
-            'post_type' => 'product',
-            'post_status' => 'publish',
-            'fields' => 'ids',
-            'nopaging' => true,
-        ]);
-        $product_ids = array_map('intval', $products_query);
+        $groupItemRepo = new GroupItemRepository();
 
         // Check each group item ID
-        foreach ($group_item_ids as $item_id) {
-            $item_id = intval($item_id);
+        foreach ($group_item_ids as $group_item_id) {
+            $group_item_id = intval($group_item_id);
 
-            $is_ingredient = in_array($item_id, $ingredient_ids);
-            $is_product = in_array($item_id, $product_ids);
-
-            // Validate that the item type matches the expected type
-            if ($expected_type === 'ingredient' && !$is_ingredient) {
-                if ($is_product) {
-                    throw new InvalidArgumentException('Cannot mix products and ingredients in the same group.');
-                } else {
-                    throw new InvalidArgumentException("Invalid ingredient ID: {$item_id}");
-                }
+            // Get the GroupItem object
+            $group_item = $groupItemRepo->get($group_item_id);
+            if (!$group_item) {
+                throw new InvalidArgumentException("Invalid group item ID: {$group_item_id}");
             }
 
-            if ($expected_type === 'product' && !$is_product) {
-                if ($is_ingredient) {
-                    throw new InvalidArgumentException('Cannot mix products and ingredients in the same group.');
-                } else {
-                    throw new InvalidArgumentException("Invalid product ID: {$item_id}");
-                }
+            // Check if the item type matches the expected type
+            $actual_type = $group_item->item_type->value;
+
+            if ($actual_type !== $expected_type) {
+                throw new InvalidArgumentException("Cannot mix {$actual_type}s and {$expected_type}s in the same group. Found {$actual_type} item in {$expected_type} group.");
             }
         }
     }

@@ -56,7 +56,10 @@ const TabContent = ({
         branches={branches}
         selectedBranchId={selectedBranchId}
         onProductChange={() => {}}
-        productGroups={productGroups}
+        productGroups={[
+          ...(Array.isArray(productGroups) ? productGroups : []),
+          ...(Array.isArray(ingredientGroups) ? ingredientGroups : [])
+        ]}
       />
     </div>
   );

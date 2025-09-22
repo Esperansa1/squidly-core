@@ -143,9 +143,17 @@ const ProductSection = ({
         const groupNames = product_group_ids
           .map(id => {
             const group = productGroups.find(group => group.id === id);
-            return group ? group.name : `קבוצה ${id}`;
+            if (!group) {
+              console.warn(`Product group with ID ${id} not found in productGroups:`, productGroups);
+              return null; // Don't show unknown groups
+            }
+            return group.name;
           })
           .filter(name => name); // Remove any null/undefined names
+
+        if (groupNames.length === 0) {
+          return '-';
+        }
 
         return renderList(groupNames, 2);
       }
