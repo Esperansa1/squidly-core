@@ -215,7 +215,7 @@ class IngredientRestController extends \WP_REST_Controller
         try {
             $id = (int)$request['id'];
             $success = $this->repository->delete($id);
-            
+
             if (!$success) {
                 return new \WP_REST_Response([
                     'error' => 'Ingredient not found'
@@ -226,7 +226,13 @@ class IngredientRestController extends \WP_REST_Controller
                 'success' => true,
                 'message' => 'Ingredient deleted successfully'
             ], 200);
-            
+
+        } catch (ResourceInUseException $e) {
+            return new \WP_REST_Response([
+                'error' => 'Cannot delete ingredient',
+                'message' => 'מרכיב זה בשימוש על ידי הפריטים הבאים: ' . implode(', ', $e->dependants),
+                'dependants' => $e->dependants
+            ], 409); // 409 Conflict - resource is in use
         } catch (Exception $e) {
             return new \WP_REST_Response([
                 'error' => 'Failed to delete ingredient',

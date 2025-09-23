@@ -269,6 +269,12 @@ class ProductRestController extends \WP_REST_Controller
                 'message' => 'Product deleted successfully'
             ], 200);
 
+        } catch (ResourceInUseException $e) {
+            return new \WP_REST_Response([
+                'error' => 'Cannot delete product',
+                'message' => 'מוצר זה בשימוש על ידי הפריטים הבאים: ' . implode(', ', $e->dependants),
+                'dependants' => $e->dependants
+            ], 409); // 409 Conflict - resource is in use
         } catch (Exception $e) {
             return new \WP_REST_Response([
                 'error' => 'Failed to delete product',
