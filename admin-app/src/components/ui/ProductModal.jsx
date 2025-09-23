@@ -460,7 +460,7 @@ const ProductModal = ({
                 {/* Product Groups */}
                 <div>
                   <label className="block text-sm font-medium mb-3 text-right" style={{ color: theme.text_primary }}>
-                    {strings.product_groups || 'קבוצות מוצרים'}
+                    {strings.groups || strings.product_groups || 'קבוצות'}
                   </label>
 
                   {productGroups && productGroups.length > 0 ? (
@@ -480,9 +480,9 @@ const ProductModal = ({
                                 handleProductGroupAdd(parseInt(value));
                               }
                             }}
-                            placeholder="בחר קבוצת מוצרים להוספה..."
+                            placeholder="בחר קבוצה להוספה..."
                             disabled={loading}
-                            getOptionLabel={(group) => group.name}
+                            getOptionLabel={(group) => `${group.name} (${group.type === 'ingredient' ? 'מרכיבים' : 'מוצרים'})`}
                             getOptionValue={(group) => group.id}
                             width="w-full"
                             direction="left"
@@ -491,7 +491,7 @@ const ProductModal = ({
                           <p className="text-sm text-right" style={{ color: theme.text_secondary }}>
                             {formData.product_group_ids.length > 0
                               ? 'כל הקבוצות הזמינות נבחרו'
-                              : 'אין קבוצות מוצרים זמינות'
+                              : 'אין קבוצות זמינות'
                             }
                           </p>
                         );
@@ -513,7 +513,7 @@ const ProductModal = ({
                                     border: `1px solid ${theme.border_color}`
                                   }}
                                 >
-                                  <span>{group.name}</span>
+                                  <span>{group.name} ({group.type === 'ingredient' ? 'מרכיבים' : 'מוצרים'})</span>
                                   <button
                                     type="button"
                                     onClick={() => handleProductGroupRemove(groupId)}
@@ -532,10 +532,10 @@ const ProductModal = ({
                   ) : (
                     <div className="text-center py-4 px-3 rounded-md" style={{ backgroundColor: theme.bg_gray_50, border: `1px solid ${theme.border_color}` }}>
                       <p className="text-sm" style={{ color: theme.text_secondary }}>
-                        אין קבוצות מוצרים זמינות
+                        אין קבוצות זמינות
                       </p>
                       <p className="text-xs mt-1" style={{ color: theme.text_secondary }}>
-                        עבור לטאב "קבוצות" כדי ליצור קבוצות מוצרים חדשות
+                        עבור לטאב "קבוצות" כדי ליצור קבוצות חדשות
                       </p>
                     </div>
                   )}
