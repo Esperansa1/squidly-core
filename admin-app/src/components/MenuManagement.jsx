@@ -58,12 +58,20 @@ const MenuManagement = () => {
   const loadData = async () => {
     try {
       const filters = selectedBranchId > 0 ? { branch_id: selectedBranchId } : {};
-      
-      const [productGroupsData, ingredientGroupsData] = await Promise.all([
+
+      const [productGroupsResponse, ingredientGroupsResponse] = await Promise.all([
         api.getProductGroups(filters),
         api.getIngredientGroups(filters)
       ]);
-      
+
+      // Extract data from response (handle both direct arrays and wrapped responses)
+      const productGroupsData = productGroupsResponse.data || productGroupsResponse || [];
+      const ingredientGroupsData = ingredientGroupsResponse.data || ingredientGroupsResponse || [];
+
+      // Debug: Log the data being set
+      console.log('MenuManagement - Setting productGroups:', productGroupsData);
+      console.log('MenuManagement - Setting ingredientGroups:', ingredientGroupsData);
+
       setProductGroups(productGroupsData);
       setIngredientGroups(ingredientGroupsData);
     } catch (err) {
