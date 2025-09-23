@@ -140,15 +140,21 @@ const ProductGroupSection = ({
             ? api.updateIngredientGroup(id, data)
             : api.updateProductGroup(id, data);
         },
-        delete: (item) => {
-          if (!item || !item.id) {
+        delete: (id) => {
+          if (!id) {
             throw new Error('No item selected for deletion');
+          }
+
+          // Find the item in our data to determine its type
+          const item = productGroups.find(group => group.id === id);
+          if (!item) {
+            throw new Error('Item not found in current data');
           }
 
           // Route to correct API based on type
           return item.type === 'ingredient'
-            ? api.deleteIngredientGroup(item.id)
-            : api.deleteProductGroup(item.id);
+            ? api.deleteIngredientGroup(id)
+            : api.deleteProductGroup(id);
         }
       }}
       Modal={ProductGroupModal}
