@@ -102,10 +102,17 @@ class IngredientGroupRestController extends \WP_REST_Controller
                 'name' => sanitize_text_field($request['name']),
                 'description' => isset($request['description']) ? sanitize_textarea_field($request['description']) : '',
                 'type' => 'ingredient', // Force ingredient type
-                'group_item_ids' => $request['group_item_ids'] ?? [],
+                'availability' => $request['availability'] ?? [],
                 'status' => $request['status'] ?? 'active',
                 'branch_id' => $request['branch_id'] ?? null,
             ];
+
+            // Convert raw item IDs to GroupItem IDs
+            if (isset($request['item_ids']) && is_array($request['item_ids'])) {
+                $data['group_item_ids'] = $this->convertToGroupItemIds($request['item_ids'], 'ingredient');
+            } else {
+                $data['group_item_ids'] = [];
+            }
 
             $group_id = $this->repository->create($data);
             $group = $this->repository->get($group_id);
@@ -167,10 +174,15 @@ class IngredientGroupRestController extends \WP_REST_Controller
                 $data['description'] = sanitize_textarea_field($request['description']);
             }
             
-            if (isset($request['group_item_ids'])) {
-                $data['group_item_ids'] = $request['group_item_ids'];
+            // Convert raw item IDs to GroupItem IDs
+            if (isset($request['item_ids']) && is_array($request['item_ids'])) {
+                $data['group_item_ids'] = $this->convertToGroupItemIds($request['item_ids'], 'ingredient');
             }
-            
+
+            if (isset($request['availability'])) {
+                $data['availability'] = $request['availability'];
+            }
+
             if (isset($request['status'])) {
                 $data['status'] = sanitize_text_field($request['status']);
             }
@@ -232,12 +244,35 @@ class IngredientGroupRestController extends \WP_REST_Controller
      */
     public function prepare_item_for_response($item, $request)
     {
+        // Get final availability (combines manual and calculated)
+        $final_availability = $item->getFinalAvailability();
+        $calculated_availability = $item->calculateAvailability();
+
+        // Resolve GroupItem IDs to actual item data for frontend
+        $resolved_items = [];
+        $group_item_repo = new GroupItemRepository();
+
+        foreach ($item->group_item_ids as $group_item_id) {
+            $group_item = $group_item_repo->get($group_item_id);
+            if ($group_item) {
+                $resolved_items[] = [
+                    'id' => $group_item->item_id,
+                    'type' => $group_item->item_type->value,
+                    'group_item_id' => $group_item->id
+                ];
+            }
+        }
+
         $data = [
             'id' => $item->id,
             'name' => $item->name,
             'description' => $item->description ?? '',
             'type' => $item->type->value,
             'group_item_ids' => $item->group_item_ids,
+            'resolved_items' => $resolved_items, // Add resolved item data for frontend
+            'availability' => $item->availability, // Manual availability settings
+            'calculated_availability' => $calculated_availability, // Auto-calculated based on items
+            'final_availability' => $final_availability, // Final combined availability
             'status' => 'active', // Add status logic based on your requirements
             'items_count' => count($item->group_item_ids),
         ];
@@ -323,9 +358,20 @@ class IngredientGroupRestController extends \WP_REST_Controller
                 'enum' => ['ingredient', 'product'],
             ],
             'group_item_ids' => [
-                'description' => 'Array of item IDs in this group',
+                'description' => 'Array of GroupItem IDs in this group (deprecated)',
                 'type' => 'array',
                 'items' => ['type' => 'integer'],
+                'default' => [],
+            ],
+            'item_ids' => [
+                'description' => 'Array of raw ingredient IDs to include in this group',
+                'type' => 'array',
+                'items' => ['type' => 'integer'],
+                'default' => [],
+            ],
+            'availability' => [
+                'description' => 'Manual availability settings per branch',
+                'type' => 'object',
                 'default' => [],
             ],
         ];
@@ -335,5 +381,44 @@ class IngredientGroupRestController extends \WP_REST_Controller
         }
 
         return $args;
+    }
+
+    /**
+     * Convert raw item IDs to GroupItem IDs
+     * Creates GroupItem objects for raw ingredient IDs
+     * Reuses existing GroupItems when available to avoid duplicates
+     */
+    private function convertToGroupItemIds(array $item_ids, string $type): array
+    {
+        $group_item_ids = [];
+        $group_item_repo = new GroupItemRepository();
+
+        foreach ($item_ids as $item_id) {
+            $item_id = (int) $item_id;
+            if ($item_id <= 0) continue;
+
+            // Check if GroupItem already exists for this item
+            $existing_group_items = $group_item_repo->findByReferencedItem($item_id, $type);
+
+            if (!empty($existing_group_items)) {
+                // Use existing GroupItem
+                $group_item_ids[] = $existing_group_items[0]->id;
+            } else {
+                // Create new GroupItem
+                try {
+                    $group_item_id = $group_item_repo->create([
+                        'item_id' => $item_id,
+                        'item_type' => $type,
+                        'override_price' => null
+                    ]);
+                    $group_item_ids[] = $group_item_id;
+                } catch (Exception $e) {
+                    // Skip invalid items but continue with others
+                    continue;
+                }
+            }
+        }
+
+        return $group_item_ids;
     }
 }
