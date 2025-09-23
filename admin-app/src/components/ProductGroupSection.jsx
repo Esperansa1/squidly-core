@@ -62,7 +62,10 @@ const ProductGroupSection = ({
     {
       key: 'group_items',
       label: strings.group_items || 'פריטי קבוצה',
-      width: 'auto',
+      width: '120px',
+      cellStyle: {
+        textAlign: 'center'
+      },
       render: (_, item) => {
         if (!item.group_item_ids || !Array.isArray(item.group_item_ids) || item.group_item_ids.length === 0) {
           return <span className="text-gray-400 italic text-sm">ללא פריטים</span>;
@@ -80,7 +83,13 @@ const ProductGroupSection = ({
     {
       key: 'final_availability',
       label: strings.availability || 'זמינות',
-      width: '120px',
+      width: '180px',
+      cellStyle: {
+        whiteSpace: 'normal',
+        overflow: 'visible',
+        textOverflow: 'initial',
+        minWidth: '180px'
+      },
       render: (_, item) => (
         <AvailabilityDisplay
           availability={item.final_availability || item.availability}
