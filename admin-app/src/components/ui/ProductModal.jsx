@@ -458,77 +458,88 @@ const ProductModal = ({
                 </div>
 
                 {/* Product Groups */}
-                {productGroups && productGroups.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium mb-3 text-right" style={{ color: theme.text_primary }}>
-                      {strings.product_groups || 'קבוצות מוצרים'}
-                    </label>
+                <div>
+                  <label className="block text-sm font-medium mb-3 text-right" style={{ color: theme.text_primary }}>
+                    {strings.product_groups || 'קבוצות מוצרים'}
+                  </label>
 
-                    {/* Add Product Group Dropdown */}
-                    {(() => {
-                      const availableGroups = productGroups.filter(group =>
-                        !formData.product_group_ids.includes(group.id)
-                      );
+                  {productGroups && productGroups.length > 0 ? (
+                    <>
+                      {/* Add Product Group Dropdown */}
+                      {(() => {
+                        const availableGroups = productGroups.filter(group =>
+                          !formData.product_group_ids.includes(group.id)
+                        );
 
-                      return availableGroups.length > 0 ? (
-                        <DropdownButton
-                          options={availableGroups}
-                          value=""
-                          onChange={(value) => {
-                            if (value) {
-                              handleProductGroupAdd(parseInt(value));
+                        return availableGroups.length > 0 ? (
+                          <DropdownButton
+                            options={availableGroups}
+                            value=""
+                            onChange={(value) => {
+                              if (value) {
+                                handleProductGroupAdd(parseInt(value));
+                              }
+                            }}
+                            placeholder="בחר קבוצת מוצרים להוספה..."
+                            disabled={loading}
+                            getOptionLabel={(group) => group.name}
+                            getOptionValue={(group) => group.id}
+                            width="w-full"
+                            direction="left"
+                          />
+                        ) : (
+                          <p className="text-sm text-right" style={{ color: theme.text_secondary }}>
+                            {formData.product_group_ids.length > 0
+                              ? 'כל הקבוצות הזמינות נבחרו'
+                              : 'אין קבוצות מוצרים זמינות'
                             }
-                          }}
-                          placeholder="בחר קבוצת מוצרים להוספה..."
-                          disabled={loading}
-                          getOptionLabel={(group) => group.name}
-                          getOptionValue={(group) => group.id}
-                          width="w-full"
-                          direction="left"
-                        />
-                      ) : (
-                        <p className="text-sm text-right" style={{ color: theme.text_secondary }}>
-                          {formData.product_group_ids.length > 0
-                            ? 'כל הקבוצות הזמינות נבחרו'
-                            : 'אין קבוצות מוצרים זמינות'
-                          }
-                        </p>
-                      );
-                    })()}
+                          </p>
+                        );
+                      })()}
 
-                    {/* Selected Product Groups */}
-                    {formData.product_group_ids.length > 0 && (
-                      <div className="mt-3">
-                        <div className="flex flex-wrap gap-2">
-                          {formData.product_group_ids.map((groupId) => {
-                            const group = productGroups.find(g => g.id === groupId);
-                            return group ? (
-                              <div
-                                key={groupId}
-                                className="flex items-center gap-2 px-3 py-1 rounded-full text-sm"
-                                style={{
-                                  backgroundColor: theme.bg_gray_100,
-                                  color: theme.text_primary,
-                                  border: `1px solid ${theme.border_color}`
-                                }}
-                              >
-                                <span>{group.name}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleProductGroupRemove(groupId)}
-                                  className="ml-1 text-gray-500 hover:text-red-600 transition-colors"
-                                  disabled={loading}
+                      {/* Selected Product Groups */}
+                      {formData.product_group_ids.length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex flex-wrap gap-2">
+                            {formData.product_group_ids.map((groupId) => {
+                              const group = productGroups.find(g => g.id === groupId);
+                              return group ? (
+                                <div
+                                  key={groupId}
+                                  className="flex items-center gap-2 px-3 py-1 rounded-full text-sm"
+                                  style={{
+                                    backgroundColor: theme.bg_gray_100,
+                                    color: theme.text_primary,
+                                    border: `1px solid ${theme.border_color}`
+                                  }}
                                 >
-                                  ×
-                                </button>
-                              </div>
-                            ) : null;
-                          })}
+                                  <span>{group.name}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleProductGroupRemove(groupId)}
+                                    className="ml-1 text-gray-500 hover:text-red-600 transition-colors"
+                                    disabled={loading}
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ) : null;
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-4 px-3 rounded-md" style={{ backgroundColor: theme.bg_gray_50, border: `1px solid ${theme.border_color}` }}>
+                      <p className="text-sm" style={{ color: theme.text_secondary }}>
+                        אין קבוצות מוצרים זמינות
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: theme.text_secondary }}>
+                        עבור לטאב "קבוצות" כדי ליצור קבוצות מוצרים חדשות
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
