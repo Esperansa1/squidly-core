@@ -144,18 +144,8 @@ const ProductSection = ({
           .map(id => {
             const group = productGroups.find(group => group.id === id);
             if (!group) {
-              // More specific debugging - check if it's missing from specific arrays
-              const productGroupsOnly = productGroups.filter(g => g.type === 'product');
-              const ingredientGroupsOnly = productGroups.filter(g => g.type === 'ingredient');
-              console.warn(`Group ID ${id} not found. Available groups:`, {
-                totalGroups: productGroups.length,
-                productGroups: productGroupsOnly.length,
-                ingredientGroups: ingredientGroupsOnly.length,
-                productGroupIds: productGroupsOnly.map(g => g.id),
-                ingredientGroupIds: ingredientGroupsOnly.map(g => g.id)
-              });
-              // Show ID as fallback instead of hiding completely
-              return `קבוצה ${id}`;
+              console.warn(`Product group with ID ${id} not found in productGroups:`, productGroups);
+              return null; // Don't show unknown groups
             }
             return group.name;
           })

@@ -6,7 +6,7 @@ import DropdownButton from './DropdownButton.jsx';
 const ProductModal = ({
   isOpen,
   onClose,
-  onSubmit,
+  onSave,
   product = null, // null for create, object for edit
   branches = [],
   productGroups = [],
@@ -252,7 +252,7 @@ const ProductModal = ({
       submitData.discounted_price = parseFloat(formData.discounted_price);
     }
 
-    await onSubmit(submitData);
+    await onSave(submitData);
   };
 
   const isEditMode = !!product;

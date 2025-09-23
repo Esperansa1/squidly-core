@@ -5,7 +5,7 @@ import { DEFAULT_THEME } from '../../config/theme.js';
 const IngredientModal = ({
   isOpen,
   onClose,
-  onSubmit,
+  onSave,
   ingredient = null, // null for create, object for edit
   branches = [],
   strings = {},
@@ -159,7 +159,7 @@ const IngredientModal = ({
       availability: formData.availability
     };
     
-    await onSubmit(submitData);
+    await onSave(submitData);
   };
 
   const isEditMode = !!ingredient;
