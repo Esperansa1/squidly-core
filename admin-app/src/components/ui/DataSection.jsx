@@ -120,7 +120,7 @@ const DataSection = ({
         throw new Error('מזהה פריט לא חוקי');
       }
 
-      await apiService.delete(itemId);
+      await apiService.delete(itemId, selectedItemData);
 
       // Clear selection
       setSelectedItem(null);
@@ -137,6 +137,8 @@ const DataSection = ({
       setShowDeleteModal(false);
     } catch (error) {
       console.error(`Failed to delete ${title.toLowerCase()}:`, error);
+      console.log('Error message received:', error.message);
+      console.log('Error object:', error);
 
       // Provide user-friendly error messages
       let errorMessage = `שגיאה במחיקת ${title.toLowerCase()}`;
@@ -145,6 +147,10 @@ const DataSection = ({
         // If the error message is in Hebrew (from our API), use it directly
         if (error.message.includes('בשימוש על ידי') || error.message.includes('קבוצה זו')) {
           errorMessage = error.message;
+        } else if (error.message.includes('Resource is in use by:')) {
+          // Extract the dependent items from the English message
+          const dependentItems = error.message.replace('Resource is in use by: ', '');
+          errorMessage = `לא ניתן למחוק - ${title.toLowerCase()} זה בשימוש על ידי: ${dependentItems}`;
         } else if (error.message.includes('Resource is in use')) {
           errorMessage = `לא ניתן למחוק - ${title.toLowerCase()} זה בשימוש על ידי פריטים אחרים`;
         } else if (error.message.includes('not found')) {

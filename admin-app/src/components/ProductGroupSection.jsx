@@ -140,13 +140,14 @@ const ProductGroupSection = ({
             ? api.updateIngredientGroup(id, data)
             : api.updateProductGroup(id, data);
         },
-        delete: (id) => {
+        delete: (id, itemData = null) => {
           if (!id) {
             throw new Error('No item selected for deletion');
           }
 
-          // Find the item in our data to determine its type
-          const item = productGroups.find(group => group.id === id);
+          // Use the provided itemData if available (from DataSection),
+          // otherwise fallback to finding in productGroups prop
+          const item = itemData || productGroups.find(group => group.id === id);
           if (!item) {
             throw new Error('Item not found in current data');
           }
