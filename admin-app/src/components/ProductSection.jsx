@@ -64,7 +64,7 @@ const ProductSection = ({
     );
   };
 
-  // Define columns based on Product model - RTL order: Name → Description → Price → Category → Tags → Product Groups
+  // Define columns based on Product model - RTL order: Name → Description → Price → Category → Tags → Product Groups → Availability
   const columns = useMemo(() => [
     {
       key: 'name',
@@ -107,19 +107,6 @@ const ProductSection = ({
       )
     },
     {
-      key: 'availability',
-      label: strings.availability || 'זמינות',
-      width: '120px',
-      render: (availability, item) => (
-        <AvailabilityDisplay
-          availability={item.final_availability || item.availability || {}}
-          branches={branches}
-          selectedBranchId={selectedBranchId}
-          strings={strings}
-        />
-      )
-    },
-    {
       key: 'category',
       label: strings.category || 'קטגוריה',
       width: '120px',
@@ -157,8 +144,18 @@ const ProductSection = ({
           .map(id => {
             const group = productGroups.find(group => group.id === id);
             if (!group) {
-              console.warn(`Product group with ID ${id} not found in productGroups:`, productGroups);
-              return null; // Don't show unknown groups
+              // More specific debugging - check if it's missing from specific arrays
+              const productGroupsOnly = productGroups.filter(g => g.type === 'product');
+              const ingredientGroupsOnly = productGroups.filter(g => g.type === 'ingredient');
+              console.warn(`Group ID ${id} not found. Available groups:`, {
+                totalGroups: productGroups.length,
+                productGroups: productGroupsOnly.length,
+                ingredientGroups: ingredientGroupsOnly.length,
+                productGroupIds: productGroupsOnly.map(g => g.id),
+                ingredientGroupIds: ingredientGroupsOnly.map(g => g.id)
+              });
+              // Show ID as fallback instead of hiding completely
+              return `קבוצה ${id}`;
             }
             return group.name;
           })
@@ -170,6 +167,25 @@ const ProductSection = ({
 
         return renderList(groupNames, 2);
       }
+    },
+    {
+      key: 'availability',
+      label: strings.availability || 'זמינות',
+      width: '180px',
+      cellStyle: {
+        whiteSpace: 'normal',
+        overflow: 'visible',
+        textOverflow: 'initial',
+        minWidth: '180px'
+      },
+      render: (availability, item) => (
+        <AvailabilityDisplay
+          availability={item.final_availability || item.availability || {}}
+          branches={branches}
+          selectedBranchId={selectedBranchId}
+          strings={strings}
+        />
+      )
     }
   ], [strings, productGroups]);
 

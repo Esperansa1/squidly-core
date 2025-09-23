@@ -112,7 +112,15 @@ const DataSection = ({
 
     try {
       setIsDeleting(true);
-      await apiService.delete(selectedItemData);
+      // Extract ID from the selected item object
+      const itemId = selectedItemData[itemIdProp];
+
+      // Validate ID before calling API
+      if (!itemId || itemId === 0) {
+        throw new Error('מזהה פריט לא חוקי');
+      }
+
+      await apiService.delete(itemId);
 
       // Clear selection
       setSelectedItem(null);
@@ -129,8 +137,26 @@ const DataSection = ({
       setShowDeleteModal(false);
     } catch (error) {
       console.error(`Failed to delete ${title.toLowerCase()}:`, error);
-      // Show toast for delete errors
-      setToastMessage(error.message || `שגיאה במחיקת ${title.toLowerCase()}`);
+
+      // Provide user-friendly error messages
+      let errorMessage = `שגיאה במחיקת ${title.toLowerCase()}`;
+
+      if (error.message) {
+        // If the error message is in Hebrew (from our API), use it directly
+        if (error.message.includes('בשימוש על ידי') || error.message.includes('קבוצה זו')) {
+          errorMessage = error.message;
+        } else if (error.message.includes('Resource is in use')) {
+          errorMessage = `לא ניתן למחוק - ${title.toLowerCase()} זה בשימוש על ידי פריטים אחרים`;
+        } else if (error.message.includes('not found')) {
+          errorMessage = `${title} לא נמצא`;
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'שגיאת רשת - אנא בדוק את החיבור לאינטרנט';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      setToastMessage(errorMessage);
       setShowToast(true);
     } finally {
       setIsDeleting(false);

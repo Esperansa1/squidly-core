@@ -231,6 +231,12 @@ class IngredientGroupRestController extends \WP_REST_Controller
                 'message' => 'Ingredient group deleted successfully'
             ], 200);
             
+        } catch (ResourceInUseException $e) {
+            return new \WP_REST_Response([
+                'error' => 'Cannot delete ingredient group',
+                'message' => 'קבוצה זו בשימוש על ידי המוצרים הבאים: ' . implode(', ', $e->dependants),
+                'dependants' => $e->dependants
+            ], 409); // 409 Conflict - resource is in use
         } catch (Exception $e) {
             return new \WP_REST_Response([
                 'error' => 'Failed to delete ingredient group',

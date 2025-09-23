@@ -252,6 +252,12 @@ class ProductGroupRestController extends \WP_REST_Controller
                 'message' => 'Product group deleted successfully'
             ], 200);
             
+        } catch (ResourceInUseException $e) {
+            return new \WP_REST_Response([
+                'error' => 'Cannot delete product group',
+                'message' => 'קבוצה זו בשימוש על ידי המוצרים הבאים: ' . implode(', ', $e->dependants),
+                'dependants' => $e->dependants
+            ], 409); // 409 Conflict - resource is in use
         } catch (Exception $e) {
             return new \WP_REST_Response([
                 'error' => 'Failed to delete product group',
