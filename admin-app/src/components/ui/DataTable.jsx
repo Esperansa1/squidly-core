@@ -2,12 +2,12 @@ import React from 'react';
 import ThemedRadioButton from './ThemedRadioButton.jsx';
 import { DEFAULT_THEME } from '../../config/theme.js';
 
-const DataTable = ({ 
-  columns, 
-  data, 
-  selectedId, 
-  onSelectionChange, 
-  loading = false, 
+const DataTable = ({
+  columns,
+  data,
+  selectedId,
+  onSelectionChange,
+  loading = false,
   error = null,
   emptyMessage = 'אין נתונים להצגה'
 }) => {

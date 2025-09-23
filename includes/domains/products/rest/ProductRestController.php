@@ -99,10 +99,9 @@ class ProductRestController extends \WP_REST_Controller
             return new \WP_REST_Response($data, 200);
 
         } catch (Exception $e) {
-            return new \WP_REST_Response([
-                'error' => 'Failed to fetch products',
-                'message' => $e->getMessage()
-            ], 500);
+            // Log the error for debugging but return empty array to frontend
+            error_log("ProductRestController get_items error: " . $e->getMessage());
+            return new \WP_REST_Response([], 200);
         }
     }
 
