@@ -107,6 +107,19 @@ const ProductSection = ({
       )
     },
     {
+      key: 'availability',
+      label: strings.availability || 'זמינות',
+      width: '120px',
+      render: (availability, item) => (
+        <AvailabilityDisplay
+          availability={item.final_availability || item.availability || {}}
+          branches={branches}
+          selectedBranchId={selectedBranchId}
+          strings={strings}
+        />
+      )
+    },
+    {
       key: 'category',
       label: strings.category || 'קטגוריה',
       width: '120px',

@@ -143,17 +143,23 @@ class ProductGroupRestController extends \WP_REST_Controller
                 'name' => sanitize_text_field($request['name']),
                 'description' => isset($request['description']) ? sanitize_textarea_field($request['description']) : '',
                 'type' => sanitize_text_field($request['type']),
-                'group_item_ids' => $request['group_item_ids'] ?? [],
                 'availability' => $request['availability'] ?? [],
                 'status' => $request['status'] ?? 'active',
                 'branch_id' => $request['branch_id'] ?? null,
             ];
 
+            // Convert raw item IDs to GroupItem IDs
+            if (isset($request['item_ids']) && is_array($request['item_ids'])) {
+                $data['group_item_ids'] = $this->convertToGroupItemIds($request['item_ids'], $data['type']);
+            } else {
+                $data['group_item_ids'] = [];
+            }
+
             $group_id = $this->repository->create($data);
             $group = $this->repository->get($group_id);
 
             return $this->prepare_item_for_response($group, $request);
-            
+
         } catch (InvalidArgumentException $e) {
             return new \WP_REST_Response([
                 'error' => 'Validation failed',
@@ -188,8 +194,10 @@ class ProductGroupRestController extends \WP_REST_Controller
                 $data['type'] = sanitize_text_field($request['type']);
             }
 
-            if (isset($request['group_item_ids'])) {
-                $data['group_item_ids'] = $request['group_item_ids'];
+            // Convert raw item IDs to GroupItem IDs
+            if (isset($request['item_ids']) && is_array($request['item_ids'])) {
+                $type = $data['type'] ?? $this->repository->get($id)?->type->value ?? 'product';
+                $data['group_item_ids'] = $this->convertToGroupItemIds($request['item_ids'], $type);
             }
 
             if (isset($request['availability'])) {
@@ -201,7 +209,7 @@ class ProductGroupRestController extends \WP_REST_Controller
             }
 
             $success = $this->repository->update($id, $data);
-            
+
             if (!$success) {
                 return new \WP_REST_Response([
                     'error' => 'Product group not found'
@@ -210,7 +218,7 @@ class ProductGroupRestController extends \WP_REST_Controller
 
             $group = $this->repository->get($id);
             return $this->prepare_item_for_response($group, $request);
-            
+
         } catch (InvalidArgumentException $e) {
             return new \WP_REST_Response([
                 'error' => 'Validation failed',
@@ -261,12 +269,28 @@ class ProductGroupRestController extends \WP_REST_Controller
         $final_availability = $item->getFinalAvailability();
         $calculated_availability = $item->calculateAvailability();
 
+        // Resolve GroupItem IDs to actual item data for frontend
+        $resolved_items = [];
+        $group_item_repo = new GroupItemRepository();
+
+        foreach ($item->group_item_ids as $group_item_id) {
+            $group_item = $group_item_repo->get($group_item_id);
+            if ($group_item) {
+                $resolved_items[] = [
+                    'id' => $group_item->item_id,
+                    'type' => $group_item->item_type->value,
+                    'group_item_id' => $group_item->id
+                ];
+            }
+        }
+
         $data = [
             'id' => $item->id,
             'name' => $item->name,
             'description' => $item->description ?? '',
             'type' => $item->type->value,
             'group_item_ids' => $item->group_item_ids,
+            'resolved_items' => $resolved_items, // Add resolved item data for frontend
             'availability' => $item->availability, // Manual availability settings
             'calculated_availability' => $calculated_availability, // Auto-calculated based on items
             'final_availability' => $final_availability, // Final combined availability
@@ -303,6 +327,45 @@ class ProductGroupRestController extends \WP_REST_Controller
     public function delete_item_permissions_check($request)
     {
         return current_user_can('manage_options');
+    }
+
+    /**
+     * Convert raw item IDs to GroupItem IDs
+     * Creates GroupItem objects for raw ingredient/product IDs
+     * Reuses existing GroupItems when available to avoid duplicates
+     */
+    private function convertToGroupItemIds(array $item_ids, string $type): array
+    {
+        $group_item_ids = [];
+        $group_item_repo = new GroupItemRepository();
+
+        foreach ($item_ids as $item_id) {
+            $item_id = (int) $item_id;
+            if ($item_id <= 0) continue;
+
+            // Check if GroupItem already exists for this item
+            $existing_group_items = $group_item_repo->findByReferencedItem($item_id, $type);
+
+            if (!empty($existing_group_items)) {
+                // Use existing GroupItem
+                $group_item_ids[] = $existing_group_items[0]->id;
+            } else {
+                // Create new GroupItem
+                try {
+                    $group_item_id = $group_item_repo->create([
+                        'item_id' => $item_id,
+                        'item_type' => $type,
+                        'override_price' => null
+                    ]);
+                    $group_item_ids[] = $group_item_id;
+                } catch (Exception $e) {
+                    // Skip invalid items but continue with others
+                    continue;
+                }
+            }
+        }
+
+        return $group_item_ids;
     }
 
     /**

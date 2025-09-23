@@ -106,13 +106,20 @@ class ProductGroup
             $branch_id = $branch->id;
             $all_items_available = true;
 
-            foreach ($this->group_item_ids as $item_id) {
+            // Resolve GroupItem IDs to actual items
+            $resolvedItems = $this->getResolvedItems(null, $prodRepo, $ingRepo);
+
+            foreach ($resolvedItems as $item) {
                 $item_availability = [];
 
-                if ($this->type->value === 'ingredient') {
-                    $item_availability = $ingRepo->getAvailability($item_id);
+                // Get availability based on the actual item type and ID
+                if ($item instanceof Ingredient) {
+                    $item_availability = $ingRepo->getAvailability($item->id);
+                } elseif ($item instanceof Product) {
+                    $item_availability = $prodRepo->getAvailability($item->id);
                 } else {
-                    $item_availability = $prodRepo->getAvailability($item_id);
+                    // Skip unknown item types
+                    continue;
                 }
 
                 // If this item is not available in this branch, group is not available

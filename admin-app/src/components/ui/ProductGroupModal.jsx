@@ -25,6 +25,7 @@ const ProductGroupModal = ({
   const [selectedItems, setSelectedItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [selectAllBranches, setSelectAllBranches] = useState(false);
   const [warnings, setWarnings] = useState([]);
 
@@ -83,13 +84,24 @@ const ProductGroupModal = ({
 
   // Resolve selected items when editing and available items are loaded
   useEffect(() => {
-    if (group && availableItems.length > 0 && formData.group_item_ids.length > 0) {
-      const resolvedItems = availableItems.filter(item =>
-        formData.group_item_ids.includes(item.id)
-      );
+    if (group && availableItems.length > 0 && group.resolved_items) {
+      // Use the resolved_items data from the API response
+      const resolvedItems = [];
+
+      for (const resolvedItem of group.resolved_items) {
+        // Find the actual item (ingredient/product) in availableItems
+        const actualItem = availableItems.find(item =>
+          item.id === resolvedItem.id &&
+          resolvedItem.type === formData.type
+        );
+        if (actualItem) {
+          resolvedItems.push(actualItem);
+        }
+      }
+
       setSelectedItems(resolvedItems);
     }
-  }, [group, availableItems, formData.group_item_ids]);
+  }, [group, availableItems, formData.type]);
 
   const loadAvailableItems = async () => {
     try {
@@ -100,7 +112,15 @@ const ProductGroupModal = ({
       setAvailableItems(response.data || []);
     } catch (error) {
       console.error('Error loading items:', error);
-      setError(strings.errorLoadingItems || 'Error loading items');
+
+      let errorMessage = strings.errorLoadingItems || 'Error loading items';
+      if (error.message && error.message.includes('network')) {
+        errorMessage = 'שגיאת רשת - לא ניתן לטעון פריטים';
+      } else if (error.message) {
+        errorMessage = `שגיאה בטעינת פריטים: ${error.message}`;
+      }
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -179,10 +199,60 @@ const ProductGroupModal = ({
     try {
       setIsLoading(true);
       setError('');
-      await onSave(formData);
+      setSuccessMessage('');
+
+      // Send raw item IDs instead of group_item_ids for the new API
+      const item_ids = selectedItems.map(item => item.id);
+      console.log('Submitting group with selectedItems:', selectedItems);
+      console.log('Extracted item_ids:', item_ids);
+
+      const submissionData = {
+        ...formData,
+        item_ids: item_ids,
+        // Remove group_item_ids from submission since API now expects item_ids
+        group_item_ids: undefined
+      };
+
+      console.log('Final submission data:', submissionData);
+      await onSave(submissionData);
+
+      // Show success message
+      const isEditing = Boolean(group);
+      setSuccessMessage(isEditing
+        ? 'הקבוצה עודכנה בהצלחה'
+        : 'הקבוצה נוצרה בהצלחה'
+      );
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
-      console.error('Error saving ingredient group:', error);
-      setError(error.message || strings.errorSaving || 'Error saving ingredient group');
+      console.error('Error saving product group:', error);
+
+      // Enhanced error handling with specific messages
+      let errorMessage = strings.errorSaving || 'Error saving product group';
+
+      if (error.response && error.response.data) {
+        // API returned structured error
+        const apiError = error.response.data;
+        if (apiError.message) {
+          errorMessage = apiError.message;
+        } else if (apiError.error) {
+          errorMessage = apiError.error;
+        }
+      } else if (error.message) {
+        // JavaScript error
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'שגיאת רשת - אנא בדוק את החיבור לאינטרנט';
+        } else if (error.message.includes('Invalid group item ID')) {
+          errorMessage = 'שגיאה ביצירת קבוצה - פריט לא חוקי נבחר';
+        } else if (error.message.includes('mixed')) {
+          errorMessage = 'לא ניתן לערבב מרכיבים ומוצרים באותה קבוצה';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -290,6 +360,7 @@ const ProductGroupModal = ({
     });
     setSelectedItems([]);
     setError('');
+    setSuccessMessage('');
     setSelectAllBranches(true);
     onClose();
   }, [onClose, branches]);
@@ -336,6 +407,13 @@ const ProductGroupModal = ({
 
           {/* Content */}
           <div className="p-6">
+            {/* Success Message */}
+            {successMessage && (
+              <div className="mb-4 p-3 rounded" style={{ backgroundColor: theme.success_color + '20', border: `1px solid ${theme.success_color}`, color: theme.success_color }}>
+                {successMessage}
+              </div>
+            )}
+
             {/* Error Message */}
             {error && (
               <div className="mb-4 p-3 rounded" style={{ backgroundColor: theme.danger_color + '20', border: `1px solid ${theme.danger_color}`, color: theme.danger_color }}>
