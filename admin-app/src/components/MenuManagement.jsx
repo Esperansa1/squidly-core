@@ -65,12 +65,8 @@ const MenuManagement = () => {
       ]);
 
       // API now consistently returns data directly
-      const productGroupsData = productGroupsResponse || [];
-      const ingredientGroupsData = ingredientGroupsResponse || [];
-
-
-      setProductGroups(productGroupsData);
-      setIngredientGroups(ingredientGroupsData);
+      setProductGroups(productGroupsResponse);
+      setIngredientGroups(ingredientGroupsResponse);
     } catch (err) {
       console.error('Failed to load data:', err);
     }

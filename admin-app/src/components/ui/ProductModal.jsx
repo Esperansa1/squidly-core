@@ -42,8 +42,8 @@ const ProductModal = ({
           price: product.price?.toString() || '',
           discounted_price: product.discounted_price?.toString() || '',
           category: product.category || '',
-          tags: Array.isArray(product.tags) ? product.tags.join(', ') : (product.tags || ''),
-          product_group_ids: product.product_group_ids || [],
+          tags: product.tags.join(', '),
+          product_group_ids: product.product_group_ids,
           availability: availability
         });
         // Check if all branches are selected (excluding "All Branches" entries)

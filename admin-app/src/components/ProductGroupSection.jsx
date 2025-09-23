@@ -67,7 +67,7 @@ const ProductGroupSection = ({
         textAlign: 'center'
       },
       render: (_, item) => {
-        if (!item.group_item_ids || !Array.isArray(item.group_item_ids) || item.group_item_ids.length === 0) {
+        if (!item.group_item_ids || item.group_item_ids.length === 0) {
           return <span className="text-gray-400 italic text-sm">ללא פריטים</span>;
         }
 

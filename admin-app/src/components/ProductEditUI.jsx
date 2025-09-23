@@ -34,7 +34,7 @@ const ProductEditUI = ({
     categoryId: initialData?.categoryId || '',
     newCategory: '',
     useNewCategory: false,
-    selectedGroups: initialData?.groups || [],
+    selectedGroups: initialData?.groups,
     image: initialData?.image || null
   });
 

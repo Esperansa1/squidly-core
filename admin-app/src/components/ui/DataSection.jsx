@@ -56,7 +56,8 @@ const DataSection = ({
 
     // Check if we already have data for this branch in cache
     if (branchDataCache.current.has(selectedBranchId)) {
-      setApiData(branchDataCache.current.get(selectedBranchId));
+      const cachedData = branchDataCache.current.get(selectedBranchId);
+      setApiData(cachedData);
       setLastFetchedBranchId(selectedBranchId);
       return;
     }
@@ -71,11 +72,10 @@ const DataSection = ({
 
       const filters = {};
       const response = await apiService.getAll(filters);
-      const dataArray = response || [];
 
       // Cache the data for this branch
-      branchDataCache.current.set(selectedBranchId, dataArray);
-      setApiData(dataArray);
+      branchDataCache.current.set(selectedBranchId, response);
+      setApiData(response);
       setLastFetchedBranchId(selectedBranchId);
     } catch (error) {
       console.error(`Failed to fetch ${title.toLowerCase()}:`, error);
@@ -183,23 +183,8 @@ const DataSection = ({
     if (selectedItem) {
       const item = filteredData.find(dataItem => dataItem[itemIdProp] === selectedItem);
       if (item) {
-        // Convert availability array to object format expected by modal
-        let availabilityObj = {};
-        if (Array.isArray(item.availability)) {
-          item.availability.forEach((isAvailable, index) => {
-            availabilityObj[index] = isAvailable;
-          });
-        } else if (typeof item.availability === 'object') {
-          availabilityObj = item.availability;
-        }
-
-        // Create the item object with converted availability
-        const itemForEdit = {
-          ...item,
-          availability: availabilityObj
-        };
-
-        setEditingItem(itemForEdit);
+        // Backend now consistently returns availability as object
+        setEditingItem(item);
         setShowItemModal(true);
       }
     }

@@ -57,7 +57,7 @@ class ApiService {
    */
   async fetch(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     const defaultHeaders = {
       'Content-Type': 'application/json',
     };
@@ -77,7 +77,7 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
@@ -238,23 +238,13 @@ class ApiService {
       const ingredientGroupsResponse = await this.getIngredientGroups(filters);
 
       // APIs now consistently return data directly
-      const allProductGroups = allProductGroupsResponse || [];
-      const ingredientGroups = ingredientGroupsResponse || [];
+      const combinedData = [...allProductGroupsResponse, ...ingredientGroupsResponse];
 
-      const combinedData = [...allProductGroups, ...ingredientGroups];
-
-      return {
-        data: combinedData,
-        success: true
-      };
+      return combinedData;
     } catch (error) {
       console.error('❌ Error fetching all groups:', error);
       console.error('❌ Error stack:', error.stack);
-      return {
-        data: [],
-        success: false,
-        error: error.message
-      };
+      return [];
     }
   }
 

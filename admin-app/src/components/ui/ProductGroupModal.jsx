@@ -46,7 +46,7 @@ const ProductGroupModal = ({
         name: group.name || '',
         description: group.description || '',
         type: group.type || 'ingredient',
-        group_item_ids: group.group_item_ids || [],
+        group_item_ids: group.group_item_ids,
         availability: availability
       });
 
@@ -109,7 +109,8 @@ const ProductGroupModal = ({
       const response = formData.type === 'ingredient'
         ? await api.getIngredients()
         : await api.getProducts();
-      setAvailableItems(response.data || []);
+
+      setAvailableItems(response);
     } catch (error) {
       console.error('Error loading items:', error);
 
@@ -121,6 +122,8 @@ const ProductGroupModal = ({
       }
 
       setError(errorMessage);
+      // Ensure availableItems is always an array even on error
+      setAvailableItems([]);
     } finally {
       setIsLoading(false);
     }

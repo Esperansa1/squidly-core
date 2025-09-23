@@ -28,8 +28,8 @@ const TabContent = ({
       <ProductGroupSection
         title={strings.groups || 'קבוצות'}
         productGroups={[
-          ...(Array.isArray(productGroups) ? productGroups : []),
-          ...(Array.isArray(ingredientGroups) ? ingredientGroups : [])
+          ...productGroups,
+          ...ingredientGroups
         ]}
         selectedProductGroup={selectedProductGroup}
         setSelectedProductGroup={setSelectedProductGroup}
@@ -57,8 +57,8 @@ const TabContent = ({
         selectedBranchId={selectedBranchId}
         onProductChange={() => {}}
         productGroups={[
-          ...(Array.isArray(productGroups) ? productGroups : []),
-          ...(Array.isArray(ingredientGroups) ? ingredientGroups : [])
+          ...productGroups,
+          ...ingredientGroups
         ]}
       />
     </div>
