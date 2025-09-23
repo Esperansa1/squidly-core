@@ -268,7 +268,7 @@ class IngredientRepository implements RepositoryInterface
         $pgRepo   = new ProductGroupRepository();
         $prodRepo = new ProductRepository();
 
-        /* --- 1. group-items that reference this ingredient ---------------- */
+        /* --- 1. Find group-items that reference this ingredient ------------ */
         $giIds = get_posts([
             'post_type'   => GroupItemPostType::POST_TYPE,
             'fields'      => 'ids',
@@ -280,17 +280,15 @@ class IngredientRepository implements RepositoryInterface
             ],
         ]);
 
-        /* Every matching GroupItem itself counts as a dependant ------------- */
-        foreach ($giIds as $giId) {
-            $giPost = get_post($giId);
-            if ($giPost && !empty($giPost->post_title)) {
-                $names[] = $giPost->post_title;
-            } else {
-                $names[] = "Group Item #{$giId}";
-            }
+        /* Debug: Log what we found for troubleshooting */
+        error_log("IngredientRepository: Found " . count($giIds) . " GroupItems referencing ingredient ID {$iid}");
+
+        /* If no group items reference this ingredient, return empty array */
+        if (empty($giIds)) {
+            return [];
         }
 
-        /* --- 2. product-groups containing those group-items ---------------- */
+        /* --- 2. Find product-groups containing those group-items ----------- */
         foreach ($giIds as $giId) {
             $pgIds = get_posts([
                 'post_type'  => ProductGroupPostType::POST_TYPE,
@@ -307,7 +305,7 @@ class IngredientRepository implements RepositoryInterface
             foreach ($pgIds as $pgId) {
                 $pg = $pgRepo->get((int) $pgId);
                 if ($pg) {
-                    $names[] = $pg->name;
+                    $names[] = "קבוצה: {$pg->name}";
                 }
 
                 /* --- 3. products that include this product-group ----------- */
@@ -326,7 +324,7 @@ class IngredientRepository implements RepositoryInterface
                 foreach ($prodIds as $pid) {
                     $p = $prodRepo->get((int) $pid);
                     if ($p) {
-                        $names[] = $p->name;
+                        $names[] = "מוצר: {$p->name}";
                     }
                 }
             }
