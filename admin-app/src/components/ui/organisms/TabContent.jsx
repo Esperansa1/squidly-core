@@ -43,26 +43,34 @@ const TabContent = ({
     </div>
   );
 
-  const renderProductsContent = () => (
-    <div className="h-full">
-      <ProductSection
-        title={strings.products || 'מוצרים'}
-        products={[]}
-        selectedProduct={selectedProduct}
-        setSelectedProduct={setSelectedProduct}
-        strings={strings}
-        loading={loading}
-        error={error}
-        branches={branches}
-        selectedBranchId={selectedBranchId}
-        onProductChange={() => {}}
-        productGroups={[
-          ...(Array.isArray(productGroups) ? productGroups : []),
-          ...(Array.isArray(ingredientGroups) ? ingredientGroups : [])
-        ]}
-      />
-    </div>
-  );
+  const renderProductsContent = () => {
+    // Debug: Log the group data
+    const combinedGroups = [
+      ...(Array.isArray(productGroups) ? productGroups : []),
+      ...(Array.isArray(ingredientGroups) ? ingredientGroups : [])
+    ];
+    console.log('TabContent - productGroups:', productGroups);
+    console.log('TabContent - ingredientGroups:', ingredientGroups);
+    console.log('TabContent - combined groups for ProductSection:', combinedGroups);
+
+    return (
+      <div className="h-full">
+        <ProductSection
+          title={strings.products || 'מוצרים'}
+          products={[]}
+          selectedProduct={selectedProduct}
+          setSelectedProduct={setSelectedProduct}
+          strings={strings}
+          loading={loading}
+          error={error}
+          branches={branches}
+          selectedBranchId={selectedBranchId}
+          onProductChange={() => {}}
+          productGroups={combinedGroups}
+        />
+      </div>
+    );
+  };
 
   const renderIngredientsContent = () => (
     <div className="h-full">
