@@ -237,9 +237,9 @@ class ApiService {
       const allProductGroupsResponse = await this.getProductGroups(filters);
       const ingredientGroupsResponse = await this.getIngredientGroups(filters);
 
-      // Handle different response formats - some endpoints return data directly, others wrap in {data: [...]}
-      const allProductGroups = allProductGroupsResponse.data || allProductGroupsResponse || [];
-      const ingredientGroups = ingredientGroupsResponse.data || ingredientGroupsResponse || [];
+      // APIs now consistently return data directly
+      const allProductGroups = allProductGroupsResponse || [];
+      const ingredientGroups = ingredientGroupsResponse || [];
 
       const combinedData = [...allProductGroups, ...ingredientGroups];
 
