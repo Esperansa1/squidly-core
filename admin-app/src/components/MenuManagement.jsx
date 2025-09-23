@@ -64,13 +64,10 @@ const MenuManagement = () => {
         api.getIngredientGroups(filters)
       ]);
 
-      // Extract data from response (handle both direct arrays and wrapped responses)
-      const productGroupsData = productGroupsResponse.data || productGroupsResponse || [];
-      const ingredientGroupsData = ingredientGroupsResponse.data || ingredientGroupsResponse || [];
+      // API now consistently returns data directly
+      const productGroupsData = productGroupsResponse || [];
+      const ingredientGroupsData = ingredientGroupsResponse || [];
 
-      // Debug: Log the data being set
-      console.log('MenuManagement - Setting productGroups:', productGroupsData);
-      console.log('MenuManagement - Setting ingredientGroups:', ingredientGroupsData);
 
       setProductGroups(productGroupsData);
       setIngredientGroups(ingredientGroupsData);

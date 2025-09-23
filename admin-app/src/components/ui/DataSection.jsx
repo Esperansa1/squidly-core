@@ -71,7 +71,7 @@ const DataSection = ({
 
       const filters = {};
       const response = await apiService.getAll(filters);
-      const dataArray = response.data || response || [];
+      const dataArray = response || [];
 
       // Cache the data for this branch
       branchDataCache.current.set(selectedBranchId, dataArray);

@@ -82,7 +82,7 @@ class IngredientGroupRestController extends \WP_REST_Controller
                 return $this->prepare_item_for_response($group, new \WP_REST_Request())->get_data();
             }, $groups);
 
-            return new \WP_REST_Response(['data' => $data], 200);
+            return new \WP_REST_Response($data, 200);
             
         } catch (Exception $e) {
             return new \WP_REST_Response([

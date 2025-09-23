@@ -96,7 +96,7 @@ class ProductRestController extends \WP_REST_Controller
                 return $this->prepare_item_for_response($product, new \WP_REST_Request())->get_data();
             }, $products);
 
-            return new \WP_REST_Response(['data' => $data], 200);
+            return new \WP_REST_Response($data, 200);
 
         } catch (Exception $e) {
             return new \WP_REST_Response([

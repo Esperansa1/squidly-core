@@ -32,9 +32,6 @@ const ProductModal = ({
   // Initialize form data when modal opens or product changes
   useEffect(() => {
     if (isOpen) {
-      // Debug: Log the productGroups data
-      console.log('ProductModal - productGroups received:', productGroups);
-      console.log('ProductModal - productGroups types:', productGroups?.map(g => ({ id: g.id, name: g.name, type: g.type })));
 
       if (product) {
         // Edit mode
