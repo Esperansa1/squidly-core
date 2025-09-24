@@ -230,6 +230,13 @@ const DataSection = ({
     setEditingItem(null);
   };
 
+  // Handle selection change - DataTable passes full item, we need just the ID
+  const handleSelectionChange = (item) => {
+    // Extract the ID from the item object and pass it to setSelectedItem
+    const itemId = item ? item[itemIdProp] : null;
+    setSelectedItem(itemId);
+  };
+
   // Determine data source and loading/error states
   const dataToUse = apiData;
   const loading = externalLoading || apiLoading;
@@ -278,7 +285,7 @@ const DataSection = ({
           columns={columns}
           data={filteredData}
           selectedId={selectedItem}
-          onSelectionChange={setSelectedItem}
+          onSelectionChange={handleSelectionChange}
           loading={loading}
           error={error}
           emptyMessage={strings.no_items || 'אין פריטים להצגה'}
