@@ -11,18 +11,12 @@ const BranchSelector = ({
   disabled = false,
   className = ''
 }) => {
-  // Filter out any placeholder branches and prepare options
-  const branchOptions = branches
-    .filter(branch =>
-      branch.name !== 'כל הסניפים' &&
-      branch.name !== 'All Branches' &&
-      branch.id !== 0
-    )
-    .map(branch => ({
-      value: branch.id,
-      label: branch.name,
-      data: branch
-    }));
+  // Prepare branch options
+  const branchOptions = branches.map(branch => ({
+    value: branch.id,
+    label: branch.name,
+    data: branch
+  }));
 
   // Add "All Branches" option if needed
   if (showAllBranches) {

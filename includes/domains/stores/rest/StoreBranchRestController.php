@@ -188,24 +188,6 @@ class StoreBranchRestController extends \WP_REST_Controller
                 return $this->prepare_item_for_response($branch, new \WP_REST_Request())->get_data();
             }, $branches);
 
-            // Add "All Branches" option at the beginning if no specific filters
-            if (empty($filters) || (count($filters) == 1 && isset($filters['name']))) {
-                array_unshift($data, [
-                    'id' => 0,
-                    'name' => 'כל הסניפים',
-                    'city' => '',
-                    'address' => '',
-                    'phone' => '',
-                    'is_open' => true,
-                    'activity_times' => [],
-                    'kosher_type' => '',
-                    'accessibility_list' => [],
-                    'products' => [],
-                    'ingredients' => [],
-                    'product_availability' => [],
-                    'ingredient_availability' => []
-                ]);
-            }
 
             return new \WP_REST_Response($data, 200);
 

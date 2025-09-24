@@ -54,20 +54,12 @@ const BranchManagement = () => {
     }
   };
 
-  // Filter branches based on search term and exclude placeholder branches
-  const filteredBranches = branches
-    .filter(branch =>
-      // Exclude placeholder "All Branches" entries
-      branch.name !== 'כל הסניפים' &&
-      branch.name !== 'All Branches' &&
-      branch.id !== 0
-    )
-    .filter(branch =>
-      // Apply search filtering
-      branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      branch.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      branch.phone.includes(searchTerm)
-    );
+  // Filter branches based on search term
+  const filteredBranches = branches.filter(branch =>
+    branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    branch.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    branch.phone.includes(searchTerm)
+  );
 
   // Format activity times for display
   const formatActivityTimes = (activityTimes) => {
