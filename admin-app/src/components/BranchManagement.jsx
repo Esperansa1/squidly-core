@@ -178,6 +178,7 @@ const BranchManagement = () => {
 
   const handleEditBranch = () => {
     if (selectedBranch) {
+      // Always use the fresh data from selectedBranch
       setEditingBranch(selectedBranch);
       setShowBranchModal(true);
     }
@@ -299,6 +300,7 @@ const BranchManagement = () => {
 
       {/* Branch Modal */}
       <BranchModal
+        key={editingBranch?.id || 'new'}
         isOpen={showBranchModal}
         onClose={() => {
           setShowBranchModal(false);
