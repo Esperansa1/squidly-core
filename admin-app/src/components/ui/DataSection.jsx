@@ -42,7 +42,7 @@ const ActionButton = ({ icon: Icon, variant, onClick, disabled = false, title })
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`inline-flex items-center justify-center w-8 h-8 border rounded-md transition-all duration-200 ${
+      className={`inline-flex items-center justify-center w-10 h-10 border rounded-md transition-all duration-200 ${
         disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'
       }`}
       style={styles}
@@ -309,10 +309,13 @@ const DataSection = ({
   return (
     <Card className="h-full flex flex-col" padding="none">
       <div className="flex-shrink-0 p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between gap-4">
-          {/* Title */}
-          <h2 className="text-lg text-neutral-800 font-bold flex-shrink-0">{title}</h2>
+        {/* Title */}
+        <div className="mb-4">
+          <h2 className="text-lg text-neutral-800 font-bold">{title}</h2>
+        </div>
 
+        {/* Search Bar and CED Buttons */}
+        <div className="flex items-center gap-4">
           {/* Search Bar - Flexible width */}
           <div className="flex-1 mr-4">
             <SearchBar

@@ -242,10 +242,13 @@ const BranchManagement = () => {
       <div className="flex-1 p-6 overflow-hidden">
         <Card className="h-full flex flex-col" padding="none">
           <div className="flex-shrink-0 p-4 border-b border-gray-200">
-            <div className="flex items-center justify-between gap-4">
-              {/* Title */}
-              <h2 className="text-lg text-neutral-800 font-bold flex-shrink-0">ניהול סניפים</h2>
+            {/* Title */}
+            <div className="mb-4">
+              <h2 className="text-lg text-neutral-800 font-bold">ניהול סניפים</h2>
+            </div>
 
+            {/* Search Bar and Action Buttons */}
+            <div className="flex items-center gap-4">
               {/* Search Bar - Flexible width */}
               <div className="flex-1 mr-4">
                 <SearchBar
