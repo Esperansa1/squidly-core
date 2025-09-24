@@ -8,7 +8,6 @@ import {
   ConfirmationModal,
   Toast,
   BranchModal,
-  ManagementHeader,
   ActionButtons
 } from './ui';
 
@@ -239,20 +238,16 @@ const BranchManagement = () => {
 
   return (
     <div className="h-full flex flex-col" dir="rtl">
-      {/* Header */}
-      <ManagementHeader
-        title="ניהול סניפים"
-        subtitle="נהל את כל הסניפים של המסעדה שלך"
-      />
-
       {/* Content */}
       <div className="flex-1 p-6 overflow-hidden">
-        <Card className="h-full flex flex-col">
-          {/* Toolbar */}
-          <div className="flex-shrink-0 p-4" style={{ borderBottom: `1px solid ${theme.border_color}` }}>
-            <div className="flex items-center justify-between">
-              {/* Search */}
-              <div className="flex-1 max-w-md">
+        <Card className="h-full flex flex-col" padding="none">
+          <div className="flex-shrink-0 p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between gap-4">
+              {/* Title */}
+              <h2 className="text-lg text-neutral-800 font-bold flex-shrink-0">ניהול סניפים</h2>
+
+              {/* Search Bar - Flexible width */}
+              <div className="flex-1 mr-4">
                 <SearchBar
                   value={searchTerm}
                   onChange={setSearchTerm}
@@ -275,7 +270,7 @@ const BranchManagement = () => {
           </div>
 
           {/* Data Table */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 p-8 pt-6 min-h-0">
             <DataTable
               columns={columns}
               data={filteredBranches}

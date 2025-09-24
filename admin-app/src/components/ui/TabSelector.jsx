@@ -31,7 +31,7 @@ const TabSelector = ({
           className={`relative z-10 flex-1 px-6 py-2 text-sm font-semibold transition-colors focus:outline-none ${
             activeTab === tab
               ? 'text-white'
-              : 'hover:bg-gray-50'
+              : ''
           }`}
           style={{
             color: activeTab === tab ? 'white' : theme.text_secondary

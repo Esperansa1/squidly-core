@@ -1,5 +1,56 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { Card, TableHeader, SearchBar, DataTable, ConfirmationModal, Toast } from './index';
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Card, SearchBar, DataTable, ConfirmationModal, Toast } from './index';
+import { DEFAULT_THEME } from '../../config/theme.js';
+
+const ActionButton = ({ icon: Icon, variant, onClick, disabled = false, title }) => {
+  const theme = DEFAULT_THEME;
+
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'primary':
+        return {
+          backgroundColor: disabled ? theme.bg_gray_100 : theme.primary_color,
+          color: disabled ? theme.text_disabled : theme.bg_white,
+          borderColor: disabled ? theme.border_light : theme.primary_color
+        };
+      case 'secondary':
+        return {
+          backgroundColor: disabled ? theme.bg_gray_50 : theme.bg_white,
+          color: disabled ? theme.text_disabled : theme.text_primary,
+          borderColor: disabled ? theme.border_light : theme.border_color
+        };
+      case 'error':
+        return {
+          backgroundColor: disabled ? theme.bg_gray_100 : theme.danger_color,
+          color: disabled ? theme.text_disabled : theme.bg_white,
+          borderColor: disabled ? theme.border_light : theme.danger_color
+        };
+      default:
+        return {
+          backgroundColor: theme.bg_white,
+          color: theme.text_primary,
+          borderColor: theme.border_color
+        };
+    }
+  };
+
+  const styles = getVariantStyles();
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={`inline-flex items-center justify-center w-8 h-8 border rounded-md transition-all duration-200 ${
+        disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'
+      }`}
+      style={styles}
+    >
+      <Icon className="w-4 h-4" />
+    </button>
+  );
+};
 
 const DataSection = ({
   title = '',
@@ -257,27 +308,44 @@ const DataSection = ({
 
   return (
     <Card className="h-full flex flex-col" padding="none">
-      <div className="flex-shrink-0 p-8 border-b border-gray-200">
-        <div className="mb-6">
-          <TableHeader
-            title={title}
-            onCreateClick={handleCreateClick}
-            onEditClick={handleEditClick}
-            onDeleteClick={handleDeleteClick}
-            hasSelectedItem={!!selectedItem}
-            strings={{
-              create: strings.create || 'צור חדש',
-              edit: strings.edit || 'ערוך',
-              delete: strings.delete || 'מחק'
-            }}
-          />
-        </div>
+      <div className="flex-shrink-0 p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between gap-4">
+          {/* Title */}
+          <h2 className="text-lg text-neutral-800 font-bold flex-shrink-0">{title}</h2>
 
-        <SearchBar
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder={strings.search_placeholder || 'חפש...'}
-        />
+          {/* Search Bar - Flexible width */}
+          <div className="flex-1 mr-4">
+            <SearchBar
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder={strings.search_placeholder || 'חפש...'}
+            />
+          </div>
+
+          {/* CED Buttons */}
+          <div className="flex gap-2 flex-shrink-0">
+            <ActionButton
+              icon={TrashIcon}
+              variant="error"
+              disabled={!selectedItem}
+              onClick={handleDeleteClick}
+              title={strings.delete || 'מחק'}
+            />
+            <ActionButton
+              icon={PencilIcon}
+              variant="secondary"
+              disabled={!selectedItem}
+              onClick={handleEditClick}
+              title={strings.edit || 'ערוך'}
+            />
+            <ActionButton
+              icon={PlusIcon}
+              variant="primary"
+              onClick={handleCreateClick}
+              title={strings.create || 'צור חדש'}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 p-8 pt-6 min-h-0">
