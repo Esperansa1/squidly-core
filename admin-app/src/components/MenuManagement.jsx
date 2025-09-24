@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import api from '../services/api.js';
-import { TabButton, TabContent } from './ui';
+import { TabContent, BranchSelector, TabSelector } from './ui';
 import { useSorting } from '../hooks/useSorting.js';
 
 const MenuManagement = () => {
@@ -11,10 +10,8 @@ const MenuManagement = () => {
   
   // State
   const [branches, setBranches] = useState([]);
-  const [selectedBranch, setSelectedBranch] = useState('כל הסניפים');
-  const [selectedBranchId, setSelectedBranchId] = useState(0);
+  const [selectedBranch, setSelectedBranch] = useState({ id: 0, name: 'כל הסניפים' });
   const [activeTab, setActiveTab] = useState('קבוצות');
-  const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
   
   // Data state
   const [productGroups, setProductGroups] = useState([]);
@@ -36,7 +33,7 @@ const MenuManagement = () => {
     if (config) {
       loadData();
     }
-  }, [selectedBranchId, config]);
+  }, [selectedBranch.id, config]);
 
   const initializeApp = async () => {
     try {
@@ -57,7 +54,7 @@ const MenuManagement = () => {
 
   const loadData = async () => {
     try {
-      const filters = selectedBranchId > 0 ? { branch_id: selectedBranchId } : {};
+      const filters = selectedBranch.id > 0 ? { branch_id: selectedBranch.id } : {};
 
       const [productGroupsResponse, ingredientGroupsResponse] = await Promise.all([
         api.getProductGroups(filters),
@@ -88,63 +85,21 @@ const MenuManagement = () => {
       <div className="flex-shrink-0 px-6 pt-6">
         {/* Page Header Controls */}
         <div className="flex justify-between items-center mb-6">
-          {/* Tab Selector with Sliding Background */}
-          <div className="relative flex bg-white rounded-lg shadow-sm p-1">
-            {/* Sliding Background */}
-            <div
-              className="absolute inset-y-0 rounded-md transition-all duration-300 ease-out"
-              style={{
-                backgroundColor: '#dc2626',
-                width: `${100 / tabs.length}%`,
-                right: `${tabs.indexOf(activeTab) * (100 / tabs.length)}%`,
-              }}
-            />
-            
-            {/* Tab Buttons */}
-            {tabs.map((tab) => (
-              <TabButton
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                isActive={activeTab === tab}
-                className="relative z-10 flex-1 px-6 py-2 text-sm font-semibold"
-              >
-                {tab}
-              </TabButton>
-              ))}
-          </div>
+          {/* Tab Selector */}
+          <TabSelector
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
 
-          {/* Branch Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              <span className="text-sm text-neutral-700 font-semibold">{selectedBranch}</span>
-              <ChevronDownIcon 
-                className={`w-4 h-4 text-gray-500 transition-transform ${
-                  branchDropdownOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-            
-            {branchDropdownOpen && (
-              <div className="absolute top-full mt-1 left-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                {branches.map((branch) => (
-                  <button
-                    key={branch.id}
-                    onClick={() => {
-                      setSelectedBranch(branch.name);
-                      setSelectedBranchId(branch.id);
-                      setBranchDropdownOpen(false);
-                    }}
-                    className="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
-                  >
-                    {branch.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Branch Selector */}
+          <BranchSelector
+            branches={branches}
+            selectedBranchId={selectedBranch.id}
+            selectedBranchName={selectedBranch.name}
+            onBranchChange={setSelectedBranch}
+            showAllBranches={true}
+          />
         </div>
       </div>
 
@@ -164,7 +119,7 @@ const MenuManagement = () => {
           loading={loading}
           error={error}
           branches={branches}
-          selectedBranchId={selectedBranchId}
+          selectedBranchId={selectedBranch.id}
           onGroupChange={handleGroupChange}
         />
       </div>

@@ -30,3 +30,9 @@ export { default as BranchModal } from './BranchModal.jsx';
 export { default as DataSection } from './DataSection.jsx';
 export { default as PriceDisplay } from './PriceDisplay.jsx';
 export { default as AvailabilityDisplay } from './AvailabilityDisplay.jsx';
+
+// Management page components
+export { default as ManagementHeader } from './ManagementHeader.jsx';
+export { default as BranchSelector } from './BranchSelector.jsx';
+export { default as TabSelector } from './TabSelector.jsx';
+export { default as ActionButtons } from './ActionButtons.jsx';

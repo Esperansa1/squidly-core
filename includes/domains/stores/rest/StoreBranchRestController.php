@@ -805,8 +805,7 @@ class StoreBranchRestController extends \WP_REST_Controller
                 'required' => false,
                 'default' => [],
                 'items' => [
-                    'type' => 'string',
-                    'enum' => ['wheelchair_accessible', 'braille_menu', 'hearing_loop', 'elevator']
+                    'type' => 'string'
                 ],
             ];
 

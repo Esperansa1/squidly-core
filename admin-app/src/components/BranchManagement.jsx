@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import api from '../services/api.js';
 import { DEFAULT_THEME } from '../config/theme.js';
-import { Card, SearchBar, DataTable, ConfirmationModal, Toast, BranchModal } from './ui';
+import {
+  Card,
+  SearchBar,
+  DataTable,
+  ConfirmationModal,
+  Toast,
+  BranchModal,
+  ManagementHeader,
+  ActionButtons
+} from './ui';
 
 const BranchManagement = () => {
   const theme = DEFAULT_THEME;
@@ -92,7 +100,7 @@ const BranchManagement = () => {
       width: '200px',
       sortable: true,
       render: (fieldValue, branch) => (
-        <div className="font-medium text-gray-900">{branch.name}</div>
+        <div className="font-medium" style={{ color: theme.text_primary }}>{branch.name}</div>
       )
     },
     {
@@ -101,7 +109,7 @@ const BranchManagement = () => {
       width: '150px',
       sortable: true,
       render: (fieldValue, branch) => (
-        <div className="text-gray-700">{branch.phone}</div>
+        <div style={{ color: theme.text_secondary, direction: 'ltr', textAlign: 'left' }}>{branch.phone}</div>
       )
     },
     {
@@ -110,7 +118,7 @@ const BranchManagement = () => {
       width: '120px',
       sortable: true,
       render: (fieldValue, branch) => (
-        <div className="text-gray-700">{branch.city}</div>
+        <div style={{ color: theme.text_secondary }}>{branch.city}</div>
       )
     },
     {
@@ -119,7 +127,7 @@ const BranchManagement = () => {
       width: '200px',
       sortable: true,
       render: (fieldValue, branch) => (
-        <div className="text-gray-700">{branch.address}</div>
+        <div style={{ color: theme.text_secondary }}>{branch.address}</div>
       )
     },
     {
@@ -144,7 +152,7 @@ const BranchManagement = () => {
       title: 'ימי פעילות',
       width: '150px',
       render: (fieldValue, branch) => (
-        <div className="text-gray-700 text-sm">
+        <div className="text-sm" style={{ color: theme.text_secondary }}>
           {formatActivityTimes(branch.activity_times)}
         </div>
       )
@@ -224,20 +232,16 @@ const BranchManagement = () => {
   return (
     <div className="h-full flex flex-col" dir="rtl">
       {/* Header */}
-      <div className="flex-shrink-0 p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">ניהול סניפים</h1>
-            <p className="text-gray-600 mt-1">נהל את כל הסניפים של המסעדה שלך</p>
-          </div>
-        </div>
-      </div>
+      <ManagementHeader
+        title="ניהול סניפים"
+        subtitle="נהל את כל הסניפים של המסעדה שלך"
+      />
 
       {/* Content */}
       <div className="flex-1 p-6 overflow-hidden">
         <Card className="h-full flex flex-col">
           {/* Toolbar */}
-          <div className="flex-shrink-0 p-4 border-b border-gray-200">
+          <div className="flex-shrink-0 p-4" style={{ borderBottom: `1px solid ${theme.border_color}` }}>
             <div className="flex items-center justify-between">
               {/* Search */}
               <div className="flex-1 max-w-md">
@@ -249,31 +253,16 @@ const BranchManagement = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleDeleteBranch}
-                  disabled={!selectedBranch}
-                  className="flex items-center justify-center w-10 h-10 text-white bg-red-600 rounded-lg transition-colors hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <TrashIcon className="w-4 h-4" />
-                </button>
-
-                <button
-                  onClick={handleEditBranch}
-                  disabled={!selectedBranch}
-                  className="flex items-center justify-center w-10 h-10 text-gray-700 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <PencilIcon className="w-4 h-4" />
-                </button>
-
-                <button
-                  onClick={handleCreateBranch}
-                  className="flex items-center justify-center w-10 h-10 text-white rounded-lg transition-colors hover:opacity-90"
-                  style={{ backgroundColor: theme.primary_color }}
-                >
-                  <PlusIcon className="w-4 h-4" />
-                </button>
-              </div>
+              <ActionButtons
+                onAdd={handleCreateBranch}
+                onEdit={handleEditBranch}
+                onDelete={handleDeleteBranch}
+                editDisabled={!selectedBranch}
+                deleteDisabled={!selectedBranch}
+                addTooltip="הוסף סניף"
+                editTooltip="ערוך סניף"
+                deleteTooltip="מחק סניף"
+              />
             </div>
           </div>
 

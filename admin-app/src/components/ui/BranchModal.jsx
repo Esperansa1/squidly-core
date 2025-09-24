@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { DEFAULT_THEME } from '../../config/theme.js';
+import DropdownButton from './DropdownButton.jsx';
 
 const BranchModal = ({
   isOpen,
@@ -22,6 +23,7 @@ const BranchModal = ({
     accessibility_list: []
   });
 
+  const [customAccessibility, setCustomAccessibility] = useState('');
   const [errors, setErrors] = useState({});
 
   const daysOfWeek = [
@@ -35,7 +37,7 @@ const BranchModal = ({
   ];
 
   const kosherTypes = [
-    { value: '', label: 'לא רלוונטי' },
+    { value: '', label: 'לא כשר' },
     { value: 'kosher', label: 'כשר' },
     { value: 'kosher_mehadrin', label: 'כשר למהדרין' },
     { value: 'kosher_badatz', label: 'כשר בד"ץ' }
@@ -53,15 +55,43 @@ const BranchModal = ({
   useEffect(() => {
     if (isOpen) {
       if (editingBranch) {
+        // Ensure activity_times is properly formatted as an object
+        let activityTimes = {};
+        if (editingBranch.activity_times) {
+          if (typeof editingBranch.activity_times === 'string') {
+            try {
+              activityTimes = JSON.parse(editingBranch.activity_times);
+            } catch (e) {
+              activityTimes = {};
+            }
+          } else if (typeof editingBranch.activity_times === 'object') {
+            activityTimes = editingBranch.activity_times;
+          }
+        }
+
+        // Ensure accessibility_list is an array
+        let accessibilityList = [];
+        if (editingBranch.accessibility_list) {
+          if (Array.isArray(editingBranch.accessibility_list)) {
+            accessibilityList = editingBranch.accessibility_list;
+          } else if (typeof editingBranch.accessibility_list === 'string') {
+            try {
+              accessibilityList = JSON.parse(editingBranch.accessibility_list);
+            } catch (e) {
+              accessibilityList = [];
+            }
+          }
+        }
+
         setFormData({
           name: editingBranch.name || '',
           phone: editingBranch.phone || '',
           city: editingBranch.city || '',
           address: editingBranch.address || '',
-          is_open: editingBranch.is_open !== undefined ? editingBranch.is_open : true,
-          activity_times: editingBranch.activity_times || {},
+          is_open: editingBranch.is_open !== undefined ? Boolean(editingBranch.is_open) : true,
+          activity_times: activityTimes,
           kosher_type: editingBranch.kosher_type || '',
-          accessibility_list: editingBranch.accessibility_list || []
+          accessibility_list: accessibilityList
         });
       } else {
         // Reset form for new branch
@@ -77,6 +107,7 @@ const BranchModal = ({
         });
       }
       setErrors({});
+      setCustomAccessibility('');
     }
   }, [isOpen, editingBranch]);
 
@@ -153,6 +184,23 @@ const BranchModal = ({
     }
   };
 
+  const addCustomAccessibility = () => {
+    if (customAccessibility.trim() && !formData.accessibility_list.includes(customAccessibility.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        accessibility_list: [...prev.accessibility_list, customAccessibility.trim()]
+      }));
+      setCustomAccessibility('');
+    }
+  };
+
+  const removeAccessibilityOption = (option) => {
+    setFormData(prev => ({
+      ...prev,
+      accessibility_list: prev.accessibility_list.filter(item => item !== option)
+    }));
+  };
+
   const handleSave = () => {
     if (validateForm()) {
       onSave(formData);
@@ -213,6 +261,7 @@ const BranchModal = ({
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                     errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-500'
                   }`}
+                  style={{ direction: 'ltr', textAlign: 'left' }}
                   placeholder="מספר טלפון"
                 />
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
@@ -270,15 +319,14 @@ const BranchModal = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   סוג כשרות
                 </label>
-                <select
+                <DropdownButton
+                  options={kosherTypes}
                   value={formData.kosher_type}
-                  onChange={(e) => handleInputChange('kosher_type', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  {kosherTypes.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
-                  ))}
-                </select>
+                  onChange={(value) => handleInputChange('kosher_type', value)}
+                  placeholder="בחר סוג כשרות..."
+                  getOptionLabel={(option) => option.label}
+                  getOptionValue={(option) => option.value}
+                />
               </div>
             </div>
 
@@ -331,7 +379,9 @@ const BranchModal = ({
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   נגישות
                 </label>
-                <div className="space-y-2">
+
+                {/* Standard Accessibility Options */}
+                <div className="space-y-2 mb-4">
                   {accessibilityOptions.map(option => (
                     <label key={option} className="flex items-center space-x-2 space-x-reverse">
                       <input
@@ -344,6 +394,57 @@ const BranchModal = ({
                     </label>
                   ))}
                 </div>
+
+                {/* Custom Accessibility Input */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-600">
+                    אפשרות נגישות מותאמת
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customAccessibility}
+                      onChange={(e) => setCustomAccessibility(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && addCustomAccessibility()}
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      placeholder="הוסף אפשרות נגישות..."
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomAccessibility}
+                      className="px-4 py-2 text-sm text-white rounded-lg transition-colors"
+                      style={{ backgroundColor: theme.primary_color }}
+                    >
+                      הוסף
+                    </button>
+                  </div>
+                </div>
+
+                {/* Selected Accessibility Options (Custom and Standard) */}
+                {formData.accessibility_list.length > 0 && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-600 mb-2">
+                      נגישות נבחרת
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.accessibility_list.map(option => (
+                        <div
+                          key={option}
+                          className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm"
+                        >
+                          <span className="text-gray-700">{option}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeAccessibilityOption(option)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <XMarkIcon className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -87,7 +87,7 @@ const DataTable = ({
                   }}
                 >
                   <span className="text-sm text-gray-700 font-semibold px-2">
-                    {column.label}
+                    {column.title || column.label}
                   </span>
                 </div>
               ))}
@@ -105,14 +105,14 @@ const DataTable = ({
                     borderBottom: `1px solid ${theme.divider_color}`,
                     minHeight: '70px'
                   }}
-                  onClick={() => onSelectionChange(item.id)}
+                  onClick={() => onSelectionChange(item)}
                 >
                   <div className="flex justify-center flex-shrink-0" style={{ width: '40px' }}>
                     <ThemedRadioButton
                       name="table-selection"
                       value={item.id}
                       checked={selectedId === item.id}
-                      onChange={() => onSelectionChange(item.id)}
+                      onChange={() => onSelectionChange(item)}
                     />
                   </div>
                   {columns.map((column) => (
