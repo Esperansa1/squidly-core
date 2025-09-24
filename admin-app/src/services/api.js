@@ -100,6 +100,37 @@ class ApiService {
     return await this.fetch(`branches/${id}`);
   }
 
+  async createBranch(data) {
+    return await this.fetch('branches', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateBranch(id, data) {
+    return await this.fetch(`branches/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteBranch(id) {
+    return await this.fetch(`branches/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Branch service wrapper for compatibility with DataSection
+  getBranchService() {
+    return {
+      getAll: (filters = {}) => this.getBranches(filters),
+      get: (id) => this.getBranch(id),
+      create: (data) => this.createBranch(data),
+      update: (id, data) => this.updateBranch(id, data),
+      delete: (id) => this.deleteBranch(id)
+    };
+  }
+
   // ===== PRODUCT GROUPS API =====
   
   async getProductGroups(filters = {}) {

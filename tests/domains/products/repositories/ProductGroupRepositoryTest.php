@@ -54,13 +54,17 @@ class ProductGroupRepositoryTest extends WP_UnitTestCase
         $productGroupsData = [
             [
                 'name' => 'Test Product Group 1',
+                'description' => 'First test product group',
                 'type' => 'product',
-                'group_item_ids' => [$this->testGroupItemIds[0], $this->testGroupItemIds[1]]
+                'group_item_ids' => [$this->testGroupItemIds[0], $this->testGroupItemIds[1]],
+                'availability' => [1 => true, 2 => false]
             ],
             [
                 'name' => 'Test Product Group 2',
+                'description' => 'Second test product group',
                 'type' => 'product',
-                'group_item_ids' => [$this->testGroupItemIds[0]]
+                'group_item_ids' => [$this->testGroupItemIds[0]],
+                'availability' => [1 => true]
             ]
         ];
 
@@ -73,18 +77,24 @@ class ProductGroupRepositoryTest extends WP_UnitTestCase
         $ingredientGroupsData = [
             [
                 'name' => 'Test Ingredient Group 1',
+                'description' => 'First test ingredient group',
                 'type' => 'ingredient',
-                'group_item_ids' => [$this->testGroupItemIds[2], $this->testGroupItemIds[3]]
+                'group_item_ids' => [$this->testGroupItemIds[2], $this->testGroupItemIds[3]],
+                'availability' => [1 => true, 2 => true]
             ],
             [
                 'name' => 'Test Ingredient Group 2',
+                'description' => 'Second test ingredient group',
                 'type' => 'ingredient',
-                'group_item_ids' => [$this->testGroupItemIds[2]]
+                'group_item_ids' => [$this->testGroupItemIds[2]],
+                'availability' => [1 => false, 2 => true]
             ],
             [
                 'name' => 'Test Ingredient Group 3',
+                'description' => 'Third test ingredient group',
                 'type' => 'ingredient',
-                'group_item_ids' => [$this->testGroupItemIds[3]]
+                'group_item_ids' => [$this->testGroupItemIds[3]],
+                'availability' => []
             ]
         ];
 

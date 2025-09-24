@@ -214,8 +214,8 @@ class ProductRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertIsArray($data['data']);
-        $this->assertEmpty($data['data']);
+        $this->assertIsArray($data);
+        $this->assertEmpty($data);
     }
 
     public function test_get_products_with_data(): void
@@ -235,9 +235,9 @@ class ProductRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertCount(2, $data['data']);
+        $this->assertCount(2, $data);
 
-        $names = array_column($data['data'], 'name');
+        $names = array_column($data, 'name');
         $this->assertContains('Product 1', $names);
         $this->assertContains('Product 2', $names);
     }
@@ -256,9 +256,9 @@ class ProductRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertCount(2, $data['data']);
+        $this->assertCount(2, $data);
 
-        foreach ($data['data'] as $product) {
+        foreach ($data as $product) {
             $this->assertStringContainsString('Burger', $product['name']);
         }
     }

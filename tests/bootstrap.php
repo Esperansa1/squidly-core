@@ -39,7 +39,7 @@ function _manually_load_plugin() {
  */
 function _load_payment_classes() {
 	$plugin_dir = dirname( dirname( __FILE__ ) );
-	
+
 	require_once $plugin_dir . '/includes/domains/payments/interfaces/PaymentProvider.php';
 	require_once $plugin_dir . '/includes/domains/payments/services/PaymentService.php';
 	require_once $plugin_dir . '/includes/domains/payments/gateways/WooProvider.php';
@@ -50,6 +50,60 @@ function _load_payment_classes() {
 	require_once $plugin_dir . '/includes/domains/payments/bootstrap/PaymentBootstrap.php';
 }
 
+/**
+ * Load core shared classes and exceptions for testing.
+ */
+function _load_core_classes() {
+	$plugin_dir = dirname( dirname( __FILE__ ) );
+
+	// Load shared exceptions
+	require_once $plugin_dir . '/includes/shared/exceptions/ResourceInUseException.php';
+
+	// Load shared models and enums
+	require_once $plugin_dir . '/includes/shared/models/enums/ItemType.php';
+
+	// Load domain models (commonly used in tests)
+	$models = [
+		'Product', 'Ingredient', 'ProductGroup', 'GroupItem', 'StoreBranch', 'Customer', 'Order'
+	];
+	foreach ($models as $model) {
+		$paths = [
+			"/includes/domains/products/models/{$model}.php",
+			"/includes/domains/stores/models/{$model}.php",
+			"/includes/domains/customers/models/{$model}.php",
+			"/includes/domains/orders/models/{$model}.php"
+		];
+		foreach ($paths as $path) {
+			$file = $plugin_dir . $path;
+			if (file_exists($file)) {
+				require_once $file;
+				break;
+			}
+		}
+	}
+
+	// Load domain repositories (commonly used in tests)
+	$repositories = [
+		'ProductRepository', 'IngredientRepository', 'ProductGroupRepository',
+		'GroupItemRepository', 'StoreBranchRepository', 'CustomerRepository', 'OrderRepository'
+	];
+	foreach ($repositories as $repo) {
+		$paths = [
+			"/includes/domains/products/repositories/{$repo}.php",
+			"/includes/domains/stores/repositories/{$repo}.php",
+			"/includes/domains/customers/repositories/{$repo}.php",
+			"/includes/domains/orders/repositories/{$repo}.php"
+		];
+		foreach ($paths as $path) {
+			$file = $plugin_dir . $path;
+			if (file_exists($file)) {
+				require_once $file;
+				break;
+			}
+		}
+	}
+}
+
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
 // Start up the WP testing environment.
@@ -57,4 +111,7 @@ require "{$_tests_dir}/includes/bootstrap.php";
 
 // Load payment classes after WordPress is loaded
 _load_payment_classes();
+
+// Load core shared classes and repositories for tests
+_load_core_classes();
 

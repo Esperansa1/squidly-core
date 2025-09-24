@@ -148,8 +148,8 @@ class IngredientGroupRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertIsArray($data['data']);
-        $this->assertEmpty($data['data']);
+        $this->assertIsArray($data);
+        $this->assertEmpty($data);
     }
 
     public function test_get_ingredient_groups_with_data(): void
@@ -171,9 +171,9 @@ class IngredientGroupRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertCount(2, $data['data']);
+        $this->assertCount(2, $data);
 
-        $names = array_column($data['data'], 'name');
+        $names = array_column($data, 'name');
         $this->assertContains('Toppings Group', $names);
         $this->assertContains('Sauces Group', $names);
     }
@@ -204,9 +204,9 @@ class IngredientGroupRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertCount(2, $data['data']);
+        $this->assertCount(2, $data);
 
-        foreach ($data['data'] as $group) {
+        foreach ($data as $group) {
             $this->assertStringContainsString('Toppings', $group['name']);
         }
     }

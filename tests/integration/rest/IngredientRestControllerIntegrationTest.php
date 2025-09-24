@@ -233,8 +233,8 @@ class IngredientRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertIsArray($data['data']);
-        $this->assertEmpty($data['data']);
+        $this->assertIsArray($data);
+        $this->assertEmpty($data);
     }
 
     public function test_get_ingredients_with_data(): void
@@ -254,9 +254,9 @@ class IngredientRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertCount(2, $data['data']);
+        $this->assertCount(2, $data);
 
-        $names = array_column($data['data'], 'name');
+        $names = array_column($data, 'name');
         $this->assertContains('Cheese', $names);
         $this->assertContains('Lettuce', $names);
     }
@@ -275,9 +275,9 @@ class IngredientRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertCount(2, $data['data']);
+        $this->assertCount(2, $data);
 
-        foreach ($data['data'] as $ingredient) {
+        foreach ($data as $ingredient) {
             $this->assertStringContainsString('Cheese', $ingredient['name']);
         }
     }
@@ -297,9 +297,9 @@ class IngredientRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertCount(2, $data['data']);
+        $this->assertCount(2, $data);
 
-        foreach ($data['data'] as $ingredient) {
+        foreach ($data as $ingredient) {
             $this->assertGreaterThanOrEqual(5.00, $ingredient['price']);
         }
 
@@ -310,9 +310,9 @@ class IngredientRestControllerIntegrationTest extends WP_UnitTestCase
         $response = $this->controller->get_items($request);
         $data = $response->get_data();
 
-        $this->assertCount(2, $data['data']);
+        $this->assertCount(2, $data);
 
-        foreach ($data['data'] as $ingredient) {
+        foreach ($data as $ingredient) {
             $this->assertLessThanOrEqual(5.00, $ingredient['price']);
         }
     }

@@ -32,8 +32,10 @@ class ProductGroupRepositoryTest extends TestCase
         $gi = $this->giRepo->create(['item_id'=>1,'item_type'=>'ingredient']);
         $id = $this->repo->create([
             'name'            => 'Salads',
+            'description'     => 'Fresh salads group',
             'type'            => ItemType::INGREDIENT,
             'group_item_ids'  => [$gi],
+            'availability'    => [1 => true, 2 => false],
         ]);
 
         $this->assertIsInt($id);
@@ -63,13 +65,19 @@ class ProductGroupRepositoryTest extends TestCase
     {
         $gi = $this->giRepo->create(['item_id'=>2,'item_type'=>'product']);
         $id = $this->repo->create([
-            'name'=>'Extras','type'=>'product','group_item_ids'=>[$gi],
+            'name'=>'Extras',
+            'description'=>'Extra items group',
+            'type'=>'product',
+            'group_item_ids'=>[$gi],
+            'availability'=>[1 => true],
         ]);
 
         $pg = $this->repo->get($id);
         $this->assertSame('Extras',  $pg->name);
+        $this->assertSame('Extra items group', $pg->description);
         $this->assertSame('product', $pg->type->value);
         $this->assertSame([$gi],     $pg->group_item_ids);
+        $this->assertSame([1 => true], $pg->availability);
     }
 
     public function test_get_returns_null_when_missing_or_wrong_type(): void
@@ -87,18 +95,26 @@ class ProductGroupRepositoryTest extends TestCase
     {
         $giA = $this->giRepo->create(['item_id'=>3,'item_type'=>'ingredient']);
         $id  = $this->repo->create([
-            'name'=>'Old','type'=>'ingredient','group_item_ids'=>[$giA],
+            'name'=>'Old',
+            'description'=>'Old group description',
+            'type'=>'ingredient',
+            'group_item_ids'=>[$giA],
+            'availability'=>[],
         ]);
 
         $giB = $this->giRepo->create(['item_id'=>4,'item_type'=>'ingredient']);
         $this->repo->update($id, [
             'name'=>'New Name',
+            'description'=>'Updated description',
             'group_item_ids'=>[$giA,$giB],
+            'availability'=>[1 => true, 2 => false],
         ]);
 
         $pg = $this->repo->get($id);
         $this->assertSame('New Name', $pg->name);
+        $this->assertSame('Updated description', $pg->description);
         $this->assertEqualsCanonicalizing([$giA,$giB], $pg->group_item_ids);
+        $this->assertSame([1 => true, 2 => false], $pg->availability);
     }
 
     public function test_update_on_missing_record_returns_false(): void
@@ -113,7 +129,11 @@ class ProductGroupRepositoryTest extends TestCase
     {
         $gi = $this->giRepo->create(['item_id'=>6,'item_type'=>'product']);
         $id = $this->repo->create([
-            'name'=>'Temp','type'=>'product','group_item_ids'=>[$gi],
+            'name'=>'Temp',
+            'description'=>'Temporary group',
+            'type'=>'product',
+            'group_item_ids'=>[$gi],
+            'availability'=>[],
         ]);
         $this->assertTrue($this->repo->delete($id,true));
         $this->assertFalse(get_post_status($id));
@@ -123,7 +143,11 @@ class ProductGroupRepositoryTest extends TestCase
     {
         // PG  →  Product
         $pgId = $this->repo->create([
-            'name'=>'Bundled','type'=>'product','group_item_ids'=>[],
+            'name'=>'Bundled',
+            'description'=>'Bundled products',
+            'type'=>'product',
+            'group_item_ids'=>[],
+            'availability'=>[],
         ]);
 
         $prodRepo = new \ProductRepository();

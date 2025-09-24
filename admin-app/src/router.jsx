@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 
 // Import content components for SPA behavior
 import MenuManagement from './components/MenuManagement.jsx';
+import BranchManagement from './components/BranchManagement.jsx';
 
-// Route configuration - all routes redirect to Menu Management since other pages are deleted
+// Route configuration
 const routes = {
   'management-area': MenuManagement,
   'performance': MenuManagement,
   'payments': MenuManagement,
   'orders': MenuManagement,
-  'suppliers': MenuManagement,
+  'branch-management': BranchManagement,
   'menu-management': MenuManagement,
   'customers': MenuManagement,
   'tutorials': MenuManagement,

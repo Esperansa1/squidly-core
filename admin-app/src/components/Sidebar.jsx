@@ -14,6 +14,7 @@ import {
   InformationCircleIcon,
   CogIcon,
   ChevronDownIcon,
+  BuildingStorefrontIcon,
 } from '@heroicons/react/24/outline';
 import { useRouter } from '../router.jsx';
 import { DEFAULT_THEME } from '../config/theme.js';
@@ -40,7 +41,7 @@ const Sidebar = ({
       { id: 'orders', icon: ClipboardDocumentListIcon, label: 'הזמנות' },
     ],
     'ניהול מסעדה': [
-      { id: 'suppliers', icon: CalendarIcon, label: 'ניהול ספקים' },
+      { id: 'branch-management', icon: BuildingStorefrontIcon, label: 'ניהול סניפים' },
       { id: 'menu-management', icon: ListBulletIcon, label: 'ניהול תפריט' },
       { id: 'customers', icon: UserGroupIcon, label: 'ניהול לקוחות' },
     ],

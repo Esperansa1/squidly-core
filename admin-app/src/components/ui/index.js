@@ -26,6 +26,7 @@ export { default as ConfirmationModal } from './ConfirmationModal.jsx';
 export { default as IngredientModal } from './IngredientModal.jsx';
 export { default as ProductModal } from './ProductModal.jsx';
 export { default as ProductGroupModal } from './ProductGroupModal.jsx';
+export { default as BranchModal } from './BranchModal.jsx';
 export { default as DataSection } from './DataSection.jsx';
 export { default as PriceDisplay } from './PriceDisplay.jsx';
 export { default as AvailabilityDisplay } from './AvailabilityDisplay.jsx';
