@@ -20,6 +20,7 @@ const BranchManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [branchToReselect, setBranchToReselect] = useState(null);
 
   // Modal states
   const [showBranchModal, setShowBranchModal] = useState(false);
@@ -38,6 +39,17 @@ const BranchManagement = () => {
   useEffect(() => {
     loadBranches();
   }, []);
+
+  // Reselect branch after data reload
+  useEffect(() => {
+    if (branchToReselect && branches.length > 0) {
+      const updatedBranch = branches.find(branch => branch.id === branchToReselect);
+      if (updatedBranch) {
+        setSelectedBranch(updatedBranch);
+      }
+      setBranchToReselect(null);
+    }
+  }, [branches, branchToReselect]);
 
   const loadBranches = async () => {
     try {
@@ -191,10 +203,16 @@ const BranchManagement = () => {
         setToastMessage('הסניף נוצר בהצלחה');
       }
 
+      // If editing, mark the branch to be reselected with fresh data after reload
+      if (editingBranch) {
+        setBranchToReselect(editingBranch.id);
+      }
+
+      await loadBranches(); // Reload data
+
       setShowBranchModal(false);
       setEditingBranch(null);
       setShowToast(true);
-      await loadBranches(); // Reload data
     } catch (error) {
       console.error('Failed to save branch:', error);
       setToastMessage(error.message || 'שגיאה בשמירת הסניף');
