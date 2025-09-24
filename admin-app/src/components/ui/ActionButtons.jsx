@@ -16,32 +16,37 @@ const ActionButtons = ({
 }) => {
   const theme = DEFAULT_THEME;
 
-  const buttonClass = "flex items-center justify-center w-10 h-10 rounded-lg transition-colors hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed";
+  const buttonClass = "flex items-center justify-center w-8 h-8 rounded-md border transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      {/* Add Button */}
-      {onAdd && (
+      {/* Delete Button - First to match TableHeader order */}
+      {onDelete && (
         <button
-          onClick={onAdd}
-          disabled={addDisabled}
+          onClick={onDelete}
+          disabled={deleteDisabled}
           className={buttonClass}
-          style={{ backgroundColor: theme.primary_color, color: 'white' }}
-          title={addTooltip}
+          style={{
+            backgroundColor: theme.danger_color,
+            color: 'white',
+            borderColor: theme.danger_color
+          }}
+          title={deleteTooltip}
         >
-          <PlusIcon className="w-4 h-4" />
+          <TrashIcon className="w-4 h-4" />
         </button>
       )}
 
-      {/* Edit Button */}
+      {/* Edit Button - Second to match TableHeader order */}
       {onEdit && (
         <button
           onClick={onEdit}
           disabled={editDisabled}
           className={buttonClass}
           style={{
-            color: theme.text_secondary,
-            backgroundColor: theme.bg_gray_100
+            backgroundColor: theme.bg_white,
+            color: theme.text_primary,
+            borderColor: theme.border_color
           }}
           title={editTooltip}
         >
@@ -49,16 +54,20 @@ const ActionButtons = ({
         </button>
       )}
 
-      {/* Delete Button */}
-      {onDelete && (
+      {/* Add Button - Last to match TableHeader order */}
+      {onAdd && (
         <button
-          onClick={onDelete}
-          disabled={deleteDisabled}
+          onClick={onAdd}
+          disabled={addDisabled}
           className={buttonClass}
-          style={{ backgroundColor: theme.danger_color, color: 'white' }}
-          title={deleteTooltip}
+          style={{
+            backgroundColor: theme.primary_color,
+            color: 'white',
+            borderColor: theme.primary_color
+          }}
+          title={addTooltip}
         >
-          <TrashIcon className="w-4 h-4" />
+          <PlusIcon className="w-4 h-4" />
         </button>
       )}
     </div>
