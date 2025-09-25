@@ -16,17 +16,15 @@ const BranchManagement = () => {
 
   // State
   const [branches, setBranches] = useState([]);
-  const [selectedBranch, setSelectedBranch] = useState(null);
+  const [selectedBranchId, setSelectedBranchId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [branchToReselect, setBranchToReselect] = useState(null);
 
   // Modal states
   const [showBranchModal, setShowBranchModal] = useState(false);
   const [editingBranch, setEditingBranch] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [modalVersion, setModalVersion] = useState(0);
 
   // Delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -40,17 +38,6 @@ const BranchManagement = () => {
   useEffect(() => {
     loadBranches();
   }, []);
-
-  // Reselect branch after data reload
-  useEffect(() => {
-    if (branchToReselect && branches.length > 0) {
-      const updatedBranch = branches.find(branch => branch.id === branchToReselect);
-      if (updatedBranch) {
-        setSelectedBranch(updatedBranch);
-      }
-      setBranchToReselect(null);
-    }
-  }, [branches, branchToReselect]);
 
   const loadBranches = async () => {
     try {
@@ -178,16 +165,18 @@ const BranchManagement = () => {
   };
 
   const handleEditBranch = () => {
-    if (selectedBranch) {
-      // Always use the fresh data from selectedBranch and increment version to force modal refresh
-      setEditingBranch(selectedBranch);
-      setModalVersion(prev => prev + 1);
-      setShowBranchModal(true);
+    if (selectedBranchId) {
+      // Find fresh branch data from current branches array (DataSection pattern)
+      const branch = filteredBranches.find(b => b.id === selectedBranchId);
+      if (branch) {
+        setEditingBranch(branch);
+        setShowBranchModal(true);
+      }
     }
   };
 
   const handleDeleteBranch = () => {
-    if (selectedBranch) {
+    if (selectedBranchId) {
       setShowDeleteModal(true);
     }
   };
@@ -206,11 +195,6 @@ const BranchManagement = () => {
         setToastMessage('הסניף נוצר בהצלחה');
       }
 
-      // If editing, mark the branch to be reselected with fresh data after reload
-      if (editingBranch) {
-        setBranchToReselect(editingBranch.id);
-      }
-
       await loadBranches(); // Reload data
 
       setShowBranchModal(false);
@@ -226,13 +210,13 @@ const BranchManagement = () => {
   };
 
   const confirmDelete = async () => {
-    if (!selectedBranch) return;
+    if (!selectedBranchId) return;
 
     try {
       setIsDeleting(true);
-      await api.deleteBranch(selectedBranch.id);
+      await api.deleteBranch(selectedBranchId);
       setShowDeleteModal(false);
-      setSelectedBranch(null);
+      setSelectedBranchId(null);
       setToastMessage('הסניף נמחק בהצלחה');
       setShowToast(true);
       await loadBranches(); // Reload data
@@ -246,7 +230,9 @@ const BranchManagement = () => {
   };
 
   const handleSelectionChange = (branch) => {
-    setSelectedBranch(branch);
+    // Follow DataSection pattern - extract ID from item object
+    const branchId = branch ? branch.id : null;
+    setSelectedBranchId(branchId);
   };
 
   return (
@@ -276,8 +262,8 @@ const BranchManagement = () => {
                 onAdd={handleCreateBranch}
                 onEdit={handleEditBranch}
                 onDelete={handleDeleteBranch}
-                editDisabled={!selectedBranch}
-                deleteDisabled={!selectedBranch}
+                editDisabled={!selectedBranchId}
+                deleteDisabled={!selectedBranchId}
                 addTooltip="הוסף סניף"
                 editTooltip="ערוך סניף"
                 deleteTooltip="מחק סניף"
@@ -290,7 +276,7 @@ const BranchManagement = () => {
             <DataTable
               columns={columns}
               data={filteredBranches}
-              selectedId={selectedBranch?.id}
+              selectedId={selectedBranchId}
               onSelectionChange={handleSelectionChange}
               loading={loading}
               error={error}
@@ -302,7 +288,6 @@ const BranchManagement = () => {
 
       {/* Branch Modal */}
       <BranchModal
-        key={`${editingBranch?.id || 'new'}-v${modalVersion}`}
         isOpen={showBranchModal}
         onClose={() => {
           setShowBranchModal(false);
@@ -319,7 +304,7 @@ const BranchManagement = () => {
         onClose={() => setShowDeleteModal(false)}
         onConfirm={confirmDelete}
         title="מחיקת סניף"
-        message={`האם אתה בטוח שברצונך למחוק את הסניף "${selectedBranch?.name}"?`}
+        message={`האם אתה בטוח שברצונך למחוק את הסניף "${filteredBranches.find(b => b.id === selectedBranchId)?.name}"?`}
         confirmText="מחק"
         cancelText="ביטול"
         isLoading={isDeleting}
