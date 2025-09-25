@@ -36,6 +36,10 @@ class AdminApiBootstrap
         $branches_controller = new StoreBranchRestController();
         $branches_controller->register_routes();
 
+        // Orders API
+        $orders_controller = new OrderRestController();
+        $orders_controller->register_routes();
+
         // Auth check endpoint for admin
         register_rest_route('squidly/v1', '/auth/check', [
             'methods' => \WP_REST_Server::READABLE,
