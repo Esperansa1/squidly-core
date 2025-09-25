@@ -215,7 +215,7 @@ const BranchModal = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
           <h2 className="text-xl font-bold text-gray-900">
-            {editingBranch ? 'עريכת סניف' : 'הוספת סניף חדש'}
+            {editingBranch ? "עריכת סניף" : "הוספת סניף חדש"}
           </h2>
           <button
             onClick={onClose}

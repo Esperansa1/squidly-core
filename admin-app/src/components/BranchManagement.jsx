@@ -26,6 +26,7 @@ const BranchManagement = () => {
   const [showBranchModal, setShowBranchModal] = useState(false);
   const [editingBranch, setEditingBranch] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [modalVersion, setModalVersion] = useState(0);
 
   // Delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -178,8 +179,9 @@ const BranchManagement = () => {
 
   const handleEditBranch = () => {
     if (selectedBranch) {
-      // Always use the fresh data from selectedBranch
+      // Always use the fresh data from selectedBranch and increment version to force modal refresh
       setEditingBranch(selectedBranch);
+      setModalVersion(prev => prev + 1);
       setShowBranchModal(true);
     }
   };
@@ -300,7 +302,7 @@ const BranchManagement = () => {
 
       {/* Branch Modal */}
       <BranchModal
-        key={editingBranch?.id || 'new'}
+        key={`${editingBranch?.id || 'new'}-v${modalVersion}`}
         isOpen={showBranchModal}
         onClose={() => {
           setShowBranchModal(false);
