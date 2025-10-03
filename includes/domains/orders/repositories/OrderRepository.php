@@ -89,8 +89,8 @@ class OrderRepository implements RepositoryInterface
         }
 
         // Check if order can be deleted
-        if (!$force_delete && $order->isCompleted() && $order->payment_status === Order::PAYMENT_PAID) {
-            throw new ResourceInUseException(['Cannot delete completed paid orders. Use force_delete if necessary.']);
+        if (!$force_delete && $order->payment_status === Order::PAYMENT_PAID) {
+            throw new ResourceInUseException(['Cannot delete paid orders. Use force_delete if necessary.']);
         }
 
         $result = wp_delete_post($id, $force_delete);
@@ -305,10 +305,10 @@ class OrderRepository implements RepositoryInterface
                         ];
                         break;
                     case 'date_from':
-                        $date_query['after'] = $value;
+                        $date_query['after'] = $value . ' 00:00:00';
                         break;
                     case 'date_to':
-                        $date_query['before'] = $value;
+                        $date_query['before'] = $value . ' 23:59:59';
                         break;
                 }
             }
@@ -326,7 +326,7 @@ class OrderRepository implements RepositoryInterface
         $wp_query = new \WP_Query($query_args);
         $post_ids = $wp_query->posts;
         wp_reset_postdata();
-        
+
         // Convert IDs to Order objects using the get() method
         $orders = [];
         foreach ($post_ids as $post_id) {
@@ -335,7 +335,7 @@ class OrderRepository implements RepositoryInterface
                 $orders[] = $order;
             }
         }
-        
+
         return $orders;
     }
 

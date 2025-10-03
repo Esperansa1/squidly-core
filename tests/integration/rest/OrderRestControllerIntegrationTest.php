@@ -36,8 +36,14 @@ class OrderRestControllerIntegrationTest extends \WP_UnitTestCase
             'post_status' => 'publish',
         ]);
 
-        // Register REST routes
-        $this->controller->register_routes();
+        // Initialize WordPress REST server
+        global $wp_rest_server;
+        $wp_rest_server = new \WP_REST_Server();
+        do_action('rest_api_init');
+
+        // Register REST routes during rest_api_init action
+        add_action('rest_api_init', [$this->controller, 'register_routes']);
+        do_action('rest_api_init');
 
         // Set up admin user for permission tests
         wp_set_current_user(1);
@@ -103,10 +109,10 @@ class OrderRestControllerIntegrationTest extends \WP_UnitTestCase
         $this->assertEquals($this->customer_id, $created_order['customer_id']);
         $this->assertEquals(Order::STATUS_PENDING, $created_order['status']);
         $this->assertCount(2, $created_order['order_items']);
-        $this->assertEquals(57.0, $created_order['subtotal']); // 2*28.5 + 18
-        $this->assertEquals(9.69, $created_order['tax_amount']); // 57 * 0.17
+        $this->assertEquals(75.0, $created_order['subtotal']); // 2*28.5 + 18 = 75
+        $this->assertEquals(12.75, $created_order['tax_amount']); // 75 * 0.17 = 12.75
         $this->assertEquals(5.0, $created_order['delivery_fee']);
-        $this->assertEquals(71.69, $created_order['total_amount']); // 57 + 9.69 + 5
+        $this->assertEquals(92.75, $created_order['total_amount']); // 75 + 12.75 + 5 = 92.75
 
         // 2. Get Order
         $get_request = new WP_REST_Request('GET', "/squidly/v1/orders/{$order_id}");
@@ -445,6 +451,9 @@ class OrderRestControllerIntegrationTest extends \WP_UnitTestCase
         // Test popular items endpoint
         $popular_request = new WP_REST_Request('GET', '/squidly/v1/orders/popular-items');
         $popular_request->set_param('limit', 3);
+        // Ensure we capture the test orders with explicit date range
+        $popular_request->set_param('date_from', date('Y-m-d', strtotime('-1 day')));
+        $popular_request->set_param('date_to', date('Y-m-d', strtotime('+1 day')));
 
         $popular_response = $this->controller->get_popular_items($popular_request);
         $this->assertNotInstanceOf(\WP_Error::class, $popular_response);

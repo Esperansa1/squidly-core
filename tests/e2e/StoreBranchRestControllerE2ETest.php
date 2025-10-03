@@ -32,15 +32,19 @@ class StoreBranchRestControllerE2ETest extends WP_UnitTestCase
     private array $test_ingredient_ids = [];
     private array $test_group_ids = [];
 
-    public function set_up(): void
+    public function setUp(): void
     {
-        parent::set_up();
+        parent::setUp();
 
         $this->controller = new StoreBranchRestController();
         $this->repository = new StoreBranchRepository();
         $this->productRepository = new ProductRepository();
         $this->ingredientRepository = new IngredientRepository();
         $this->groupRepository = new ProductGroupRepository();
+
+        // Register the REST routes for testing using proper WordPress pattern
+        add_action('rest_api_init', [$this->controller, 'register_routes']);
+        do_action('rest_api_init');
 
         // Create test users
         $this->admin_user_id = $this->factory->user->create([
@@ -51,7 +55,7 @@ class StoreBranchRestControllerE2ETest extends WP_UnitTestCase
         ]);
     }
 
-    public function tear_down(): void
+    public function tearDown(): void
     {
         // Clean up test data
         foreach ($this->test_branch_ids as $id) {
@@ -67,26 +71,90 @@ class StoreBranchRestControllerE2ETest extends WP_UnitTestCase
             $this->ingredientRepository->delete($id);
         }
 
-        parent::tear_down();
+        parent::tearDown();
     }
 
-    private function createAuthenticatedRequest(string $method = 'GET', array $params = []): WP_REST_Request
+    private function make_rest_request(string $method, string $endpoint = '', array $data = [], bool $auto_authenticate = true): \WP_REST_Response
+    {
+        // Use WordPress internal REST server instead of external HTTP requests
+        global $wp_rest_server;
+
+        // Ensure REST server is initialized
+        if (!$wp_rest_server) {
+            $wp_rest_server = new \WP_REST_Server();
+            do_action('rest_api_init');
+        }
+
+        // Build the route path
+        $route = '/squidly/v1/branches' . $endpoint;
+
+        // Create a proper WP_REST_Request
+        $request = new \WP_REST_Request($method, $route);
+
+        // Set authentication context (only if no specific user is already set and auto_authenticate is true)
+        if ($auto_authenticate && !get_current_user_id()) {
+            wp_set_current_user($this->admin_user_id);
+        }
+
+        // Add query parameters for GET requests
+        if ($method === 'GET' && !empty($data)) {
+            foreach ($data as $key => $value) {
+                $request->set_param($key, $value);
+            }
+        } else if (!empty($data)) {
+            // Add body data for other methods
+            foreach ($data as $key => $value) {
+                $request->set_param($key, $value);
+            }
+        }
+
+        // Dispatch the request through WordPress REST server
+        $response = $wp_rest_server->dispatch($request);
+
+        if (is_wp_error($response)) {
+            throw new \Exception('REST request failed: ' . $response->get_error_message());
+        }
+
+        return $response;
+    }
+
+    /**
+     * Helper to get response status from WP_REST_Response
+     */
+    private function getResponseStatus($response): int
+    {
+        if ($response instanceof \WP_REST_Response) {
+            return $response->get_status();
+        }
+
+        // Fallback for any remaining HTTP responses
+        return wp_remote_retrieve_response_code($response);
+    }
+
+    /**
+     * Helper to get response data from WP_REST_Response
+     */
+    private function getResponseData($response): array
+    {
+        if ($response instanceof \WP_REST_Response) {
+            return $response->get_data();
+        }
+
+        // Fallback for any remaining HTTP responses
+        $body = wp_remote_retrieve_body($response);
+        return json_decode($body, true) ?? [];
+    }
+
+    /**
+     * Legacy method - calls controller directly (bypasses REST API)
+     * WARNING: This method bypasses WordPress permission system
+     * Only kept for backward compatibility with existing tests
+     */
+    private function createAuthenticatedRequest(string $method = 'GET', array $params = []): \WP_REST_Request
     {
         wp_set_current_user($this->admin_user_id);
 
-        $request = new WP_REST_Request($method);
-        foreach ($params as $key => $value) {
-            $request->set_param($key, $value);
-        }
-
-        return $request;
-    }
-
-    private function createUnauthenticatedRequest(string $method = 'GET', array $params = []): WP_REST_Request
-    {
-        wp_set_current_user($this->regular_user_id);
-
-        $request = new WP_REST_Request($method);
+        $request = new \WP_REST_Request($method);
         foreach ($params as $key => $value) {
             $request->set_param($key, $value);
         }
@@ -449,58 +517,102 @@ class StoreBranchRestControllerE2ETest extends WP_UnitTestCase
 
     public function testSecurityAndPermissionsWorkflow(): void
     {
-        // Scenario: Testing security boundaries and permission enforcement
+        // Scenario: Testing security boundaries and permission enforcement through REST API
 
-        // Step 1: Create branch as admin
-        $admin_branch_response = $this->controller->create_item(
-            $this->createAuthenticatedRequest('POST', [
-                'name' => 'Admin Created Branch',
-                'phone' => '555-ADMIN',
-                'city' => 'Admin City',
-                'address' => 'Admin Address',
-                'is_open' => true
-            ])
-        );
-        $this->assertEquals(200, $admin_branch_response->get_status());
-        $branch_id = $admin_branch_response->get_data()['id'];
+        // Step 1: Create branch as admin through REST API
+        $admin_branch_response = $this->make_rest_request('POST', '', [
+            'name' => 'Admin Created Branch',
+            'phone' => '555-ADMIN',
+            'city' => 'Admin City',
+            'address' => 'Admin Address',
+            'is_open' => true
+        ]);
+
+        $this->assertEquals(200, $this->getResponseStatus($admin_branch_response));
+        $branch_data = $this->getResponseData($admin_branch_response);
+        $branch_id = $branch_data['id'];
         $this->test_branch_ids[] = $branch_id;
 
-        // Step 2: Try to access as regular user (should fail)
-        $user_get_response = $this->controller->get_items(
-            $this->createUnauthenticatedRequest()
-        );
-        // Note: This test depends on the permission system being properly set up
-        // In a real WordPress environment, this would return a permission error
+        // Step 2: Test completely unauthenticated requests (should return 401)
+        wp_set_current_user(0); // No user logged in
 
-        // Step 3: Try to modify as regular user (should fail)
-        $user_update_response = $this->controller->update_item(
-            $this->createUnauthenticatedRequest('PUT', [
-                'id' => $branch_id,
-                'name' => 'Hacked Branch'
-            ])
-        );
-        // Note: This would fail in a real environment with proper permissions
+        $unauth_get_response = $this->make_rest_request('GET', '', [], false);
+        $this->assertEquals(401, $this->getResponseStatus($unauth_get_response),
+            'Unauthenticated GET request should return 401');
 
-        // Step 4: Try to delete as regular user (should fail)
-        $user_delete_response = $this->controller->delete_item(
-            $this->createUnauthenticatedRequest('DELETE', ['id' => $branch_id])
-        );
-        // Note: This would fail in a real environment with proper permissions
+        $unauth_post_response = $this->make_rest_request('POST', '', [
+            'name' => 'Unauthorized Branch',
+            'phone' => '555-HACK',
+            'city' => 'Hack City',
+            'address' => 'Hack Address'
+        ], false);
+        $this->assertEquals(401, $this->getResponseStatus($unauth_post_response),
+            'Unauthenticated POST request should return 401');
 
-        // Step 5: Verify admin can still access and modify
-        $admin_get_response = $this->controller->get_item(
-            $this->createAuthenticatedRequest('GET', ['id' => $branch_id])
-        );
-        $this->assertEquals(200, $admin_get_response->get_status());
+        $unauth_get_item_response = $this->make_rest_request('GET', "/{$branch_id}", [], false);
+        $this->assertEquals(401, $this->getResponseStatus($unauth_get_item_response),
+            'Unauthenticated GET item request should return 401');
 
-        $admin_update_response = $this->controller->update_item(
-            $this->createAuthenticatedRequest('PUT', [
-                'id' => $branch_id,
-                'name' => 'Admin Updated Branch'
-            ])
-        );
-        $this->assertEquals(200, $admin_update_response->get_status());
-        $this->assertEquals('Admin Updated Branch', $admin_update_response->get_data()['name']);
+        // Step 3: Test insufficient permissions (subscriber role - should return 403)
+        wp_set_current_user($this->regular_user_id); // Subscriber user
+
+        $subscriber_get_response = $this->make_rest_request('GET', '', [], false);
+        $this->assertEquals(403, $this->getResponseStatus($subscriber_get_response),
+            'Subscriber GET request should return 403');
+
+        $subscriber_post_response = $this->make_rest_request('POST', '', [
+            'name' => 'Subscriber Branch',
+            'phone' => '555-SUB',
+            'city' => 'Sub City',
+            'address' => 'Sub Address'
+        ], false);
+        $this->assertEquals(403, $this->getResponseStatus($subscriber_post_response),
+            'Subscriber POST request should return 403');
+
+        $subscriber_put_response = $this->make_rest_request('PUT', "/{$branch_id}", [
+            'name' => 'Hacked Branch Name'
+        ], false);
+        $this->assertEquals(403, $this->getResponseStatus($subscriber_put_response),
+            'Subscriber PUT request should return 403');
+
+        $subscriber_delete_response = $this->make_rest_request('DELETE', "/{$branch_id}", [], false);
+        $this->assertEquals(403, $this->getResponseStatus($subscriber_delete_response),
+            'Subscriber DELETE request should return 403');
+
+        // Step 4: Verify admin can still access and modify (should return 200)
+        wp_set_current_user($this->admin_user_id); // Admin user
+
+        $admin_get_response = $this->make_rest_request('GET', "/{$branch_id}");
+        $this->assertEquals(200, $this->getResponseStatus($admin_get_response),
+            'Admin GET request should return 200');
+
+        $admin_update_response = $this->make_rest_request('PUT', "/{$branch_id}", [
+            'name' => 'Admin Updated Branch'
+        ]);
+        $this->assertEquals(200, $this->getResponseStatus($admin_update_response),
+            'Admin PUT request should return 200');
+
+        $updated_data = $this->getResponseData($admin_update_response);
+        $this->assertEquals('Admin Updated Branch', $updated_data['name'],
+            'Branch name should be updated by admin');
+
+        // Step 5: Test admin can perform all CRUD operations
+        $admin_get_all_response = $this->make_rest_request('GET', '');
+        $this->assertEquals(200, $this->getResponseStatus($admin_get_all_response),
+            'Admin GET all branches should return 200');
+
+        $admin_create_response = $this->make_rest_request('POST', '', [
+            'name' => 'Second Admin Branch',
+            'phone' => '555-ADMIN2',
+            'city' => 'Admin City 2',
+            'address' => 'Admin Address 2',
+            'is_open' => true
+        ]);
+        $this->assertEquals(200, $this->getResponseStatus($admin_create_response),
+            'Admin POST request should return 200');
+
+        $second_branch_data = $this->getResponseData($admin_create_response);
+        $this->test_branch_ids[] = $second_branch_data['id'];
 
         echo "\n✓ Security and permissions workflow completed successfully\n";
     }

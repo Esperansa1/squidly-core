@@ -22,6 +22,7 @@ class Order
     public string $notes;
     public array $order_items; // Array of OrderItem objects
     public ?string $delivery_address;
+    public ?string $gateway_transaction_id;
     public ?string $pickup_time;
     public ?string $special_instructions;
 
@@ -38,6 +39,7 @@ class Order
     public const PAYMENT_PAID = 'paid';
     public const PAYMENT_FAILED = 'failed';
     public const PAYMENT_REFUNDED = 'refunded';
+    public const PAYMENT_PARTIALLY_REFUNDED = 'partially_refunded';
 
     // Payment methods
     public const PAYMENT_CASH = 'cash';
@@ -62,6 +64,7 @@ class Order
         $order->payment_method = get_post_meta($post->ID, '_payment_method', true) ?: self::PAYMENT_CASH;
         $order->notes = get_post_meta($post->ID, '_notes', true) ?: '';
         $order->delivery_address = get_post_meta($post->ID, '_delivery_address', true) ?: null;
+        $order->gateway_transaction_id = get_post_meta($post->ID, '_gateway_transaction_id', true) ?: null;
         $order->pickup_time = get_post_meta($post->ID, '_pickup_time', true) ?: null;
         $order->special_instructions = get_post_meta($post->ID, '_special_instructions', true) ?: null;
 
@@ -97,6 +100,7 @@ class Order
             self::PAYMENT_PAID,
             self::PAYMENT_FAILED,
             self::PAYMENT_REFUNDED,
+            self::PAYMENT_PARTIALLY_REFUNDED,
         ];
     }
 

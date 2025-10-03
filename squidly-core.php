@@ -147,6 +147,7 @@ require_once __DIR__ . '/includes/domains/products/rest/IngredientRestController
 require_once __DIR__ . '/includes/domains/products/rest/IngredientGroupRestController.php';
 require_once __DIR__ . '/includes/domains/stores/rest/StoreBranchRestController.php';
 require_once __DIR__ . '/includes/domains/orders/rest/OrderRestController.php';
+require_once __DIR__ . '/includes/domains/customers/rest/CustomerRestController.php';
 require_once __DIR__ . '/includes/api/AdminApiBootstrap.php';
 
 // Initialize Payment Gateway System immediately after classes are loaded

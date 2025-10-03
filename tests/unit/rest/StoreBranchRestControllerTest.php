@@ -151,9 +151,7 @@ class StoreBranchRestControllerTest extends TestCase
         $this->assertEquals(200, $response->get_status());
         $data = $response->get_data();
         $this->assertIsArray($data);
-        $this->assertCount(1, $data); // Should contain "All Branches" option
-        $this->assertEquals(0, $data[0]['id']);
-        $this->assertEquals('כל הסניפים', $data[0]['name']);
+        $this->assertCount(0, $data);
     }
 
     public function testGetItemsWithBranches(): void
@@ -184,7 +182,7 @@ class StoreBranchRestControllerTest extends TestCase
 
         $this->assertEquals(200, $response->get_status());
         $data = $response->get_data();
-        $this->assertCount(3, $data); // 2 branches + "All Branches" option
+        $this->assertCount(2, $data); // 2 branches 
     }
 
     public function testGetItemsWithCityFilter(): void

@@ -109,7 +109,7 @@ class OrderRestController extends \WP_REST_Controller
             ],
             [
                 'methods'             => \WP_REST_Server::EDITABLE,
-                'callback'            => [$this, 'update_order_status'),
+                'callback'            => [$this, 'update_order_status'],
                 'permission_callback' => [$this, 'update_order_permissions_check'],
                 'args'                => [
                     'status' => [
@@ -652,7 +652,7 @@ class OrderRestController extends \WP_REST_Controller
      */
     public function get_orders_permissions_check(\WP_REST_Request $request): bool
     {
-        return current_user_can('manage_options') || current_user_can('edit_posts');
+        return is_user_logged_in() && (current_user_can('manage_options') || current_user_can('edit_posts'));
     }
 
     /**
@@ -660,7 +660,7 @@ class OrderRestController extends \WP_REST_Controller
      */
     public function create_order_permissions_check(\WP_REST_Request $request): bool
     {
-        return current_user_can('manage_options') || current_user_can('edit_posts');
+        return is_user_logged_in() && (current_user_can('manage_options') || current_user_can('edit_posts'));
     }
 
     /**
@@ -668,7 +668,7 @@ class OrderRestController extends \WP_REST_Controller
      */
     public function get_order_permissions_check(\WP_REST_Request $request): bool
     {
-        return current_user_can('manage_options') || current_user_can('edit_posts');
+        return is_user_logged_in() && (current_user_can('manage_options') || current_user_can('edit_posts'));
     }
 
     /**
@@ -676,7 +676,7 @@ class OrderRestController extends \WP_REST_Controller
      */
     public function update_order_permissions_check(\WP_REST_Request $request): bool
     {
-        return current_user_can('manage_options') || current_user_can('edit_posts');
+        return is_user_logged_in() && (current_user_can('manage_options') || current_user_can('edit_posts'));
     }
 
     /**
@@ -684,7 +684,7 @@ class OrderRestController extends \WP_REST_Controller
      */
     public function delete_order_permissions_check(\WP_REST_Request $request): bool
     {
-        return current_user_can('manage_options');
+        return is_user_logged_in() && current_user_can('manage_options');
     }
 
     /**
@@ -692,7 +692,7 @@ class OrderRestController extends \WP_REST_Controller
      */
     public function get_statistics_permissions_check(\WP_REST_Request $request): bool
     {
-        return current_user_can('manage_options') || current_user_can('view_shop_reports');
+        return is_user_logged_in() && (current_user_can('manage_options') || current_user_can('view_shop_reports'));
     }
 
     /* ==========================================
@@ -937,11 +937,11 @@ class OrderRestController extends \WP_REST_Controller
 
         $delivery_fee = $data['delivery_fee'] ?? 0.0;
         $tax_rate = (float)get_option('squidly_tax_rate', 0.17);
-        $tax_amount = $subtotal * $tax_rate;
+        $tax_amount = round($subtotal * $tax_rate, 2);
 
-        $data['subtotal'] = $subtotal;
+        $data['subtotal'] = round($subtotal, 2);
         $data['tax_amount'] = $tax_amount;
-        $data['total_amount'] = $subtotal + $tax_amount + $delivery_fee;
+        $data['total_amount'] = round($subtotal + $tax_amount + $delivery_fee, 2);
     }
 
     /**

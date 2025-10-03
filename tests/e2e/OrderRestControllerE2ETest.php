@@ -13,7 +13,6 @@ use OrderRestController;
  */
 class OrderRestControllerE2ETest extends \WP_UnitTestCase
 {
-    private string $rest_url;
     private int $admin_user_id;
     private int $customer_id;
 
@@ -21,8 +20,7 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
     {
         parent::setUp();
 
-        // Set up REST URL
-        $this->rest_url = rest_url('squidly/v1/orders');
+        // E2E tests will use WordPress internal REST dispatch
 
         // Create admin user
         $this->admin_user_id = $this->factory->user->create([
@@ -36,12 +34,15 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
             'post_status' => 'publish',
         ]);
 
-        // Register REST controller
+        // Register REST controller during rest_api_init action
         $controller = new OrderRestController();
-        $controller->register_routes();
+        add_action('rest_api_init', [$controller, 'register_routes']);
+        do_action('rest_api_init');
 
         // Set current user for permissions
         wp_set_current_user($this->admin_user_id);
+
+        // Authentication will be handled via wp_set_current_user() in internal requests
     }
 
     protected function tearDown(): void
@@ -97,9 +98,9 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
         ];
 
         $create_response = $this->make_rest_request('POST', '', $order_data);
-        $this->assertEquals(201, wp_remote_retrieve_response_code($create_response));
-
-        $created_order = json_decode(wp_remote_retrieve_body($create_response), true);
+        $created_order = $this->assertValidRestResponse($create_response, 'Create order');
+        $this->assertEquals(201, $this->getResponseStatus($create_response));
+        $this->assertArrayHasKey('id', $created_order, 'Response should have id field');
         $order_id = $created_order['id'];
 
         // Verify order calculations
@@ -114,25 +115,25 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
         $payment_response = $this->make_rest_request('PUT', "/{$order_id}/payment", [
             'payment_status' => 'paid'
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($payment_response));
+        $this->assertEquals(200, $this->getResponseStatus($payment_response));
 
         // 3. Restaurant confirms order
         $confirm_response = $this->make_rest_request('PUT', "/{$order_id}/status", [
             'status' => 'confirmed'
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($confirm_response));
+        $this->assertEquals(200, $this->getResponseStatus($confirm_response));
 
         // 4. Kitchen starts preparing
         $preparing_response = $this->make_rest_request('PUT', "/{$order_id}/status", [
             'status' => 'preparing'
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($preparing_response));
+        $this->assertEquals(200, $this->getResponseStatus($preparing_response));
 
         // 5. Check order appears in kitchen queue
         $queue_response = $this->make_rest_request('GET', '/queue');
-        $this->assertEquals(200, wp_remote_retrieve_response_code($queue_response));
+        $this->assertEquals(200, $this->getResponseStatus($queue_response));
 
-        $queue_orders = json_decode(wp_remote_retrieve_body($queue_response), true);
+        $queue_orders = $this->getResponseData($queue_response);
         $this->assertNotEmpty($queue_orders);
 
         $found_in_queue = false;
@@ -150,21 +151,21 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
         $ready_response = $this->make_rest_request('PUT', "/{$order_id}/status", [
             'status' => 'ready'
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($ready_response));
+        $this->assertEquals(200, $this->getResponseStatus($ready_response));
 
         // 7. Order completed
         $complete_response = $this->make_rest_request('PUT', "/{$order_id}/status", [
             'status' => 'completed'
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($complete_response));
+        $this->assertEquals(200, $this->getResponseStatus($complete_response));
 
-        $completed_order = json_decode(wp_remote_retrieve_body($complete_response), true);
+        $completed_order = $this->getResponseData($complete_response);
         $this->assertTrue($completed_order['is_completed']);
         $this->assertFalse($completed_order['can_be_cancelled']);
 
         // 8. Verify order no longer in queue
         $final_queue_response = $this->make_rest_request('GET', '/queue');
-        $final_queue_orders = json_decode(wp_remote_retrieve_body($final_queue_response), true);
+        $final_queue_orders = $this->getResponseData($final_queue_response);
 
         $still_in_queue = false;
         foreach ($final_queue_orders as $queue_order) {
@@ -195,7 +196,8 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
         ];
 
         $create_response = $this->make_rest_request('POST', '', $order_data);
-        $created_order = json_decode(wp_remote_retrieve_body($create_response), true);
+        $created_order = $this->assertValidRestResponse($create_response, 'Create order');
+        $this->assertArrayHasKey('id', $created_order, 'Response should have id field');
         $order_id = $created_order['id'];
 
         // 2. Customer adds another item
@@ -205,9 +207,9 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
             'quantity' => 1,
             'unit_price' => 12.50,
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($add_item_response));
+        $this->assertEquals(200, $this->getResponseStatus($add_item_response));
 
-        $updated_order = json_decode(wp_remote_retrieve_body($add_item_response), true);
+        $updated_order = $this->getResponseData($add_item_response);
         $this->assertCount(2, $updated_order['order_items']);
         $this->assertEquals(37.40, $updated_order['subtotal']); // 24.90 + 12.50
 
@@ -215,9 +217,9 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
         $update_response = $this->make_rest_request('PUT', "/{$order_id}", [
             'special_instructions' => 'Please make fries extra crispy'
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($update_response));
+        $this->assertEquals(200, $this->getResponseStatus($update_response));
 
-        $final_order = json_decode(wp_remote_retrieve_body($update_response), true);
+        $final_order = $this->getResponseData($update_response);
         $this->assertEquals('Please make fries extra crispy', $final_order['special_instructions']);
     }
 
@@ -239,23 +241,24 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
         ];
 
         $create_response = $this->make_rest_request('POST', '', $order_data);
-        $created_order = json_decode(wp_remote_retrieve_body($create_response), true);
+        $created_order = $this->assertValidRestResponse($create_response, 'Create order for cancellation test');
+        $this->assertArrayHasKey('id', $created_order, 'Response should have id field');
         $order_id = $created_order['id'];
 
         // 2. Cancel order while still pending (should work)
         $cancel_response = $this->make_rest_request('PUT', "/{$order_id}/status", [
             'status' => 'cancelled'
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($cancel_response));
+        $this->assertEquals(200, $this->getResponseStatus($cancel_response));
 
-        $cancelled_order = json_decode(wp_remote_retrieve_body($cancel_response), true);
+        $cancelled_order = $this->getResponseData($cancel_response);
         $this->assertEquals('cancelled', $cancelled_order['status']);
 
         // 3. Try to delete cancelled order (should work since not paid)
         $delete_response = $this->make_rest_request('DELETE', "/{$order_id}");
-        $this->assertEquals(200, wp_remote_retrieve_response_code($delete_response));
+        $this->assertEquals(200, $this->getResponseStatus($delete_response));
 
-        $delete_result = json_decode(wp_remote_retrieve_body($delete_response), true);
+        $delete_result = $this->getResponseData($delete_response);
         $this->assertTrue($delete_result['deleted']);
     }
 
@@ -284,13 +287,17 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
                         'unit_price' => $order_info['total'],
                     ]
                 ],
+                'subtotal' => $order_info['total'],
+                'tax_amount' => 0.0,
+                'delivery_fee' => 0.0,
                 'total_amount' => $order_info['total'],
                 'status' => $order_info['status'],
                 'payment_status' => $order_info['payment'],
             ];
 
             $create_response = $this->make_rest_request('POST', '', $order_data);
-            $created_order = json_decode(wp_remote_retrieve_body($create_response), true);
+            $created_order = $this->assertValidRestResponse($create_response, 'Create analytics test order');
+            $this->assertArrayHasKey('id', $created_order, 'Response should have id field');
             $created_order_ids[] = $created_order['id'];
 
             // Update date and status
@@ -317,9 +324,9 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
             'date_from' => '2023-01-01',
             'date_to' => '2023-01-03'
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($stats_response));
+        $this->assertEquals(200, $this->getResponseStatus($stats_response));
 
-        $stats = json_decode(wp_remote_retrieve_body($stats_response), true);
+        $stats = $this->getResponseData($stats_response);
         $this->assertEquals(5, $stats['total_orders']);
         $this->assertEquals(292.10, $stats['total_revenue']); // Sum of all orders
         $this->assertEquals(4, $stats['status_breakdown']['completed']);
@@ -331,9 +338,9 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
             'date_from' => '2023-01-01',
             'date_to' => '2023-01-03'
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($revenue_response));
+        $this->assertEquals(200, $this->getResponseStatus($revenue_response));
 
-        $revenue_data = json_decode(wp_remote_retrieve_body($revenue_response), true);
+        $revenue_data = $this->getResponseData($revenue_response);
         $this->assertIsArray($revenue_data);
         $this->assertNotEmpty($revenue_data);
 
@@ -343,9 +350,9 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
             'date_to' => '2023-01-03',
             'limit' => 5
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($popular_response));
+        $this->assertEquals(200, $this->getResponseStatus($popular_response));
 
-        $popular_items = json_decode(wp_remote_retrieve_body($popular_response), true);
+        $popular_items = $this->getResponseData($popular_response);
         $this->assertIsArray($popular_items);
 
         // Clean up test orders
@@ -374,14 +381,15 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
             ];
 
             $create_response = $this->make_rest_request('POST', '', $order_data);
-            $customer_orders[] = json_decode(wp_remote_retrieve_body($create_response), true);
+            $created_order = $this->assertValidRestResponse($create_response, 'Create customer history order');
+            $customer_orders[] = $created_order;
         }
 
         // Get customer order history
         $history_response = $this->make_rest_request('GET', "/customer/{$this->customer_id}");
-        $this->assertEquals(200, wp_remote_retrieve_response_code($history_response));
+        $this->assertEquals(200, $this->getResponseStatus($history_response));
 
-        $order_history = json_decode(wp_remote_retrieve_body($history_response), true);
+        $order_history = $this->getResponseData($history_response);
         $this->assertCount(4, $order_history);
 
         // Verify all orders belong to the customer
@@ -393,9 +401,9 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
         $pending_response = $this->make_rest_request('GET', "/customer/{$this->customer_id}", [
             'status' => 'pending'
         ]);
-        $this->assertEquals(200, wp_remote_retrieve_response_code($pending_response));
+        $this->assertEquals(200, $this->getResponseStatus($pending_response));
 
-        $pending_orders = json_decode(wp_remote_retrieve_body($pending_response), true);
+        $pending_orders = $this->getResponseData($pending_response);
         $this->assertCount(4, $pending_orders); // All should be pending
 
         // Clean up
@@ -410,9 +418,11 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
 
         // 1. Try to get non-existent order
         $not_found_response = $this->make_rest_request('GET', '/99999');
-        $this->assertEquals(404, wp_remote_retrieve_response_code($not_found_response));
+        $this->assertEquals(404, $this->getResponseStatus($not_found_response));
 
-        $error = json_decode(wp_remote_retrieve_body($not_found_response), true);
+        $error = $this->getResponseData($not_found_response);
+        $this->assertIsArray($error, "Error response should be valid JSON array");
+        $this->assertArrayHasKey('code', $error, 'Error response should have code field');
         $this->assertEquals('order_not_found', $error['code']);
 
         // 2. Try to create order with invalid data
@@ -420,17 +430,17 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
             'customer_id' => 'invalid',
             'order_items' => []
         ]);
-        $this->assertEquals(400, wp_remote_retrieve_response_code($invalid_response));
+        $this->assertEquals(400, $this->getResponseStatus($invalid_response));
 
         // 3. Try to update non-existent order
         $update_not_found = $this->make_rest_request('PUT', '/99999', [
             'notes' => 'This should fail'
         ]);
-        $this->assertEquals(404, wp_remote_retrieve_response_code($update_not_found));
+        $this->assertEquals(404, $this->getResponseStatus($update_not_found));
 
         // 4. Try to delete non-existent order
         $delete_not_found = $this->make_rest_request('DELETE', '/99999');
-        $this->assertEquals(404, wp_remote_retrieve_response_code($delete_not_found));
+        $this->assertEquals(404, $this->getResponseStatus($delete_not_found));
 
         // 5. Try to use invalid status
         // First create a valid order
@@ -447,14 +457,15 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
         ];
 
         $create_response = $this->make_rest_request('POST', '', $order_data);
-        $created_order = json_decode(wp_remote_retrieve_body($create_response), true);
+        $created_order = $this->assertValidRestResponse($create_response, 'Create order for error test');
+        $this->assertArrayHasKey('id', $created_order, 'Response should have id field');
         $order_id = $created_order['id'];
 
         // Try invalid status
         $invalid_status_response = $this->make_rest_request('PUT', "/{$order_id}/status", [
             'status' => 'invalid_status'
         ]);
-        $this->assertEquals(400, wp_remote_retrieve_response_code($invalid_status_response));
+        $this->assertEquals(400, $this->getResponseStatus($invalid_status_response));
 
         // Clean up
         $this->make_rest_request('DELETE', "/{$order_id}", ['force' => true]);
@@ -465,53 +476,110 @@ class OrderRestControllerE2ETest extends \WP_UnitTestCase
         // Test without authentication
         wp_set_current_user(0);
 
-        $no_auth_response = $this->make_rest_request('GET', '');
-        $this->assertEquals(401, wp_remote_retrieve_response_code($no_auth_response));
+        $no_auth_response = $this->make_rest_request('GET', '', [], false);
+        $this->assertEquals(401, $this->getResponseStatus($no_auth_response));
 
         // Test with insufficient permissions
         $subscriber_id = $this->factory->user->create(['role' => 'subscriber']);
         wp_set_current_user($subscriber_id);
 
-        $subscriber_response = $this->make_rest_request('GET', '');
-        $this->assertEquals(403, wp_remote_retrieve_response_code($subscriber_response));
+        $subscriber_response = $this->make_rest_request('GET', '', [], false);
+        $this->assertEquals(403, $this->getResponseStatus($subscriber_response));
 
         // Restore admin access
         wp_set_current_user($this->admin_user_id);
 
         $admin_response = $this->make_rest_request('GET', '');
-        $this->assertEquals(200, wp_remote_retrieve_response_code($admin_response));
+        $this->assertEquals(200, $this->getResponseStatus($admin_response));
     }
 
     /* ==========================================
      * Helper Methods
      * ========================================== */
 
-    private function make_rest_request(string $method, string $endpoint = '', array $data = []): array
+    private function assertValidRestResponse($response, string $context = 'REST request'): array
     {
-        $url = $this->rest_url . $endpoint;
+        $this->assertNotWPError($response, "{$context} should not be WP_Error");
+        $this->assertInstanceOf(\WP_REST_Response::class, $response, "{$context} should return WP_REST_Response");
 
+        $response_code = $response->get_status();
+        $this->assertNotEquals(404, $response_code, 'Route should exist (check if REST routes are registered)');
+        $this->assertNotEquals(403, $response_code, 'User should have permissions (check authentication)');
+
+        $data = $response->get_data();
+        $this->assertIsArray($data, "Response should return array data");
+
+        return $data;
+    }
+
+    private function make_rest_request(string $method, string $endpoint = '', array $data = [], bool $auto_authenticate = true): \WP_REST_Response
+    {
+        // Use WordPress internal REST server instead of external HTTP requests
+        global $wp_rest_server;
+
+        // Ensure REST server is initialized
+        if (!$wp_rest_server) {
+            $wp_rest_server = new \WP_REST_Server();
+            do_action('rest_api_init');
+        }
+
+        // Build the route path
+        $route = '/squidly/v1/orders' . $endpoint;
+
+        // Create a proper WP_REST_Request
+        $request = new \WP_REST_Request($method, $route);
+
+        // Set authentication context (only if no specific user is already set and auto_authenticate is true)
+        if ($auto_authenticate && !get_current_user_id()) {
+            wp_set_current_user($this->admin_user_id);
+        }
+
+        // Add query parameters for GET requests
         if ($method === 'GET' && !empty($data)) {
-            $url .= '?' . http_build_query($data);
-            $data = null;
+            foreach ($data as $key => $value) {
+                $request->set_param($key, $value);
+            }
+        } else if (!empty($data)) {
+            // Add body data for other methods
+            foreach ($data as $key => $value) {
+                $request->set_param($key, $value);
+            }
         }
 
-        $args = [
-            'method' => $method,
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ],
-        ];
+        // Dispatch the request through WordPress REST server
+        $response = $wp_rest_server->dispatch($request);
 
-        if ($data) {
-            $args['body'] = json_encode($data);
+        if (is_wp_error($response)) {
+            throw new \Exception('REST request failed: ' . $response->get_error_message());
         }
 
-        // Add authentication
-        if (is_user_logged_in()) {
-            $user = wp_get_current_user();
-            $args['headers']['Authorization'] = 'Bearer ' . wp_create_nonce('wp_rest');
+        return $response;
+    }
+
+    /**
+     * Helper to get response status from WP_REST_Response
+     */
+    private function getResponseStatus($response): int
+    {
+        if ($response instanceof \WP_REST_Response) {
+            return $response->get_status();
         }
 
-        return wp_remote_request($url, $args);
+        // Fallback for any remaining HTTP responses
+        return wp_remote_retrieve_response_code($response);
+    }
+
+    /**
+     * Helper to get response data from WP_REST_Response
+     */
+    private function getResponseData($response): array
+    {
+        if ($response instanceof \WP_REST_Response) {
+            return $response->get_data();
+        }
+
+        // Fallback for any remaining HTTP responses
+        $body = wp_remote_retrieve_body($response);
+        return json_decode($body, true) ?? [];
     }
 }

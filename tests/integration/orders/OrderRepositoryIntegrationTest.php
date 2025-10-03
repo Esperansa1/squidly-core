@@ -412,7 +412,7 @@ class OrderRepositoryIntegrationTest extends WP_UnitTestCase
         $this->orderRepo->updatePaymentStatus($orderId, Order::PAYMENT_PAID);
         
         $this->expectException(ResourceInUseException::class);
-        $this->expectExceptionMessage('Cannot delete completed paid orders');
+        $this->expectExceptionMessage('Cannot delete paid orders');
         
         $this->orderRepo->delete($orderId, false);
     }

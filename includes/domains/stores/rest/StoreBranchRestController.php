@@ -188,7 +188,6 @@ class StoreBranchRestController extends \WP_REST_Controller
                 return $this->prepare_item_for_response($branch, new \WP_REST_Request())->get_data();
             }, $branches);
 
-
             return new \WP_REST_Response($data, 200);
 
         } catch (Exception $e) {
