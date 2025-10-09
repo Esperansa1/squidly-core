@@ -1,56 +1,8 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Card, SearchBar, DataTable, ConfirmationModal, Toast } from './index';
+import { ActionButton } from './molecules';
 import { DEFAULT_THEME } from '../../config/theme.js';
-
-const ActionButton = ({ icon: Icon, variant, onClick, disabled = false, title }) => {
-  const theme = DEFAULT_THEME;
-
-  const getVariantStyles = () => {
-    switch (variant) {
-      case 'primary':
-        return {
-          backgroundColor: disabled ? theme.bg_gray_100 : theme.primary_color,
-          color: disabled ? theme.text_disabled : theme.bg_white,
-          borderColor: disabled ? theme.border_light : theme.primary_color
-        };
-      case 'secondary':
-        return {
-          backgroundColor: disabled ? theme.bg_gray_50 : theme.bg_white,
-          color: disabled ? theme.text_disabled : theme.text_primary,
-          borderColor: disabled ? theme.border_light : theme.border_color
-        };
-      case 'error':
-        return {
-          backgroundColor: disabled ? theme.bg_gray_100 : theme.danger_color,
-          color: disabled ? theme.text_disabled : theme.bg_white,
-          borderColor: disabled ? theme.border_light : theme.danger_color
-        };
-      default:
-        return {
-          backgroundColor: theme.bg_white,
-          color: theme.text_primary,
-          borderColor: theme.border_color
-        };
-    }
-  };
-
-  const styles = getVariantStyles();
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      className={`inline-flex items-center justify-center w-10 h-10 border rounded-md transition-all duration-200 ${
-        disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'
-      }`}
-      style={styles}
-    >
-      <Icon className="w-4 h-4" />
-    </button>
-  );
-};
 
 const DataSection = ({
   title = '',
@@ -332,20 +284,20 @@ const DataSection = ({
               variant="error"
               disabled={!selectedItem}
               onClick={handleDeleteClick}
-              title={strings.delete || 'מחק'}
+              tooltip={strings.delete || 'מחק'}
             />
             <ActionButton
               icon={PencilIcon}
               variant="secondary"
               disabled={!selectedItem}
               onClick={handleEditClick}
-              title={strings.edit || 'ערוך'}
+              tooltip={strings.edit || 'ערוך'}
             />
             <ActionButton
               icon={PlusIcon}
               variant="primary"
               onClick={handleCreateClick}
-              title={strings.create || 'צור חדש'}
+              tooltip={strings.create || 'צור חדש'}
             />
           </div>
         </div>

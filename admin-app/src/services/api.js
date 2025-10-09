@@ -279,6 +279,82 @@ class ApiService {
     }
   }
 
+  // ===== CUSTOMERS API =====
+
+  async getCustomers(filters = {}) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `customers?${queryParams}` : 'customers';
+    return await this.fetch(endpoint);
+  }
+
+  async getCustomer(id) {
+    return await this.fetch(`customers/${id}`);
+  }
+
+  async createCustomer(data) {
+    return await this.fetch('customers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateCustomer(id, data) {
+    return await this.fetch(`customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCustomer(id) {
+    return await this.fetch(`customers/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // ===== ORDERS API =====
+
+  async getOrders(filters = {}) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `orders?${queryParams}` : 'orders';
+    return await this.fetch(endpoint);
+  }
+
+  async getOrder(id) {
+    return await this.fetch(`orders/${id}`);
+  }
+
+  async createOrder(data) {
+    return await this.fetch('orders', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateOrder(id, data) {
+    return await this.fetch(`orders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteOrder(id) {
+    return await this.fetch(`orders/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getOrderStatistics(filters = {}) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `orders/statistics?${queryParams}` : 'orders/statistics';
+    return await this.fetch(endpoint);
+  }
+
+  async getCustomerOrders(customerId, filters = {}) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `orders/customer/${customerId}?${queryParams}` : `orders/customer/${customerId}`;
+    return await this.fetch(endpoint);
+  }
+
   // ===== UTILITY METHODS =====
 
   getConfig() {

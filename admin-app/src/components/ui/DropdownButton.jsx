@@ -71,10 +71,10 @@ const DropdownButton = ({
         type="button"
         onClick={handleButtonClick}
         disabled={disabled}
-        className={`flex items-center justify-between gap-2 px-3 py-2 rounded-md text-right hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 w-full ${
+        className={`flex items-center justify-between gap-2 px-3 rounded-md text-right hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 w-full ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
-        style={buttonStyles}
+        style={{...buttonStyles, height: '40px'}}
         onFocus={(e) => !disabled && (e.target.style.boxShadow = `0 0 0 2px ${theme.primary_color}40`)}
         onBlur={(e) => e.target.style.boxShadow = 'none'}
       >

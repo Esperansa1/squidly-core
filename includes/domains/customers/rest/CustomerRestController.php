@@ -372,8 +372,8 @@ class CustomerRestController extends \WP_REST_Controller
 
         } catch (ResourceInUseException $e) {
             return new \WP_REST_Response([
-                'error' => 'Cannot delete customer',
-                'message' => 'Customer has orders and cannot be deleted. Use force=true to override.',
+                'error' => 'לא ניתן למחוק לקוח',
+                'message' => 'ללקוח יש הזמנות קיימות ולא ניתן למחוק אותו. השתמש ב-force=true לעקיפת הבדיקה.',
                 'dependants' => $e->dependants
             ], 409); // 409 Conflict - resource is in use
         } catch (Exception $e) {

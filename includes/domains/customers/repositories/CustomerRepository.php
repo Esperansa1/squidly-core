@@ -152,12 +152,12 @@ class CustomerRepository implements RepositoryInterface
             return false;
         }
 
-        // Check for dependencies (orders)
+        // Check for dependencies (orders) - use cached count for consistency with display
         if (!$force) {
-            $order_count = $this->getCustomerOrderCount($id);
-            if ($order_count > 0) {
+            $customer = $this->get($id);
+            if ($customer && $customer->total_orders > 0) {
                 throw new ResourceInUseException([
-                    'Customer has ' . $order_count . ' orders and cannot be deleted'
+                    'ללקוח יש ' . $customer->total_orders . ' הזמנות ולא ניתן למחוק'
                 ]);
             }
         }

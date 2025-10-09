@@ -542,6 +542,72 @@ class StoreBranchRepositoryIntegrationTest extends WP_UnitTestCase
     }
 
     /* =====================================================================
+     * QUERY AND FILTER OPERATIONS
+     * ===================================================================*/
+
+    public function test_find_open_returns_only_open_branches(): void
+    {
+        // Arrange - Create mix of open and closed branches
+        $this->repository->create(array_merge($this->getMinimalBranchData('Open 1'), ['is_open' => true]));
+        $this->repository->create(array_merge($this->getMinimalBranchData('Open 2'), ['is_open' => true]));
+        $this->repository->create(array_merge($this->getMinimalBranchData('Closed'), ['is_open' => false]));
+
+        // Act
+        $openBranches = $this->repository->findOpen();
+
+        // Assert - Only open branches returned
+        $this->assertCount(2, $openBranches);
+        foreach ($openBranches as $branch) {
+            $this->assertTrue($branch->is_open);
+        }
+    }
+
+    public function test_find_by_kosher_type_returns_matching_branches(): void
+    {
+        // Arrange
+        $this->repository->create(array_merge($this->getMinimalBranchData('Dairy 1'), ['kosher_type' => 'Kosher Dairy']));
+        $this->repository->create(array_merge($this->getMinimalBranchData('Meat'), ['kosher_type' => 'Kosher Meat']));
+        $this->repository->create(array_merge($this->getMinimalBranchData('Dairy 2'), ['kosher_type' => 'Kosher Dairy']));
+
+        // Act
+        $dairyBranches = $this->repository->findByKosherType('Kosher Dairy');
+
+        // Assert
+        $this->assertCount(2, $dairyBranches);
+        foreach ($dairyBranches as $branch) {
+            $this->assertEquals('Kosher Dairy', $branch->kosher_type);
+        }
+    }
+
+    public function test_count_by_city_returns_correct_count(): void
+    {
+        // Arrange
+        $this->repository->create(array_merge($this->getMinimalBranchData('TLV 1'), ['city' => 'Tel Aviv']));
+        $this->repository->create(array_merge($this->getMinimalBranchData('TLV 2'), ['city' => 'Tel Aviv']));
+        $this->repository->create(array_merge($this->getMinimalBranchData('Jerusalem'), ['city' => 'Jerusalem']));
+
+        // Act
+        $count = $this->repository->countBy(['city' => 'Tel Aviv']);
+
+        // Assert
+        $this->assertEquals(2, $count);
+    }
+
+    public function test_add_activity_time_with_lowercase_day_normalizes_to_uppercase(): void
+    {
+        // Arrange
+        $branch_id = $this->repository->create($this->getMinimalBranchData());
+
+        // Act - lowercase should be normalized to uppercase
+        $this->repository->addActivityTime($branch_id, 'monday', '09:00-17:00');
+
+        // Assert
+        $branch = $this->repository->get($branch_id);
+        $this->assertArrayHasKey('MONDAY', $branch->activity_times);
+        $this->assertContains('09:00-17:00', $branch->activity_times['MONDAY']);
+    }
+
+    /* =====================================================================
      * HELPER METHODS
      * ===================================================================*/
 
