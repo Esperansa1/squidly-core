@@ -1,11 +1,15 @@
 import React from 'react';
 
-const OrderItemsList = ({ items = [] }) => {
+const OrderItemsList = ({ items = [], showPrices = false }) => {
   if (!items || items.length === 0) {
     return (
       <p className="text-sm text-gray-500">אין פריטים בהזמנה</p>
     );
   }
+
+  const formatPrice = (price) => {
+    return `₪${parseFloat(price).toFixed(2)}`;
+  };
 
   return (
     <div className="space-y-2">
@@ -22,7 +26,12 @@ const OrderItemsList = ({ items = [] }) => {
               <p className="text-xs text-gray-500 mt-1">{item.notes}</p>
             )}
           </div>
-          <span className="text-gray-600 font-medium ms-4">{item.quantity}x</span>
+          <span className="text-gray-600 font-medium ms-4 whitespace-nowrap">
+            {item.quantity}x
+            {showPrices && item.unit_price && (
+              <span className="ms-1">{formatPrice(item.unit_price)}</span>
+            )}
+          </span>
         </div>
       ))}
     </div>

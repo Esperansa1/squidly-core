@@ -11,6 +11,7 @@ class Order
 {
     public int $id;
     public int $customer_id;
+    public ?int $branch_id = null;
     public string $status;
     public string $order_date;
     public float $total_amount;
@@ -54,6 +55,7 @@ class Order
         $order = new self();
         $order->id = $post->ID;
         $order->customer_id = (int) get_post_meta($post->ID, '_customer_id', true);
+        $order->branch_id = get_post_meta($post->ID, '_branch_id', true) ? (int) get_post_meta($post->ID, '_branch_id', true) : null;
         $order->status = get_post_meta($post->ID, '_status', true) ?: self::STATUS_PENDING;
         $order->order_date = $post->post_date;
         $order->total_amount = (float) get_post_meta($post->ID, '_total_amount', true);
@@ -162,6 +164,7 @@ class Order
     {
         return [
             'customer_id' => $this->customer_id,
+            'branch_id' => $this->branch_id,
             'status' => $this->status,
             'order_date' => $this->order_date,
             'total_amount' => $this->total_amount,

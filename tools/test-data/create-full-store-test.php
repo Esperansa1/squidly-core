@@ -408,8 +408,19 @@ try {
 
     echo "<h2>📦 Creating Complete Orders</h2>";
 
-    // Create test orders with hamburger and add-ons
+    // Get product info for sides and drinks
+    $fries_id = $sides_ids[0];
+    $sweet_fries_id = $sides_ids[1];
+    $onion_rings_id = $sides_ids[2];
+    $salad_id = $sides_ids[3];
+    $cola_id = $drinks_ids[0];
+    $sprite_id = $drinks_ids[1];
+    $juice_id = $drinks_ids[2];
+    $water_id = $drinks_ids[3];
+
+    // Create diverse test orders with multiple products per order
     $orders_data = [
+        // Order 1: Basic combo - burger with fries and drink (Branch 1)
         [
             'customer_id' => $customer_ids[0],
             'branch_id' => $branch_ids[0],
@@ -419,15 +430,29 @@ try {
                     'product_name' => 'המבורגר קלאסי',
                     'quantity' => 1,
                     'unit_price' => 28.00,
-                    'modifications' => [
-                        'addons' => ['גבינה אמריקאית', 'בייקון'],
-                        'sides' => ['צ\'יפס רגיל'],
-                        'drinks' => ['קוקה קולה']
-                    ],
+                    'modifications' => ['addons' => ['גבינה אמריקאית']],
                     'notes' => 'צלייה בינונית'
+                ],
+                [
+                    'product_id' => $fries_id,
+                    'product_name' => 'צ\'יפס רגיל',
+                    'quantity' => 1,
+                    'unit_price' => 8.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $cola_id,
+                    'product_name' => 'קוקה קולה',
+                    'quantity' => 1,
+                    'unit_price' => 5.00,
+                    'modifications' => [],
+                    'notes' => null
                 ]
             ]
         ],
+
+        // Order 2: Family meal - 2 burgers, mixed sides, multiple drinks (Branch 2)
         [
             'customer_id' => $customer_ids[1],
             'branch_id' => $branch_ids[1],
@@ -437,32 +462,460 @@ try {
                     'product_name' => 'המבורגר קלאסי',
                     'quantity' => 2,
                     'unit_price' => 28.00,
-                    'modifications' => [
-                        'addons' => ['אבוקדו', 'חסה נוספת'],
-                        'sides' => ['טבעות בצל'],
-                        'drinks' => ['מיץ תפוזים']
-                    ],
+                    'modifications' => ['addons' => ['פטריות', 'חסה נוספת']],
+                    'notes' => 'אחד ללא בצל'
+                ],
+                [
+                    'product_id' => $onion_rings_id,
+                    'product_name' => 'טבעות בצל',
+                    'quantity' => 2,
+                    'unit_price' => 9.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $salad_id,
+                    'product_name' => 'סלט קטן',
+                    'quantity' => 1,
+                    'unit_price' => 7.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $juice_id,
+                    'product_name' => 'מיץ תפוזים',
+                    'quantity' => 2,
+                    'unit_price' => 6.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $water_id,
+                    'product_name' => 'מים',
+                    'quantity' => 1,
+                    'unit_price' => 3.00,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ]
+        ],
+
+        // Order 3: Party platter - 3 burgers, all sides, all drinks (Branch 1)
+        [
+            'customer_id' => $customer_ids[0],
+            'branch_id' => $branch_ids[0],
+            'items' => [
+                [
+                    'product_id' => $hamburger_id,
+                    'product_name' => 'המבורגר קלאסי',
+                    'quantity' => 3,
+                    'unit_price' => 28.00,
+                    'modifications' => ['addons' => ['גבינה אמריקאית', 'בייקון', 'אבוקדו']],
+                    'notes' => 'הזמנה משפחתית'
+                ],
+                [
+                    'product_id' => $fries_id,
+                    'product_name' => 'צ\'יפס רגיל',
+                    'quantity' => 2,
+                    'unit_price' => 8.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $sweet_fries_id,
+                    'product_name' => 'צ\'יפס בטטה',
+                    'quantity' => 1,
+                    'unit_price' => 10.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $onion_rings_id,
+                    'product_name' => 'טבעות בצל',
+                    'quantity' => 1,
+                    'unit_price' => 9.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $cola_id,
+                    'product_name' => 'קוקה קולה',
+                    'quantity' => 2,
+                    'unit_price' => 5.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $sprite_id,
+                    'product_name' => 'ספרייט',
+                    'quantity' => 1,
+                    'unit_price' => 5.00,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ]
+        ],
+
+        // Order 4: Simple single - burger and water only (Branch 1)
+        [
+            'customer_id' => $customer_ids[1],
+            'branch_id' => $branch_ids[0],
+            'items' => [
+                [
+                    'product_id' => $hamburger_id,
+                    'product_name' => 'המבורגר קלאסי',
+                    'quantity' => 1,
+                    'unit_price' => 28.00,
+                    'modifications' => [],
+                    'notes' => 'פשוט וקלאסי'
+                ],
+                [
+                    'product_id' => $water_id,
+                    'product_name' => 'מים',
+                    'quantity' => 1,
+                    'unit_price' => 3.00,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ]
+        ],
+
+        // Order 5: Group order - 4 burgers, sweet potato focus, juices (Branch 2)
+        [
+            'customer_id' => $customer_ids[0],
+            'branch_id' => $branch_ids[1],
+            'items' => [
+                [
+                    'product_id' => $hamburger_id,
+                    'product_name' => 'המבורגר קלאסי',
+                    'quantity' => 4,
+                    'unit_price' => 28.00,
+                    'modifications' => ['addons' => ['פטריות', 'חמוצים', 'גבינה אמריקאית']],
+                    'notes' => 'הזמנה לקבוצה'
+                ],
+                [
+                    'product_id' => $sweet_fries_id,
+                    'product_name' => 'צ\'יפס בטטה',
+                    'quantity' => 3,
+                    'unit_price' => 10.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $salad_id,
+                    'product_name' => 'סלט קטן',
+                    'quantity' => 2,
+                    'unit_price' => 7.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $juice_id,
+                    'product_name' => 'מיץ תפוזים',
+                    'quantity' => 4,
+                    'unit_price' => 6.00,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ]
+        ],
+
+        // Order 6: Kids party - 5 burgers, regular fries, colas (Branch 1)
+        [
+            'customer_id' => $customer_ids[1],
+            'branch_id' => $branch_ids[0],
+            'items' => [
+                [
+                    'product_id' => $hamburger_id,
+                    'product_name' => 'המבורגר קלאסי',
+                    'quantity' => 5,
+                    'unit_price' => 28.00,
+                    'modifications' => ['addons' => ['בייקון', 'גבינה אמריקאית']],
+                    'notes' => 'מסיבת יום הולדת'
+                ],
+                [
+                    'product_id' => $fries_id,
+                    'product_name' => 'צ\'יפס רגיל',
+                    'quantity' => 5,
+                    'unit_price' => 8.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $cola_id,
+                    'product_name' => 'קוקה קולה',
+                    'quantity' => 5,
+                    'unit_price' => 5.00,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ]
+        ],
+
+        // Order 7: Health conscious - 2 burgers, salads, water and juice (Branch 2)
+        [
+            'customer_id' => $customer_ids[0],
+            'branch_id' => $branch_ids[1],
+            'items' => [
+                [
+                    'product_id' => $hamburger_id,
+                    'product_name' => 'המבורגר קלאסי',
+                    'quantity' => 2,
+                    'unit_price' => 28.00,
+                    'modifications' => ['addons' => ['חסה נוספת', 'עגבנייה נוספת']],
                     'notes' => 'אופציה בריאה'
+                ],
+                [
+                    'product_id' => $salad_id,
+                    'product_name' => 'סלט קטן',
+                    'quantity' => 2,
+                    'unit_price' => 7.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $juice_id,
+                    'product_name' => 'מיץ תפוזים',
+                    'quantity' => 1,
+                    'unit_price' => 6.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $water_id,
+                    'product_name' => 'מים',
+                    'quantity' => 1,
+                    'unit_price' => 3.00,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ]
+        ],
+
+        // Order 8: Sides sampler - 1 burger with all side varieties (Branch 1)
+        [
+            'customer_id' => $customer_ids[1],
+            'branch_id' => $branch_ids[0],
+            'items' => [
+                [
+                    'product_id' => $hamburger_id,
+                    'product_name' => 'המבורגר קלאסי',
+                    'quantity' => 1,
+                    'unit_price' => 28.00,
+                    'modifications' => ['addons' => ['בייקון', 'אבוקדו']],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $fries_id,
+                    'product_name' => 'צ\'יפס רגיל',
+                    'quantity' => 1,
+                    'unit_price' => 8.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $sweet_fries_id,
+                    'product_name' => 'צ\'יפס בטטה',
+                    'quantity' => 1,
+                    'unit_price' => 10.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $onion_rings_id,
+                    'product_name' => 'טבעות בצל',
+                    'quantity' => 1,
+                    'unit_price' => 9.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $salad_id,
+                    'product_name' => 'סלט קטן',
+                    'quantity' => 1,
+                    'unit_price' => 7.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $cola_id,
+                    'product_name' => 'קוקה קולה',
+                    'quantity' => 1,
+                    'unit_price' => 5.00,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ]
+        ],
+
+        // Order 9: Drinks party - 3 burgers, onion rings, all drink types (Branch 2)
+        [
+            'customer_id' => $customer_ids[1],
+            'branch_id' => $branch_ids[1],
+            'items' => [
+                [
+                    'product_id' => $hamburger_id,
+                    'product_name' => 'המבורגר קלאסי',
+                    'quantity' => 3,
+                    'unit_price' => 28.00,
+                    'modifications' => ['addons' => ['חסה נוספת', 'בצל אדום']],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $onion_rings_id,
+                    'product_name' => 'טבעות בצל',
+                    'quantity' => 3,
+                    'unit_price' => 9.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $cola_id,
+                    'product_name' => 'קוקה קולה',
+                    'quantity' => 1,
+                    'unit_price' => 5.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $sprite_id,
+                    'product_name' => 'ספרייט',
+                    'quantity' => 1,
+                    'unit_price' => 5.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $juice_id,
+                    'product_name' => 'מיץ תפוזים',
+                    'quantity' => 1,
+                    'unit_price' => 6.00,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ]
+        ],
+
+        // Order 10: Office party - 6 burgers, variety of everything (Branch 1)
+        [
+            'customer_id' => $customer_ids[0],
+            'branch_id' => $branch_ids[0],
+            'items' => [
+                [
+                    'product_id' => $hamburger_id,
+                    'product_name' => 'המבורגר קלאסי',
+                    'quantity' => 6,
+                    'unit_price' => 28.00,
+                    'modifications' => ['addons' => ['גבינה אמריקאית', 'בייקון']],
+                    'notes' => 'הזמנה למסיבת משרד'
+                ],
+                [
+                    'product_id' => $fries_id,
+                    'product_name' => 'צ\'יפס רגיל',
+                    'quantity' => 3,
+                    'unit_price' => 8.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $sweet_fries_id,
+                    'product_name' => 'צ\'יפס בטטה',
+                    'quantity' => 2,
+                    'unit_price' => 10.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $onion_rings_id,
+                    'product_name' => 'טבעות בצל',
+                    'quantity' => 1,
+                    'unit_price' => 9.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $cola_id,
+                    'product_name' => 'קוקה קולה',
+                    'quantity' => 3,
+                    'unit_price' => 5.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $sprite_id,
+                    'product_name' => 'ספרייט',
+                    'quantity' => 2,
+                    'unit_price' => 5.00,
+                    'modifications' => [],
+                    'notes' => null
+                ],
+                [
+                    'product_id' => $juice_id,
+                    'product_name' => 'מיץ תפוזים',
+                    'quantity' => 1,
+                    'unit_price' => 6.00,
+                    'modifications' => [],
+                    'notes' => null
                 ]
             ]
         ]
     ];
     
+    // Define order types (pickup vs delivery) for variety
+    $order_types = [
+        0 => ['type' => 'pickup', 'payment_method' => 'cash', 'delivery_address' => null],      // Order 1: Pickup
+        1 => ['type' => 'delivery', 'payment_method' => 'online', 'delivery_address' => 'כתובת משלוח 123, תל אביב'],  // Order 2: Delivery
+        2 => ['type' => 'pickup', 'payment_method' => 'card', 'delivery_address' => null],      // Order 3: Pickup
+        3 => ['type' => 'pickup', 'payment_method' => 'cash', 'delivery_address' => null],      // Order 4: Pickup
+        4 => ['type' => 'delivery', 'payment_method' => 'online', 'delivery_address' => 'רחוב הרצל 456, תל אביב'],   // Order 5: Delivery
+        5 => ['type' => 'pickup', 'payment_method' => 'card', 'delivery_address' => null],      // Order 6: Pickup
+        6 => ['type' => 'delivery', 'payment_method' => 'online', 'delivery_address' => 'שדרות בן גוריון 789, תל אביב'], // Order 7: Delivery
+        7 => ['type' => 'pickup', 'payment_method' => 'cash', 'delivery_address' => null],      // Order 8: Pickup
+        8 => ['type' => 'delivery', 'payment_method' => 'online', 'delivery_address' => 'רחוב דיזנגוף 321, תל אביב'], // Order 9: Delivery
+        9 => ['type' => 'pickup', 'payment_method' => 'card', 'delivery_address' => null],      // Order 10: Pickup
+    ];
+
     $order_ids = [];
-    foreach ($orders_data as $order_data) {
+    $pickup_count = 0;
+    $delivery_count = 0;
+
+    foreach ($orders_data as $index => $order_data) {
+        $order_type = $order_types[$index];
+
         // Use the createFromCartData method to create complete orders
         $cart_data = [
             'customer_id' => $order_data['customer_id'],
             'branch_id' => $order_data['branch_id'],
             'items' => $order_data['items'],
-            'delivery_address' => 'כתובת בדיקה 123, תל אביב',
-            'special_instructions' => 'הזמנת בדיקה שנוצרה על ידי סקריפט',
-            'payment_method' => 'online'
+            'delivery_address' => $order_type['delivery_address'],
+            'special_instructions' => $order_type['type'] === 'pickup'
+                ? 'הזמנה לאיסוף עצמי'
+                : 'הזמנה למשלוח - נא לצלצל בהגעה',
+            'payment_method' => $order_type['payment_method']
         ];
-        
+
         $order = $orderRepo->createFromCartData($cart_data);
         $order_ids[] = $order->id;
-        echo "<div style='color: green;'>✅ Created complete order (ID: {$order->id}) for customer ID: {$order_data['customer_id']}</div>";
+        $branch_name = ($order_data['branch_id'] === $branch_ids[0]) ? 'סקווידלי מרכז העיר' : 'סקווידלי החוף';
+        $total_items = count($order_data['items']);
+        $product_summary = [];
+        foreach ($order_data['items'] as $item) {
+            $product_summary[] = "{$item['quantity']}x {$item['product_name']}";
+        }
+
+        // Count order types
+        if ($order_type['type'] === 'pickup') {
+            $pickup_count++;
+        } else {
+            $delivery_count++;
+        }
+
+        $type_icon = $order_type['type'] === 'pickup' ? '🛍️' : '🚚';
+        $type_label = $order_type['type'] === 'pickup' ? 'איסוף' : 'משלוח';
+        $payment_label = $order_type['payment_method'] === 'cash' ? 'מזומן' : ($order_type['payment_method'] === 'card' ? 'כרטיס' : 'אונליין');
+
+        echo "<div style='color: green;'>✅ Created order (ID: {$order->id}) - {$total_items} products - Branch: {$branch_name} - {$type_icon} {$type_label} ({$payment_label})</div>";
+        echo "<div style='margin-left: 20px; color: gray;'>📦 Products: " . implode(', ', $product_summary) . "</div>";
         echo "<div style='margin-left: 20px; color: blue;'>💰 Order total: ₪{$order->total_amount}</div>";
     }
 
@@ -479,6 +932,7 @@ try {
     echo "<li><strong>Hamburger Product:</strong> 1 created with all groups assigned</li>";
     echo "<li><strong>Customers:</strong> " . count($customer_ids) . " created</li>";
     echo "<li><strong>Complete Orders:</strong> " . count($order_ids) . " created with modifications</li>";
+    echo "<li><strong>Order Types:</strong> {$pickup_count} pickup orders (🛍️), {$delivery_count} delivery orders (🚚)</li>";
     echo "</ul>";
     echo "<h4>🏢 Branch-Specific Ingredients:</h4>";
     echo "<ul>";

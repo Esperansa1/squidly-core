@@ -32,6 +32,8 @@ export { default as DataSection } from './DataSection.jsx';
 export { default as PriceDisplay } from './PriceDisplay.jsx';
 export { default as AvailabilityDisplay } from './AvailabilityDisplay.jsx';
 export { default as LiveOrderCard } from './LiveOrderCard.jsx';
+export { default as OrderColumn } from './OrderColumn.jsx';
+export { default as DeclineOrderModal } from './DeclineOrderModal.jsx';
 
 // Management page components
 export { default as ManagementHeader } from './ManagementHeader.jsx';

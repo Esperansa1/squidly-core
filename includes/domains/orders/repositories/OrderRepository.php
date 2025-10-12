@@ -248,9 +248,23 @@ class OrderRepository implements RepositoryInterface
                     $query_args['meta_key'] = '_customer_id';
                     $query_args['meta_value'] = $value;
                     break;
+                case 'branch_id':
+                    $query_args['meta_key'] = '_branch_id';
+                    $query_args['meta_value'] = $value;
+                    break;
                 case 'status':
                     $query_args['meta_key'] = '_status';
                     $query_args['meta_value'] = $value;
+                    break;
+                case 'status__in':
+                    // Handle multiple status values with IN query
+                    $query_args['meta_query'] = [
+                        [
+                            'key' => '_status',
+                            'value' => $value,
+                            'compare' => 'IN'
+                        ]
+                    ];
                     break;
                 case 'payment_status':
                     $query_args['meta_key'] = '_payment_status';
@@ -259,6 +273,36 @@ class OrderRepository implements RepositoryInterface
                 case 'payment_method':
                     $query_args['meta_key'] = '_payment_method';
                     $query_args['meta_value'] = $value;
+                    break;
+                case 'delivery_type':
+                    // Filter by delivery type (single criterion)
+                    if ($value === 'delivery') {
+                        // Delivery orders: has delivery_address OR payment_method is 'online'
+                        $query_args['meta_query'] = [
+                            'relation' => 'OR',
+                            [
+                                'key' => '_delivery_address',
+                                'value' => '',
+                                'compare' => '!='
+                            ],
+                            [
+                                'key' => '_payment_method',
+                                'value' => 'online',
+                                'compare' => '='
+                            ]
+                        ];
+                    } else {
+                        // Pickup orders: payment_method is NOT 'online'
+                        // Note: We can't reliably check for empty _delivery_address with meta_query
+                        // So we just check payment method, which correctly identifies pickup orders
+                        $query_args['meta_query'] = [
+                            [
+                                'key' => '_payment_method',
+                                'value' => 'online',
+                                'compare' => '!='
+                            ]
+                        ];
+                    }
                     break;
                 default:
                     // For other criteria, fall back to meta_query
@@ -279,6 +323,7 @@ class OrderRepository implements RepositoryInterface
             foreach ($criteria as $key => $value) {
                 switch ($key) {
                     case 'customer_id':
+                    case 'branch_id':
                     case 'status':
                     case 'payment_status':
                     case 'payment_method':
@@ -286,6 +331,13 @@ class OrderRepository implements RepositoryInterface
                             'key' => "_{$key}",
                             'value' => $value,
                             'compare' => '='
+                        ];
+                        break;
+                    case 'status__in':
+                        $meta_query[] = [
+                            'key' => '_status',
+                            'value' => $value,
+                            'compare' => 'IN'
                         ];
                         break;
                     case 'total_min':
@@ -304,6 +356,34 @@ class OrderRepository implements RepositoryInterface
                             'compare' => '<='
                         ];
                         break;
+                    case 'delivery_type':
+                        // Filter by delivery type
+                        if ($value === 'delivery') {
+                            // Delivery orders: has delivery_address OR payment_method is 'online'
+                            $meta_query[] = [
+                                'relation' => 'OR',
+                                [
+                                    'key' => '_delivery_address',
+                                    'value' => '',
+                                    'compare' => '!='
+                                ],
+                                [
+                                    'key' => '_payment_method',
+                                    'value' => 'online',
+                                    'compare' => '='
+                                ]
+                            ];
+                        } else {
+                            // Pickup orders: payment_method is NOT 'online'
+                            // Note: We can't reliably check for empty _delivery_address with meta_query
+                            // So we just check payment method, which correctly identifies pickup orders
+                            $meta_query[] = [
+                                'key' => '_payment_method',
+                                'value' => 'online',
+                                'compare' => '!='
+                            ];
+                        }
+                        break;
                     case 'date_from':
                         $date_query['after'] = $value . ' 00:00:00';
                         break;
@@ -316,7 +396,7 @@ class OrderRepository implements RepositoryInterface
             if (!empty($meta_query) && count($meta_query) > 1) {
                 $query_args['meta_query'] = $meta_query;
             }
-            
+
             if (!empty($date_query)) {
                 $query_args['date_query'] = $date_query;
             }
@@ -483,6 +563,7 @@ class OrderRepository implements RepositoryInterface
     {
         $meta_fields = [
             '_customer_id' => $data['customer_id'],
+            '_branch_id' => $data['branch_id'] ?? null,
             '_status' => $data['status'] ?? Order::STATUS_PENDING,
             '_subtotal' => $data['subtotal'] ?? 0.0,
             '_tax_amount' => $data['tax_amount'] ?? 0.0,
@@ -542,6 +623,7 @@ class OrderRepository implements RepositoryInterface
         // Prepare order data
         $order_data = [
             'customer_id' => (int)$cart_data['customer_id'],
+            'branch_id' => isset($cart_data['branch_id']) ? (int)$cart_data['branch_id'] : null,
             'status' => Order::STATUS_PENDING,
             'subtotal' => $subtotal,
             'tax_amount' => $tax_amount,
@@ -586,6 +668,7 @@ class OrderRepository implements RepositoryInterface
     private function updateOrderMeta(int $post_id, array $data): void
     {
         $updatable_fields = [
+            'branch_id' => '_branch_id',
             'status' => '_status',
             'subtotal' => '_subtotal',
             'tax_amount' => '_tax_amount',

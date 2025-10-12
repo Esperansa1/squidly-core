@@ -30,8 +30,13 @@ if (!current_user_can('manage_options')) {
 require_once __DIR__ . '/../../includes/domains/orders/post-types/OrderPostType.php';
 require_once __DIR__ . '/../../includes/domains/orders/models/Order.php';
 require_once __DIR__ . '/../../includes/domains/orders/repositories/OrderRepository.php';
+require_once __DIR__ . '/../../includes/domains/customers/post-types/CustomerPostType.php';
 require_once __DIR__ . '/../../includes/domains/customers/models/Customer.php';
 require_once __DIR__ . '/../../includes/domains/customers/repositories/CustomerRepository.php';
+require_once __DIR__ . '/../../includes/domains/products/post-types/ProductPostType.php';
+require_once __DIR__ . '/../../includes/domains/products/post-types/IngredientPostType.php';
+require_once __DIR__ . '/../../includes/domains/products/post-types/ProductGroupPostType.php';
+require_once __DIR__ . '/../../includes/domains/products/post-types/GroupItemPostType.php';
 require_once __DIR__ . '/../../includes/domains/products/models/Product.php';
 require_once __DIR__ . '/../../includes/domains/products/models/Ingredient.php';
 require_once __DIR__ . '/../../includes/domains/products/models/ProductGroup.php';
@@ -41,6 +46,7 @@ require_once __DIR__ . '/../../includes/domains/products/repositories/ProductRep
 require_once __DIR__ . '/../../includes/domains/products/repositories/IngredientRepository.php';
 require_once __DIR__ . '/../../includes/domains/products/repositories/ProductGroupRepository.php';
 require_once __DIR__ . '/../../includes/domains/products/repositories/GroupItemRepository.php';
+require_once __DIR__ . '/../../includes/domains/stores/post-types/StoreBranchPostType.php';
 require_once __DIR__ . '/../../includes/domains/stores/models/StoreBranch.php';
 require_once __DIR__ . '/../../includes/domains/stores/repositories/StoreBranchRepository.php';
 
@@ -111,7 +117,7 @@ try {
     // 2. Delete all customers
     echo "<h3>👥 Deleting Customers</h3>";
     $customers = get_posts([
-        'post_type' => 'customer', // Assuming customer post type
+        'post_type' => CustomerPostType::POST_TYPE,
         'posts_per_page' => -1,
         'post_status' => 'any'
     ]);
@@ -126,7 +132,7 @@ try {
     // 3. Delete all product groups first (they reference group items)
     echo "<h3>📋 Deleting Product Groups</h3>";
     $product_groups = get_posts([
-        'post_type' => 'product_group', // Assuming product group post type
+        'post_type' => ProductGroupPostType::POST_TYPE,
         'posts_per_page' => -1,
         'post_status' => 'any'
     ]);
@@ -141,7 +147,7 @@ try {
     // 4. Delete all group items
     echo "<h3>🔗 Deleting Group Items</h3>";
     $group_items = get_posts([
-        'post_type' => 'group_item', // Assuming group item post type
+        'post_type' => GroupItemPostType::POST_TYPE,
         'posts_per_page' => -1,
         'post_status' => 'any'
     ]);
@@ -156,7 +162,7 @@ try {
     // 5. Delete all products
     echo "<h3>🍔 Deleting Products</h3>";
     $products = get_posts([
-        'post_type' => 'product', // Assuming product post type
+        'post_type' => ProductPostType::POST_TYPE,
         'posts_per_page' => -1,
         'post_status' => 'any'
     ]);
@@ -171,7 +177,7 @@ try {
     // 6. Delete all ingredients
     echo "<h3>🥬 Deleting Ingredients</h3>";
     $ingredients = get_posts([
-        'post_type' => 'ingredient', // Assuming ingredient post type
+        'post_type' => IngredientPostType::POST_TYPE,
         'posts_per_page' => -1,
         'post_status' => 'any'
     ]);
@@ -186,7 +192,7 @@ try {
     // 7. Delete all store branches
     echo "<h3>🏢 Deleting Store Branches</h3>";
     $branches = get_posts([
-        'post_type' => 'store_branch', // Assuming store branch post type
+        'post_type' => StoreBranchPostType::POST_TYPE,
         'posts_per_page' => -1,
         'post_status' => 'any'
     ]);

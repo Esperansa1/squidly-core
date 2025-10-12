@@ -27,9 +27,9 @@ const AppLayout = ({
       />
 
       {/* Main Content Area */}
-      <div 
-        className="flex-1 transition-all duration-300 ease-out overflow-hidden"
-        style={{ 
+      <div
+        className="flex-1 transition-all duration-300 ease-out"
+        style={{
           marginRight: sidebarExpanded ? '280px' : '70px'
         }}
       >

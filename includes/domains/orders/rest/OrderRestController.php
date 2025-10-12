@@ -799,8 +799,21 @@ class OrderRestController extends \WP_REST_Controller
             $filters['customer_id'] = (int) $params['customer_id'];
         }
 
+        if (isset($params['branch_id'])) {
+            $filters['branch_id'] = (int) $params['branch_id'];
+        }
+
         if (isset($params['status'])) {
-            $filters['status'] = sanitize_text_field($params['status']);
+            // Handle comma-separated status values
+            $status_param = $params['status'];
+            if (is_string($status_param) && strpos($status_param, ',') !== false) {
+                // Multiple statuses as comma-separated string
+                $statuses = array_map('trim', explode(',', $status_param));
+                $filters['status__in'] = array_map('sanitize_text_field', $statuses);
+            } else {
+                // Single status
+                $filters['status'] = sanitize_text_field($status_param);
+            }
         }
 
         if (isset($params['payment_status'])) {
@@ -827,6 +840,11 @@ class OrderRestController extends \WP_REST_Controller
             $filters['total_max'] = (float) $params['total_max'];
         }
 
+        if (isset($params['has_delivery'])) {
+            // Convert boolean to delivery_type filter for repository
+            $filters['delivery_type'] = rest_sanitize_boolean($params['has_delivery']) ? 'delivery' : 'pickup';
+        }
+
         return $filters;
     }
 
@@ -850,6 +868,7 @@ class OrderRestController extends \WP_REST_Controller
         $data = [
             'id' => $order->id,
             'customer_id' => $order->customer_id,
+            'branch_id' => $order->branch_id,
             'status' => $order->status,
             'order_date' => $order->order_date,
             'subtotal' => $order->subtotal,
@@ -865,11 +884,36 @@ class OrderRestController extends \WP_REST_Controller
             'order_items' => array_map([$this, 'prepare_order_item'], $order->order_items),
         ];
 
+        // Include customer data inline to avoid separate API calls
+        $customer_repo = new \CustomerRepository();
+        $customer = $customer_repo->get($order->customer_id);
+        if ($customer) {
+            $data['customer'] = [
+                'id' => $customer->id,
+                'name' => trim($customer->first_name . ' ' . $customer->last_name),
+                'first_name' => $customer->first_name,
+                'last_name' => $customer->last_name,
+                'phone' => $customer->phone,
+                'email' => $customer->email,
+            ];
+        } else {
+            // Fallback for missing customer
+            $data['customer'] = [
+                'id' => $order->customer_id,
+                'name' => 'לקוח לא ידוע',
+                'first_name' => '',
+                'last_name' => '',
+                'phone' => '',
+                'email' => '',
+            ];
+        }
+
         // Add calculated fields
         $data['can_be_cancelled'] = $order->canBeCancelled();
         $data['is_completed'] = $order->isCompleted();
         $data['display_name'] = $order->getDisplayName();
         $data['item_count'] = count($order->order_items);
+        $data['estimated_ready_time'] = $this->calculate_estimated_ready_time($order);
 
         return $data;
     }
@@ -1156,10 +1200,30 @@ class OrderRestController extends \WP_REST_Controller
                 'description' => __('Filter by customer ID.'),
                 'type'        => 'integer',
             ],
+            'branch_id' => [
+                'description' => __('Filter by branch ID.'),
+                'type'        => 'integer',
+            ],
             'status' => [
-                'description' => __('Filter by order status.'),
+                'description' => __('Filter by order status. Supports single value or comma-separated list.'),
                 'type'        => 'string',
-                'enum'        => Order::getValidStatuses(),
+                'validate_callback' => function($param, $request, $key) {
+                    // Allow comma-separated values
+                    $statuses = is_array($param) ? $param : explode(',', $param);
+                    $valid_statuses = Order::getValidStatuses();
+
+                    foreach ($statuses as $status) {
+                        $status = trim($status);
+                        if (!in_array($status, $valid_statuses, true)) {
+                            return new \WP_Error(
+                                'rest_invalid_param',
+                                sprintf(__('Invalid status: %s'), $status),
+                                ['status' => 400]
+                            );
+                        }
+                    }
+                    return true;
+                },
             ],
             'payment_status' => [
                 'description' => __('Filter by payment status.'),
@@ -1188,6 +1252,10 @@ class OrderRestController extends \WP_REST_Controller
             'total_max' => [
                 'description' => __('Filter orders with maximum total amount.'),
                 'type'        => 'number',
+            ],
+            'has_delivery' => [
+                'description' => __('Filter by delivery type. true = delivery orders, false = pickup orders.'),
+                'type'        => 'boolean',
             ],
         ]);
     }
