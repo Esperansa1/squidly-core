@@ -388,6 +388,80 @@ class OrderRepositoryIntegrationTest extends WP_UnitTestCase
         $this->assertGreaterThan(0, $stats['total_revenue']);
     }
 
+    public function test_get_statistics_with_previous_period_comparison(): void
+    {
+        // Create some test orders
+        $this->createTestOrder($this->testCustomerId);
+        $this->createTestOrder($this->testCustomerId);
+
+        // Get statistics with compare_previous flag
+        $stats = $this->orderRepo->getStatistics([
+            'compare_previous' => true,
+            'date_from' => date('Y-m-d', strtotime('-1 day')),
+            'date_to' => date('Y-m-d')
+        ]);
+
+        // Assert that the comparison structure exists
+        $this->assertArrayHasKey('previous_period', $stats);
+        $this->assertArrayHasKey('percentage_change', $stats);
+
+        // Assert that all required fields are present in previous_period
+        $this->assertArrayHasKey('total_orders', $stats['previous_period']);
+        $this->assertArrayHasKey('total_revenue', $stats['previous_period']);
+        $this->assertArrayHasKey('average_order_value', $stats['previous_period']);
+        $this->assertArrayHasKey('cancellation_count', $stats['previous_period']);
+        $this->assertArrayHasKey('refund_count', $stats['previous_period']);
+
+        // Assert that all required fields are present in percentage_change
+        $this->assertArrayHasKey('total_orders', $stats['percentage_change']);
+        $this->assertArrayHasKey('total_revenue', $stats['percentage_change']);
+        $this->assertArrayHasKey('average_order_value', $stats['percentage_change']);
+        $this->assertArrayHasKey('cancellation_count', $stats['percentage_change']);
+        $this->assertArrayHasKey('refund_count', $stats['percentage_change']);
+    }
+
+    public function test_get_statistics_includes_cancellation_and_refund_counts(): void
+    {
+        // Create completed orders
+        $order1Id = $this->createTestOrder($this->testCustomerId);
+        $order2Id = $this->createTestOrder($this->testCustomerId);
+
+        // Create cancelled order
+        $order3Id = $this->createTestOrder($this->testCustomerId);
+        $this->orderRepo->updateStatus($order3Id, Order::STATUS_CANCELLED);
+
+        // Create refunded order
+        $order4Id = $this->createTestOrder($this->testCustomerId);
+        $this->orderRepo->updatePaymentStatus($order4Id, Order::PAYMENT_REFUNDED);
+
+        $stats = $this->orderRepo->getStatistics();
+
+        $this->assertArrayHasKey('cancellation_count', $stats);
+        $this->assertArrayHasKey('refund_count', $stats);
+        $this->assertEquals(1, $stats['cancellation_count']);
+        $this->assertEquals(1, $stats['refund_count']);
+    }
+
+    public function test_findby_accepts_sorting_parameters(): void
+    {
+        // Create test orders
+        $orderId1 = $this->createTestOrder($this->testCustomerId);
+        $orderId2 = $this->createTestOrder($this->testCustomerId);
+
+        $this->assertGreaterThan(0, $orderId1);
+        $this->assertGreaterThan(0, $orderId2);
+
+        // Test basic query - get ALL orders with no filtering or sorting
+        $allOrders = $this->orderRepo->findBy([]);
+        $this->assertGreaterThanOrEqual(2, count($allOrders), 'Should find at least 2 orders (no filters)');
+
+        // Test that we can query with customer_id
+        $orders2 = $this->orderRepo->findBy([
+            'customer_id' => $this->testCustomerId
+        ]);
+        $this->assertGreaterThanOrEqual(2, count($orders2), 'Should find at least 2 orders for customer');
+    }
+
     /* ---------------------------------------------------------------------
      *  Order Deletion Tests
      * -------------------------------------------------------------------*/
@@ -448,6 +522,59 @@ class OrderRepositoryIntegrationTest extends WP_UnitTestCase
             'tax_amount' => 5.95,
             'delivery_fee' => 0.0,
             'total_amount' => 40.95
+        ]);
+    }
+
+    private function createTestOrderWithDate(int $customerId, string $date, float $amount): int
+    {
+        $orderId = $this->orderRepo->create([
+            'customer_id' => $customerId,
+            'order_items' => [
+                [
+                    'product_id' => $this->testProductId,
+                    'product_name' => 'Test Pizza',
+                    'quantity' => 1,
+                    'unit_price' => $amount,
+                    'total_price' => $amount,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ],
+            'subtotal' => $amount,
+            'tax_amount' => 0.0,
+            'delivery_fee' => 0.0,
+            'total_amount' => $amount
+        ]);
+
+        // Update the post date to the specified date
+        wp_update_post([
+            'ID' => $orderId,
+            'post_date' => $date . ' 12:00:00',
+            'post_date_gmt' => get_gmt_from_date($date . ' 12:00:00')
+        ]);
+
+        return $orderId;
+    }
+
+    private function createTestOrderWithAmount(int $customerId, float $amount): int
+    {
+        return $this->orderRepo->create([
+            'customer_id' => $customerId,
+            'order_items' => [
+                [
+                    'product_id' => $this->testProductId,
+                    'product_name' => 'Test Pizza',
+                    'quantity' => 1,
+                    'unit_price' => $amount,
+                    'total_price' => $amount,
+                    'modifications' => [],
+                    'notes' => null
+                ]
+            ],
+            'subtotal' => $amount,
+            'tax_amount' => 0.0,
+            'delivery_fee' => 0.0,
+            'total_amount' => $amount
         ]);
     }
 }

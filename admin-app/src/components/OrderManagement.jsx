@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api.js';
 import { TabSelector, BranchSelector, OrderColumn, DeclineOrderModal, Toast, LoadingState } from './ui';
 import DeliveryTypeSelector from './ui/DeliveryTypeSelector.jsx';
+import StatisticsCards from './ui/organisms/StatisticsCards.jsx';
+import PreviousOrdersTable from './ui/organisms/PreviousOrdersTable.jsx';
+import OrderDetailsModal from './ui/organisms/OrderDetailsModal.jsx';
+import DownloadButton from './ui/molecules/DownloadButton.jsx';
+import { getDateRange } from '../utils/dateRangeCalculator.js';
 
 const OrderManagement = () => {
   // State management
@@ -15,6 +20,13 @@ const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState({});
   const [loading, setLoading] = useState(true);
+
+  // Previous orders state
+  const [statistics, setStatistics] = useState(null);
+  const [previousOrders, setPreviousOrders] = useState([]);
+  const [dateRange, setDateRange] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderDetailsModal, setOrderDetailsModal] = useState(false);
 
   // Modal state
   const [declineModal, setDeclineModal] = useState({ show: false, orderId: null });
@@ -40,8 +52,10 @@ const OrderManagement = () => {
       // Poll every 30 seconds for real-time updates (background refresh)
       const interval = setInterval(() => fetchLiveOrders(true), 30000);
       return () => clearInterval(interval);
+    } else if (activeTab === 'הזמנות קודמות') {
+      fetchPreviousOrders();
     }
-  }, [activeTab, selectedBranch, deliveryType]);
+  }, [activeTab, timeframe, selectedBranch, deliveryType]);
 
   const initializeApp = async () => {
     try {
@@ -109,6 +123,85 @@ const OrderManagement = () => {
         setLoading(false);
       }
     }
+  };
+
+  const fetchPreviousOrders = async () => {
+    try {
+      setLoading(true);
+
+      // Calculate date range based on timeframe
+      const dateFilters = calculateDateFilters(timeframe);
+
+      // Build filters for orders
+      const orderFilters = {
+        ...dateFilters,
+        status: 'completed,cancelled', // Only show finished orders
+        per_page: 100
+      };
+
+      // Add branch filter
+      if (selectedBranch.id > 0) {
+        orderFilters.branch_id = selectedBranch.id;
+      }
+
+      // Add delivery type filter
+      if (deliveryType === 'delivery') {
+        orderFilters.has_delivery = true;
+      } else if (deliveryType === 'takeaway') {
+        orderFilters.has_delivery = false;
+      }
+
+      // Fetch statistics with previous period comparison
+      const statsFilters = {
+        ...dateFilters,
+        compare_previous: true
+      };
+      if (selectedBranch.id > 0) {
+        statsFilters.branch_id = selectedBranch.id;
+      }
+
+      // Fetch both in parallel
+      const [statsData, ordersData] = await Promise.all([
+        api.getOrderStatistics(statsFilters),
+        api.getOrders(orderFilters)
+      ]);
+
+      // Extract customers from orders
+      const customersMap = {};
+      ordersData.forEach(order => {
+        if (order.customer) {
+          customersMap[order.customer_id] = order.customer;
+        }
+      });
+
+      setStatistics(statsData);
+      setPreviousOrders(ordersData);
+      setCustomers(customersMap);
+      setDateRange(dateFilters);
+      setLoading(false);
+    } catch (err) {
+      console.error('Failed to fetch previous orders:', err);
+      showToast('שגיאה בטעינת הזמנות קודמות', 'error');
+      setLoading(false);
+    }
+  };
+
+  const calculateDateFilters = (timeframe) => {
+    // Map Hebrew timeframe to English for dateRangeCalculator
+    const timeframeMap = {
+      'יום': 'today',
+      'שבוע': 'week',
+      'חודש': 'month',
+      'שנה': 'year'
+    };
+
+    const englishTimeframe = timeframeMap[timeframe] || 'month';
+    return getDateRange(englishTimeframe);
+  };
+
+  const handleOrderClick = (order) => {
+    setSelectedOrder(order);
+    setOrderDetailsModal(true);
   };
 
   // Categorize orders by status
@@ -308,11 +401,33 @@ const OrderManagement = () => {
             />
           </div>
         ) : (
-          /* Previous Orders - Placeholder */
-          <div className="text-center mt-20">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">הזמנות קודמות</h2>
-            <p className="text-gray-600">תכונה זו תהיה זמינה בקרוב</p>
-            <p className="text-sm text-gray-500 mt-2">טווח זמן נבחר: {timeframe}</p>
+          /* Previous Orders - Full Implementation */
+          <div className="flex flex-col h-full gap-6">
+            {/* Statistics Cards */}
+            {statistics && (
+              <StatisticsCards statistics={statistics} />
+            )}
+
+            {/* Action Bar */}
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900">
+                רשימת הזמנות
+              </h2>
+              <DownloadButton
+                filters={dateRange}
+                format="csv"
+                disabled={previousOrders.length === 0}
+              />
+            </div>
+
+            {/* Orders Table */}
+            <div className="flex-1 min-h-0">
+              <PreviousOrdersTable
+                orders={previousOrders}
+                customers={customers}
+                onOrderClick={handleOrderClick}
+              />
+            </div>
           </div>
         )}
       </div>
@@ -334,6 +449,17 @@ const OrderManagement = () => {
         onClose={() => setToast({ ...toast, show: false })}
         duration={3000}
         position="top-right"
+      />
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        isOpen={orderDetailsModal}
+        onClose={() => {
+          setOrderDetailsModal(false);
+          setSelectedOrder(null);
+        }}
+        order={selectedOrder}
+        customer={selectedOrder ? customers[selectedOrder.customer_id] : null}
       />
     </div>
   );

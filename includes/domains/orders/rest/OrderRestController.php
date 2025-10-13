@@ -180,6 +180,16 @@ class OrderRestController extends \WP_REST_Controller
                 'args'                => $this->get_queue_params(),
             ],
         ]);
+
+        // Export orders to CSV/Excel
+        register_rest_route($this->namespace, '/' . $this->rest_base . '/export', [
+            [
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => [$this, 'export_orders'],
+                'permission_callback' => [$this, 'get_orders_permissions_check'],
+                'args'                => $this->get_export_params(),
+            ],
+        ]);
     }
 
     /* ==========================================
@@ -641,6 +651,139 @@ class OrderRestController extends \WP_REST_Controller
                 ['status' => 500]
             );
         }
+    }
+
+    /**
+     * Export orders to CSV format
+     */
+    public function export_orders(\WP_REST_Request $request)
+    {
+        try {
+            $params = $request->get_params();
+            $filters = $this->sanitize_collection_filters($params);
+
+            // Get orders with sorting
+            $orders = $this->repository->findBy($filters);
+
+            // Determine format (csv or excel)
+            $format = $params['format'] ?? 'csv';
+
+            if ($format === 'csv') {
+                return $this->export_csv($orders);
+            } else {
+                // For now, we'll just do CSV. Excel can be added later with a library
+                return $this->export_csv($orders);
+            }
+
+        } catch (Exception $e) {
+            return new \WP_Error(
+                'export_error',
+                $e->getMessage(),
+                ['status' => 500]
+            );
+        }
+    }
+
+    /**
+     * Export orders to CSV
+     */
+    private function export_csv(array $orders): \WP_REST_Response
+    {
+        // Create CSV content
+        $csv_data = [];
+
+        // CSV Header
+        $csv_data[] = [
+            'מספר הזמנה', // Order Number
+            'תאריך', // Date
+            'שעה', // Time
+            'לקוח', // Customer
+            'סוג', // Type
+            'סכום', // Amount
+            'סטטוס', // Status
+            'אמצעי תשלום', // Payment Method
+            'סטטוס תשלום', // Payment Status
+        ];
+
+        // CSV Rows
+        foreach ($orders as $order) {
+            // Get customer name if exists
+            $customer_name = '';
+            if ($order->customer_id) {
+                $customer_post = get_post($order->customer_id);
+                if ($customer_post) {
+                    $customer_name = get_post_meta($order->customer_id, '_name', true) ?: $customer_post->post_title;
+                }
+            }
+
+            // Determine order type
+            $order_type = 'איסוף'; // Pickup
+            if ($order->delivery_address || $order->payment_method === Order::PAYMENT_ONLINE) {
+                $order_type = 'משלוח'; // Delivery
+            }
+
+            // Format date and time
+            $date = date('Y-m-d', strtotime($order->order_date));
+            $time = date('H:i', strtotime($order->order_date));
+
+            // Translate status
+            $status_labels = [
+                Order::STATUS_PENDING => 'ממתין',
+                Order::STATUS_CONFIRMED => 'אושר',
+                Order::STATUS_PREPARING => 'בהכנה',
+                Order::STATUS_READY => 'מוכן',
+                Order::STATUS_COMPLETED => 'הושלם',
+                Order::STATUS_CANCELLED => 'בוטל',
+            ];
+
+            // Translate payment method
+            $payment_method_labels = [
+                Order::PAYMENT_CASH => 'מזומן',
+                Order::PAYMENT_CARD => 'אשראי',
+                Order::PAYMENT_ONLINE => 'אונליין',
+            ];
+
+            // Translate payment status
+            $payment_status_labels = [
+                Order::PAYMENT_PENDING => 'ממתין',
+                Order::PAYMENT_PAID => 'שולם',
+                Order::PAYMENT_FAILED => 'נכשל',
+                Order::PAYMENT_REFUNDED => 'הוחזר',
+            ];
+
+            $csv_data[] = [
+                $order->id,
+                $date,
+                $time,
+                $customer_name,
+                $order_type,
+                number_format($order->total_amount, 2),
+                $status_labels[$order->status] ?? $order->status,
+                $payment_method_labels[$order->payment_method] ?? $order->payment_method,
+                $payment_status_labels[$order->payment_status] ?? $order->payment_status,
+            ];
+        }
+
+        // Convert to CSV string
+        $output = fopen('php://temp', 'r+');
+        foreach ($csv_data as $row) {
+            fputcsv($output, $row);
+        }
+        rewind($output);
+        $csv_string = stream_get_contents($output);
+        fclose($output);
+
+        // Create response with proper headers for download
+        $response = new \WP_REST_Response($csv_string, 200);
+        $response->set_headers([
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="orders-export-' . date('Y-m-d-His') . '.csv"',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
+
+        return $response;
     }
 
     /* ==========================================
@@ -1426,5 +1569,20 @@ class OrderRestController extends \WP_REST_Controller
                 'default'     => [Order::STATUS_CONFIRMED, Order::STATUS_PREPARING],
             ],
         ];
+    }
+
+    /**
+     * Get export parameters
+     */
+    private function get_export_params(): array
+    {
+        return array_merge($this->get_collection_params(), [
+            'format' => [
+                'description' => __('Export format (csv or excel).'),
+                'type'        => 'string',
+                'enum'        => ['csv', 'excel'],
+                'default'     => 'csv',
+            ],
+        ]);
     }
 }

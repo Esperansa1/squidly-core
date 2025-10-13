@@ -222,7 +222,7 @@ class OrderRepository implements RepositoryInterface
     }
 
     /**
-     * Find orders by criteria with pagination
+     * Find orders by criteria with pagination and sorting
      */
     public function findBy(array $criteria, ?int $limit = null, int $offset = 0): array
     {
@@ -232,29 +232,60 @@ class OrderRepository implements RepositoryInterface
             'posts_per_page' => $limit ?? -1,
             'fields' => 'ids', // Only get IDs like CustomerRepository
         ];
-        
+
         // Only add offset if not zero to match working pattern
         if ($offset > 0) {
             $query_args['offset'] = $offset;
         }
 
-        // For single criteria, use simple meta_key/meta_value
+        // Extract and remove sorting parameters from criteria
+        $sort_field = null;
+        $sort_order = 'DESC';
+
+        if (isset($criteria['orderby'])) {
+            $sort_field = $criteria['orderby'];
+            unset($criteria['orderby']);
+        }
+
+        if (isset($criteria['order'])) {
+            $sort_order = strtoupper($criteria['order']) === 'ASC' ? 'ASC' : 'DESC';
+            unset($criteria['order']);
+        }
+
+        // Handle filtering criteria (if any)
+        // For single criteria, use meta_query instead of meta_key/meta_value
+        // to avoid conflicts with orderby
         if (count($criteria) === 1) {
             $key = array_key_first($criteria);
             $value = $criteria[$key];
-            
+
             switch ($key) {
                 case 'customer_id':
-                    $query_args['meta_key'] = '_customer_id';
-                    $query_args['meta_value'] = $value;
+                    $query_args['meta_query'] = [
+                        [
+                            'key' => '_customer_id',
+                            'value' => $value,
+                            'compare' => '='
+                        ]
+                    ];
                     break;
                 case 'branch_id':
-                    $query_args['meta_key'] = '_branch_id';
-                    $query_args['meta_value'] = $value;
+                    $query_args['meta_query'] = [
+                        [
+                            'key' => '_branch_id',
+                            'value' => $value,
+                            'compare' => '='
+                        ]
+                    ];
                     break;
                 case 'status':
-                    $query_args['meta_key'] = '_status';
-                    $query_args['meta_value'] = $value;
+                    $query_args['meta_query'] = [
+                        [
+                            'key' => '_status',
+                            'value' => $value,
+                            'compare' => '='
+                        ]
+                    ];
                     break;
                 case 'status__in':
                     // Handle multiple status values with IN query
@@ -267,12 +298,22 @@ class OrderRepository implements RepositoryInterface
                     ];
                     break;
                 case 'payment_status':
-                    $query_args['meta_key'] = '_payment_status';
-                    $query_args['meta_value'] = $value;
+                    $query_args['meta_query'] = [
+                        [
+                            'key' => '_payment_status',
+                            'value' => $value,
+                            'compare' => '='
+                        ]
+                    ];
                     break;
                 case 'payment_method':
-                    $query_args['meta_key'] = '_payment_method';
-                    $query_args['meta_value'] = $value;
+                    $query_args['meta_query'] = [
+                        [
+                            'key' => '_payment_method',
+                            'value' => $value,
+                            'compare' => '='
+                        ]
+                    ];
                     break;
                 case 'delivery_type':
                     // Filter by delivery type (single criterion)
@@ -402,6 +443,79 @@ class OrderRepository implements RepositoryInterface
             }
         }
 
+        // Apply sorting if explicitly requested
+        if ($sort_field) {
+            switch ($sort_field) {
+                case 'date':
+                case 'created_at':
+                    // WordPress has a bug where meta_query + orderby causes issues
+                    // Only set orderby if we don't have meta_query
+                    if (!isset($query_args['meta_query'])) {
+                        $query_args['orderby'] = 'date';
+                        $query_args['order'] = $sort_order;
+                    }
+                    // When meta_query exists, skip orderby/order entirely to avoid WordPress bug
+                    break;
+                case 'total_amount':
+                case 'amount':
+                    $query_args['order'] = $sort_order;
+                    // When we have meta_query, we need to add a named clause for sorting
+                    if (isset($query_args['meta_query'])) {
+                        $query_args['meta_query']['sort_clause'] = [
+                            'key' => '_total_amount',
+                            'type' => 'NUMERIC',
+                            'compare' => 'EXISTS'
+                        ];
+                        $query_args['orderby'] = 'sort_clause';
+                    } else {
+                        $query_args['orderby'] = 'meta_value_num';
+                        $query_args['meta_key'] = '_total_amount';
+                    }
+                    break;
+                case 'customer_id':
+                    $query_args['order'] = $sort_order;
+                    if (isset($query_args['meta_query'])) {
+                        $query_args['meta_query']['sort_clause'] = [
+                            'key' => '_customer_id',
+                            'type' => 'NUMERIC',
+                            'compare' => 'EXISTS'
+                        ];
+                        $query_args['orderby'] = 'sort_clause';
+                    } else {
+                        $query_args['orderby'] = 'meta_value_num';
+                        $query_args['meta_key'] = '_customer_id';
+                    }
+                    break;
+                case 'status':
+                    $query_args['order'] = $sort_order;
+                    if (isset($query_args['meta_query'])) {
+                        $query_args['meta_query']['sort_clause'] = [
+                            'key' => '_status',
+                            'compare' => 'EXISTS'
+                        ];
+                        $query_args['orderby'] = 'sort_clause';
+                    } else {
+                        $query_args['orderby'] = 'meta_value';
+                        $query_args['meta_key'] = '_status';
+                    }
+                    break;
+                default:
+                    $query_args['order'] = $sort_order;
+                    if (isset($query_args['meta_query'])) {
+                        $query_args['meta_query']['sort_clause'] = [
+                            'key' => "_{$sort_field}",
+                            'compare' => 'EXISTS'
+                        ];
+                        $query_args['orderby'] = 'sort_clause';
+                    } else {
+                        $query_args['orderby'] = 'meta_value';
+                        $query_args['meta_key'] = "_{$sort_field}";
+                    }
+                    break;
+            }
+        }
+        // Note: We don't set a default orderby to avoid WordPress query conflicts with meta_query
+
         // Use WP_Query to get post IDs, then use get() method like CustomerRepository
         $wp_query = new \WP_Query($query_args);
         $post_ids = $wp_query->posts;
@@ -437,7 +551,7 @@ class OrderRepository implements RepositoryInterface
     }
 
     /**
-     * Get order statistics
+     * Get order statistics with optional previous period comparison
      */
     public function getStatistics(array $filters = []): array
     {
@@ -458,17 +572,88 @@ class OrderRepository implements RepositoryInterface
         if (isset($filters['date_to'])) {
             $criteria['date_to'] = $filters['date_to'];
         }
-        
+
         $orders = $this->findBy($criteria, $filters['limit'] ?? null);
-        
-        return [
-            'total_orders' => count($orders),
-            'total_revenue' => array_reduce($orders, fn($sum, $order) => $sum + $order->total_amount, 0.0),
-            'average_order_value' => count($orders) > 0 ? 
-                array_reduce($orders, fn($sum, $order) => $sum + $order->total_amount, 0.0) / count($orders) : 0,
+
+        // Calculate current period statistics
+        $total_orders = count($orders);
+        $total_revenue = array_reduce($orders, fn($sum, $order) => $sum + $order->total_amount, 0.0);
+        $average_order_value = $total_orders > 0 ? $total_revenue / $total_orders : 0;
+
+        // Count cancellations and refunds
+        $cancelled_orders = array_filter($orders, fn($order) => $order->status === Order::STATUS_CANCELLED);
+        $refunded_orders = array_filter($orders, fn($order) => $order->payment_status === Order::PAYMENT_REFUNDED);
+        $cancellation_count = count($cancelled_orders);
+        $refund_count = count($refunded_orders);
+
+        $stats = [
+            'total_orders' => $total_orders,
+            'total_revenue' => $total_revenue,
+            'average_order_value' => $average_order_value,
+            'cancellation_count' => $cancellation_count,
+            'refund_count' => $refund_count,
             'status_breakdown' => array_count_values(array_column($orders, 'status')),
             'payment_breakdown' => array_count_values(array_column($orders, 'payment_status')),
         ];
+
+        // Calculate previous period comparison if date range is provided
+        if (isset($filters['date_from']) && isset($filters['date_to']) && isset($filters['compare_previous'])) {
+            $date_from = new \DateTime($filters['date_from']);
+            $date_to = new \DateTime($filters['date_to']);
+
+            // Calculate period duration
+            $interval = $date_from->diff($date_to);
+            $days = $interval->days + 1; // Include both start and end dates
+
+            // Calculate previous period dates
+            $prev_date_to = (clone $date_from)->modify('-1 day');
+            $prev_date_from = (clone $prev_date_to)->modify("-{$days} days");
+
+            // Get previous period orders
+            $prev_criteria = $criteria;
+            $prev_criteria['date_from'] = $prev_date_from->format('Y-m-d');
+            $prev_criteria['date_to'] = $prev_date_to->format('Y-m-d');
+
+            $prev_orders = $this->findBy($prev_criteria, $filters['limit'] ?? null);
+
+            // Calculate previous period statistics
+            $prev_total_orders = count($prev_orders);
+            $prev_total_revenue = array_reduce($prev_orders, fn($sum, $order) => $sum + $order->total_amount, 0.0);
+            $prev_average_order_value = $prev_total_orders > 0 ? $prev_total_revenue / $prev_total_orders : 0;
+            $prev_cancellation_count = count(array_filter($prev_orders, fn($order) => $order->status === Order::STATUS_CANCELLED));
+            $prev_refund_count = count(array_filter($prev_orders, fn($order) => $order->payment_status === Order::PAYMENT_REFUNDED));
+
+            // Calculate percentage changes
+            $stats['previous_period'] = [
+                'total_orders' => $prev_total_orders,
+                'total_revenue' => $prev_total_revenue,
+                'average_order_value' => $prev_average_order_value,
+                'cancellation_count' => $prev_cancellation_count,
+                'refund_count' => $prev_refund_count,
+            ];
+
+            $stats['percentage_change'] = [
+                'total_orders' => $this->calculatePercentageChange($prev_total_orders, $total_orders),
+                'total_revenue' => $this->calculatePercentageChange($prev_total_revenue, $total_revenue),
+                'average_order_value' => $this->calculatePercentageChange($prev_average_order_value, $average_order_value),
+                'cancellation_count' => $this->calculatePercentageChange($prev_cancellation_count, $cancellation_count),
+                'refund_count' => $this->calculatePercentageChange($prev_refund_count, $refund_count),
+            ];
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Calculate percentage change between two values
+     */
+    private function calculatePercentageChange(float $old_value, float $new_value): float
+    {
+        if ($old_value == 0) {
+            return $new_value > 0 ? 100.0 : 0.0;
+        }
+
+        return (($new_value - $old_value) / $old_value) * 100;
     }
 
     /**

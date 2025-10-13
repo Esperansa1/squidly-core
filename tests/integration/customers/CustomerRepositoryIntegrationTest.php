@@ -574,7 +574,7 @@ class CustomerRepositoryIntegrationTest extends WP_UnitTestCase
 
         // Act & Assert
         $this->expectException(ResourceInUseException::class);
-        $this->expectExceptionMessageMatches('/Customer has \d+ orders?/');
+        $this->expectExceptionMessageMatches('/ללקוח יש \d+ הזמנ/');
 
         $this->repository->delete($customer_id, false);
     }

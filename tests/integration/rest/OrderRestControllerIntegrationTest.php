@@ -624,4 +624,156 @@ class OrderRestControllerIntegrationTest extends \WP_UnitTestCase
         $can_delete = $this->controller->delete_order_permissions_check($request);
         $this->assertTrue($can_delete);
     }
+
+    /* ==========================================
+     * CSV Export Tests
+     * ========================================== */
+
+    public function test_export_orders_returns_csv_with_correct_headers(): void
+    {
+        // Create test orders
+        $order1Id = $this->createTestOrder();
+        $order2Id = $this->createTestOrder();
+
+        // Make request to export endpoint
+        $request = new WP_REST_Request('GET', '/squidly/v1/orders/export');
+        $response = $this->controller->export_orders($request);
+
+        // Assert response
+        $this->assertInstanceOf(\WP_REST_Response::class, $response);
+        $this->assertEquals(200, $response->get_status());
+
+        // Assert headers
+        $headers = $response->get_headers();
+        $this->assertArrayHasKey('Content-Type', $headers);
+        $this->assertStringContainsString('text/csv', $headers['Content-Type']);
+        $this->assertArrayHasKey('Content-Disposition', $headers);
+        $this->assertStringContainsString('attachment', $headers['Content-Disposition']);
+        $this->assertStringContainsString('.csv', $headers['Content-Disposition']);
+
+        // Assert response body is non-empty
+        $csvData = $response->get_data();
+        $this->assertIsString($csvData);
+        $this->assertNotEmpty($csvData);
+    }
+
+    public function test_export_orders_contains_order_data(): void
+    {
+        // Create order with known values
+        $orderId = $this->createTestOrder();
+        $order = $this->repository->get($orderId);
+
+        // Make request to export endpoint
+        $request = new WP_REST_Request('GET', '/squidly/v1/orders/export');
+        $response = $this->controller->export_orders($request);
+
+        // Parse CSV
+        $csvData = $response->get_data();
+        $rows = $this->parseCSV($csvData);
+
+        // Assert CSV has header row + at least 1 data row
+        $this->assertGreaterThanOrEqual(2, count($rows));
+
+        // Assert CSV contains order ID
+        $csvString = $response->get_data();
+        $this->assertStringContainsString((string)$orderId, $csvString);
+
+        // Assert CSV contains order total
+        $this->assertStringContainsString((string)$order->total_amount, $csvString);
+    }
+
+    public function test_export_orders_respects_filters(): void
+    {
+        // Create test customer 2
+        $customer2_id = wp_insert_post([
+            'post_title' => 'Test Customer 2',
+            'post_type' => 'squidly_customer',
+            'post_status' => 'publish',
+        ]);
+
+        // Create 2 orders for customer 1
+        $order1Id = $this->createTestOrder();
+        $order2Id = $this->createTestOrder();
+
+        // Create 2 orders for customer 2
+        $order3Data = [
+            'customer_id' => $customer2_id,
+            'order_items' => [
+                [
+                    'product_id' => 101,
+                    'product_name' => 'Test Product',
+                    'quantity' => 1,
+                    'unit_price' => 20.0,
+                ],
+            ],
+            'subtotal' => 20.0,
+            'tax_amount' => 3.4,
+            'total_amount' => 23.4,
+        ];
+        $order3Id = $this->repository->create($order3Data);
+        $order4Id = $this->repository->create($order3Data);
+
+        // Export orders for customer 1 only
+        $request = new WP_REST_Request('GET', '/squidly/v1/orders/export');
+        $request->set_param('customer_id', $this->customer_id);
+        $response = $this->controller->export_orders($request);
+
+        // Parse CSV
+        $csvData = $response->get_data();
+        $rows = $this->parseCSV($csvData);
+
+        // Should have header + 2 data rows (orders for customer 1 only)
+        $this->assertCount(3, $rows); // 1 header + 2 orders
+
+        // Assert contains customer 1 orders
+        $this->assertStringContainsString((string)$order1Id, $csvData);
+        $this->assertStringContainsString((string)$order2Id, $csvData);
+
+        // Assert does NOT contain customer 2 orders
+        $this->assertStringNotContainsString((string)$order3Id, $csvData);
+        $this->assertStringNotContainsString((string)$order4Id, $csvData);
+
+        // Cleanup
+        wp_delete_post($customer2_id, true);
+    }
+
+    /* ==========================================
+     * Helper Methods
+     * ========================================== */
+
+    private function createTestOrder(): int
+    {
+        $order_data = [
+            'customer_id' => $this->customer_id,
+            'order_items' => [
+                [
+                    'product_id' => 101,
+                    'product_name' => 'Test Product',
+                    'quantity' => 2,
+                    'unit_price' => 25.0,
+                ],
+            ],
+            'subtotal' => 50.0,
+            'tax_amount' => 8.5,
+            'delivery_fee' => 5.0,
+            'total_amount' => 63.5,
+        ];
+
+        return $this->repository->create($order_data);
+    }
+
+    private function parseCSV(string $csvString): array
+    {
+        $rows = [];
+        $lines = explode("\n", trim($csvString));
+
+        foreach ($lines as $line) {
+            if (empty($line)) {
+                continue;
+            }
+            $rows[] = str_getcsv($line);
+        }
+
+        return $rows;
+    }
 }

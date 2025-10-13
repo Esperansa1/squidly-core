@@ -152,12 +152,12 @@ class CustomerRepository implements RepositoryInterface
             return false;
         }
 
-        // Check for dependencies (orders) - use cached count for consistency with display
+        // Check for dependencies (orders) - use live query to check for actual orders
         if (!$force) {
-            $customer = $this->get($id);
-            if ($customer && $customer->total_orders > 0) {
+            $order_count = $this->getCustomerOrderCount($id);
+            if ($order_count > 0) {
                 throw new ResourceInUseException([
-                    'ללקוח יש ' . $customer->total_orders . ' הזמנות ולא ניתן למחוק'
+                    'ללקוח יש ' . $order_count . ' הזמנות ולא ניתן למחוק'
                 ]);
             }
         }
