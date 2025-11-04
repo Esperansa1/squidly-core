@@ -104,7 +104,7 @@ const DataTable = ({
                 </div>
               </div>
             ) : (
-              <div className="space-y-3 pt-4">
+              <div className="space-y-3 pt-4 pb-8">
                 {data.map((item) => (
                   <div
                     key={item.id}
