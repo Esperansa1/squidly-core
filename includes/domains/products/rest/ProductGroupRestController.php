@@ -86,20 +86,19 @@ class ProductGroupRestController extends \WP_REST_Controller
             if (!empty($request['item_type'])) {
                 $itemType = sanitize_text_field($request['item_type']);
                 if ($itemType === 'product') {
-                    $groups = $this->repository->getProductGroups($per_page, $offset);
-                    $total = $this->repository->countProductGroups();
+                    $filters['type'] = 'product';
                 } elseif ($itemType === 'ingredient') {
-                    $groups = $this->repository->getIngredientGroups($per_page, $offset);
-                    $total = $this->repository->countIngredientGroups();
+                    $filters['type'] = 'ingredient';
                 } else {
                     return new \WP_REST_Response([
                         'error' => 'Invalid item_type. Must be "product" or "ingredient".'
                     ], 400);
                 }
-            } else {
-                $groups = $this->repository->findBy($filters, $per_page, $offset);
-                $total = $this->repository->countBy($filters);
             }
+
+            // Use findBy for all queries to support pagination
+            $groups = $this->repository->findBy($filters, $per_page, $offset);
+            $total = $this->repository->countBy($filters);
 
             $data = array_map(function($group) {
                 return $this->prepare_item_for_response($group, new \WP_REST_Request())->get_data();
