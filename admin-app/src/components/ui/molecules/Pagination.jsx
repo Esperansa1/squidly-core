@@ -27,8 +27,9 @@ const Pagination = ({
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
-  // Don't show pagination if there's only one page or no items
-  if (totalItems === 0 || totalPages <= 1) {
+  // Don't show pagination if there are no items
+  // Keep it visible even with 1 page to show the page size selector
+  if (totalItems === 0) {
     return null;
   }
 
