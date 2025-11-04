@@ -49,9 +49,9 @@ const DataTable = ({
         </div>
       )}
 
-      {/* Table Container with synchronized scrolling */}
-      <div className="flex-1 overflow-auto scrollbar-hide min-h-0">
-        <div style={{ minWidth: `${minTableWidth}px` }} className="flex flex-col">
+      {/* Table Container with synchronized scrolling - both horizontal and vertical */}
+      <div className="flex-1 overflow-x-auto overflow-y-auto scrollbar-hide min-h-0">
+        <div style={{ minWidth: `${minTableWidth}px` }} className="flex flex-col h-full">
           {/* Table Header - Fixed at top */}
           <div className="flex-shrink-0 sticky top-0 bg-white z-10 border-b border-gray-200 pb-2 pt-4 px-6 mx-2">
             <div className="flex items-center">
