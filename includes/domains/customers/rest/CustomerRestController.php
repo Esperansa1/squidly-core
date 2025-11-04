@@ -171,11 +171,13 @@ class CustomerRestController extends \WP_REST_Controller
             }
 
             if (isset($request['is_guest'])) {
-                $filters['is_guest'] = (bool) $request['is_guest'];
+                // Convert string "false" to actual boolean false
+                $filters['is_guest'] = filter_var($request['is_guest'], FILTER_VALIDATE_BOOLEAN);
             }
 
             if (isset($request['is_active'])) {
-                $filters['is_active'] = (bool) $request['is_active'];
+                // Convert string "false" to actual boolean false
+                $filters['is_active'] = filter_var($request['is_active'], FILTER_VALIDATE_BOOLEAN);
             }
 
             if (!empty($request['min_loyalty_points'])) {
