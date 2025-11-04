@@ -69,36 +69,48 @@ class ProductGroupRestController extends \WP_REST_Controller
     {
         try {
             $filters = [];
-            
+
             if (!empty($request['branch_id'])) {
                 $filters['branch_id'] = (int)$request['branch_id'];
             }
-            
+
             if (!empty($request['status'])) {
                 $filters['status'] = sanitize_text_field($request['status']);
             }
+
+            // Get pagination parameters
+            $per_page = isset($request['per_page']) ? (int) $request['per_page'] : null;
+            $offset = isset($request['offset']) ? (int) $request['offset'] : 0;
 
             // Check if filtering by item type is requested
             if (!empty($request['item_type'])) {
                 $itemType = sanitize_text_field($request['item_type']);
                 if ($itemType === 'product') {
-                    $groups = $this->repository->getProductGroups();
+                    $groups = $this->repository->getProductGroups($per_page, $offset);
+                    $total = $this->repository->countProductGroups();
                 } elseif ($itemType === 'ingredient') {
-                    $groups = $this->repository->getIngredientGroups();
+                    $groups = $this->repository->getIngredientGroups($per_page, $offset);
+                    $total = $this->repository->countIngredientGroups();
                 } else {
                     return new \WP_REST_Response([
                         'error' => 'Invalid item_type. Must be "product" or "ingredient".'
                     ], 400);
                 }
             } else {
-                $groups = $this->repository->getAll();
+                $groups = $this->repository->findBy($filters, $per_page, $offset);
+                $total = $this->repository->countBy($filters);
             }
-            
+
             $data = array_map(function($group) {
                 return $this->prepare_item_for_response($group, new \WP_REST_Request())->get_data();
             }, $groups);
 
-            return new \WP_REST_Response($data, 200);
+            // Add pagination headers
+            $response = rest_ensure_response($data);
+            $response->header('X-WP-Total', (string) $total);
+            $response->header('X-WP-TotalPages', (string) ceil($total / ($per_page ?? 10)));
+
+            return $response;
             
         } catch (Exception $e) {
             // Log the error for debugging but return empty array to frontend
@@ -394,6 +406,19 @@ class ProductGroupRestController extends \WP_REST_Controller
                 'type' => 'string',
                 'enum' => ['product', 'ingredient'],
                 'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'per_page' => [
+                'description' => 'Maximum number of items to return',
+                'type' => 'integer',
+                'default' => 10,
+                'minimum' => 1,
+                'maximum' => 100,
+            ],
+            'offset' => [
+                'description' => 'Offset for pagination',
+                'type' => 'integer',
+                'minimum' => 0,
+                'default' => 0,
             ],
         ];
     }

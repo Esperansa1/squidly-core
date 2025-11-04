@@ -9,13 +9,24 @@ import {
   ShoppingBagIcon,
 } from '@heroicons/react/24/outline';
 import Card from '../atoms/Card';
+import Pagination from '../molecules/Pagination';
 
 /**
  * Previous Orders Table Component
  *
- * Sortable table displaying historical orders with status badges
+ * Sortable table displaying historical orders with status badges and backend pagination
  */
-const PreviousOrdersTable = ({ orders = [], customers = {}, onOrderClick }) => {
+const PreviousOrdersTable = ({
+  orders = [],
+  customers = {},
+  onOrderClick,
+  currentPage = 1,
+  itemsPerPage = 10,
+  totalItems = 0,
+  onPageChange,
+  onItemsPerPageChange,
+  loading = false
+}) => {
   const [sortColumn, setSortColumn] = useState('date');
   const [sortDirection, setSortDirection] = useState('desc');
 
@@ -34,7 +45,7 @@ const PreviousOrdersTable = ({ orders = [], customers = {}, onOrderClick }) => {
   };
 
   /**
-   * Sort orders based on current sort column and direction
+   * Sort orders based on current sort column and direction (client-side sorting on current page)
    */
   const sortedOrders = [...orders].sort((a, b) => {
     let aValue, bValue;
@@ -183,7 +194,17 @@ const PreviousOrdersTable = ({ orders = [], customers = {}, onOrderClick }) => {
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden relative">
+      {/* Loading overlay for table only */}
+      {loading && (
+        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+          <div className="flex flex-col items-center gap-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="text-sm text-gray-600">טוען...</span>
+          </div>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -278,6 +299,17 @@ const PreviousOrdersTable = ({ orders = [], customers = {}, onOrderClick }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination - Using backend pagination props */}
+      {onPageChange && onItemsPerPageChange && (
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={onPageChange}
+          onItemsPerPageChange={onItemsPerPageChange}
+        />
+      )}
     </Card>
   );
 };

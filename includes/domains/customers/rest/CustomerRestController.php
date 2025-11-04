@@ -189,15 +189,22 @@ class CustomerRestController extends \WP_REST_Controller
             $limit = isset($request['per_page']) ? (int) $request['per_page'] : null;
             $offset = isset($request['offset']) ? (int) $request['offset'] : 0;
 
+            // Get customers with pagination
             $customers = empty($filters)
-                ? $this->repository->getAll()
+                ? $this->repository->findBy([], $limit, $offset)  // Use findBy for pagination support
                 : $this->repository->findBy($filters, $limit, $offset);
 
             $data = array_map(function($customer) use ($request) {
                 return $this->prepare_item_for_response($customer, $request)->get_data();
             }, $customers);
 
-            return new \WP_REST_Response($data, 200);
+            // Get total count for pagination headers
+            $total_customers = $this->repository->countBy(!empty($filters) ? $filters : []);
+            $response = rest_ensure_response($data);
+            $response->header('X-WP-Total', (string) $total_customers);
+            $response->header('X-WP-TotalPages', (string) ceil($total_customers / ($limit ?? 10)));
+
+            return $response;
 
         } catch (Exception $e) {
             error_log("CustomerRestController get_items error: " . $e->getMessage());

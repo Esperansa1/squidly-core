@@ -1,5 +1,6 @@
 import React from 'react';
 import ThemedRadioButton from './ThemedRadioButton.jsx';
+import Pagination from './molecules/Pagination.jsx';
 import { DEFAULT_THEME } from '../../config/theme.js';
 
 const DataTable = ({
@@ -9,7 +10,14 @@ const DataTable = ({
   onSelectionChange,
   loading = false,
   error = null,
-  emptyMessage = 'אין נתונים להצגה'
+  emptyMessage = 'אין נתונים להצגה',
+  // Pagination props
+  showPagination = false,
+  currentPage = 1,
+  itemsPerPage = 10,
+  totalItems = 0,
+  onPageChange,
+  onItemsPerPageChange
 }) => {
   const theme = DEFAULT_THEME;
 
@@ -144,6 +152,17 @@ const DataTable = ({
           </div>
         </div>
       </div>
+
+      {/* Pagination */}
+      {showPagination && (
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={onPageChange}
+          onItemsPerPageChange={onItemsPerPageChange}
+        />
+      )}
     </div>
   );
 };

@@ -206,7 +206,10 @@ class OrderRestController extends \WP_REST_Controller
             $filters = $this->sanitize_collection_filters($params);
 
             // Get orders with efficient lookup
-            $orders = $this->repository->findBy($filters, $params['per_page'] ?? null, $params['offset'] ?? 0);
+            // Cast pagination params to integers (WordPress returns strings from query params)
+            $per_page = isset($params['per_page']) ? (int) $params['per_page'] : null;
+            $offset = isset($params['offset']) ? (int) $params['offset'] : 0;
+            $orders = $this->repository->findBy($filters, $per_page, $offset);
 
             // Prepare response data
             $data = [];

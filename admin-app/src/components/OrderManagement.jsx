@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api.js';
 import { TabSelector, BranchSelector, OrderColumn, DeclineOrderModal, Toast, LoadingState } from './ui';
 import DeliveryTypeSelector from './ui/DeliveryTypeSelector.jsx';
@@ -24,9 +24,14 @@ const OrderManagement = () => {
   // Previous orders state
   const [statistics, setStatistics] = useState(null);
   const [previousOrders, setPreviousOrders] = useState([]);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [dateRange, setDateRange] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDetailsModal, setOrderDetailsModal] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
 
   // Modal state
   const [declineModal, setDeclineModal] = useState({ show: false, orderId: null });
@@ -44,7 +49,15 @@ const OrderManagement = () => {
     initializeApp();
   }, []);
 
-  // Fetch orders when tab, branch, or delivery type changes
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    if (activeTab === 'הזמנות קודמות') {
+      setCurrentPage(1);
+      setHasInitiallyLoaded(false); // Reset on filter change
+    }
+  }, [activeTab, timeframe, selectedBranch, deliveryType]);
+
+  // Fetch orders when tab, branch, delivery type changes (full reload)
   useEffect(() => {
     if (activeTab === 'הזמנות חיות') {
       fetchLiveOrders(false); // Initial load with loading spinner
@@ -53,9 +66,19 @@ const OrderManagement = () => {
       const interval = setInterval(() => fetchLiveOrders(true), 30000);
       return () => clearInterval(interval);
     } else if (activeTab === 'הזמנות קודמות') {
-      fetchPreviousOrders();
+      fetchPreviousOrders(false).then(() => {
+        setHasInitiallyLoaded(true); // Mark as loaded after initial fetch
+      });
     }
   }, [activeTab, timeframe, selectedBranch, deliveryType]);
+
+  // Fetch orders when only pagination changes (table reload only)
+  useEffect(() => {
+    if (activeTab === 'הזמנות קודמות' && hasInitiallyLoaded) {
+      // After initial load, any pagination change should reload table
+      fetchPreviousOrders(true); // Table only reload
+    }
+  }, [currentPage, itemsPerPage, hasInitiallyLoaded]);
 
   const initializeApp = async () => {
     try {
@@ -84,7 +107,7 @@ const OrderManagement = () => {
       // Build filters for live orders
       const filters = {
         status: 'pending,confirmed,preparing,ready',
-        per_page: 100 // Fetch up to 100 live orders (reasonable limit)
+        per_page: 100 // Maximum allowed by backend (typically < 100 live orders at once)
       };
 
       // Add branch filter if specific branch selected
@@ -125,18 +148,27 @@ const OrderManagement = () => {
     }
   };
 
-  const fetchPreviousOrders = async () => {
+  const fetchPreviousOrders = async (isTableOnly = false) => {
     try {
-      setLoading(true);
+      // Table-only reload: only show table spinner
+      // Full reload: show full page spinner
+      if (isTableOnly) {
+        setTableLoading(true);
+      } else {
+        setLoading(true);
+      }
 
       // Calculate date range based on timeframe
       const dateFilters = calculateDateFilters(timeframe);
 
-      // Build filters for orders
+      // Build filters for orders with pagination
+      // Backend uses offset, not page number
+      const offset = (currentPage - 1) * itemsPerPage;
       const orderFilters = {
         ...dateFilters,
         status: 'completed,cancelled', // Only show finished orders
-        per_page: 100
+        offset: offset,
+        per_page: itemsPerPage
       };
 
       // Add branch filter
@@ -151,38 +183,67 @@ const OrderManagement = () => {
         orderFilters.has_delivery = false;
       }
 
-      // Fetch statistics with previous period comparison
-      const statsFilters = {
-        ...dateFilters,
-        compare_previous: true
-      };
-      if (selectedBranch.id > 0) {
-        statsFilters.branch_id = selectedBranch.id;
-      }
+      // For table-only reload, only fetch orders (not statistics)
+      if (isTableOnly) {
+        const ordersResponse = await api.getOrders(orderFilters, true);
 
-      // Fetch both in parallel
-      const [statsData, ordersData] = await Promise.all([
-        api.getOrderStatistics(statsFilters),
-        api.getOrders(orderFilters)
-      ]);
+        // Extract customers from orders
+        const customersMap = {};
+        ordersResponse.data.forEach(order => {
+          if (order.customer) {
+            customersMap[order.customer_id] = order.customer;
+          }
+        });
 
-      // Extract customers from orders
-      const customersMap = {};
-      ordersData.forEach(order => {
-        if (order.customer) {
-          customersMap[order.customer_id] = order.customer;
+        setPreviousOrders(ordersResponse.data);
+        setTotalOrders(ordersResponse.total);
+        setCustomers(customersMap);
+        setTableLoading(false);
+      } else {
+        // Full reload: fetch both statistics and orders
+        const statsFilters = {
+          ...dateFilters,
+          compare_previous: true
+        };
+        if (selectedBranch.id > 0) {
+          statsFilters.branch_id = selectedBranch.id;
         }
-      });
+        // Add delivery type filter to stats as well
+        if (deliveryType === 'delivery') {
+          statsFilters.has_delivery = true;
+        } else if (deliveryType === 'takeaway') {
+          statsFilters.has_delivery = false;
+        }
 
-      setStatistics(statsData);
-      setPreviousOrders(ordersData);
-      setCustomers(customersMap);
-      setDateRange(dateFilters);
-      setLoading(false);
+        // Fetch both in parallel
+        const [statsData, ordersResponse] = await Promise.all([
+          api.getOrderStatistics(statsFilters),
+          api.getOrders(orderFilters, true) // Include pagination headers
+        ]);
+
+        // Extract customers from orders
+        const customersMap = {};
+        ordersResponse.data.forEach(order => {
+          if (order.customer) {
+            customersMap[order.customer_id] = order.customer;
+          }
+        });
+
+        setStatistics(statsData);
+        setPreviousOrders(ordersResponse.data);
+        setTotalOrders(ordersResponse.total);
+        setCustomers(customersMap);
+        setDateRange(dateFilters);
+        setLoading(false);
+      }
     } catch (err) {
       console.error('Failed to fetch previous orders:', err);
       showToast('שגיאה בטעינת הזמנות קודמות', 'error');
-      setLoading(false);
+      if (isTableOnly) {
+        setTableLoading(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
@@ -426,6 +487,12 @@ const OrderManagement = () => {
                 orders={previousOrders}
                 customers={customers}
                 onOrderClick={handleOrderClick}
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={totalOrders}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+                loading={tableLoading}
               />
             </div>
           </div>

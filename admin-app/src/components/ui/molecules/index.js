@@ -25,3 +25,6 @@ export { default as SearchInput } from './SearchInput.jsx';
 export { default as StatisticsCard } from './StatisticsCard.jsx';
 export { default as TimeIndicator } from './TimeIndicator.jsx';
 export { default as OrderItemsList } from './OrderItemsList.jsx';
+
+// Navigation components
+export { default as Pagination } from './Pagination.jsx';

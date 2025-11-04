@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Card, SearchBar, DataTable, ConfirmationModal, Toast } from './index';
 import { ActionButton } from './molecules';
+import usePagination from '../../hooks/usePagination.js';
 import { DEFAULT_THEME } from '../../config/theme.js';
 
 const DataSection = ({
@@ -25,6 +26,9 @@ const DataSection = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [apiData, setApiData] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [apiLoading, setApiLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [lastFetchedBranchId, setLastFetchedBranchId] = useState(null);
@@ -255,6 +259,9 @@ const DataSection = ({
     );
   }, [dataToUse, searchTerm, itemNameProp]);
 
+  // Initialize pagination with filtered data
+  const pagination = usePagination(filteredData, 10);
+
   const selectedItemData = selectedItem ?
     filteredData.find(item => item[itemIdProp] === selectedItem) : null;
 
@@ -306,12 +313,18 @@ const DataSection = ({
       <div className="flex-1 p-8 pt-6 min-h-0">
         <DataTable
           columns={columns}
-          data={filteredData}
+          data={pagination.currentPageData}
           selectedId={selectedItem}
           onSelectionChange={handleSelectionChange}
           loading={loading}
           error={error}
           emptyMessage={strings.no_items || 'אין פריטים להצגה'}
+          showPagination={true}
+          currentPage={pagination.currentPage}
+          itemsPerPage={pagination.itemsPerPage}
+          totalItems={pagination.totalItems}
+          onPageChange={pagination.goToPage}
+          onItemsPerPageChange={pagination.setItemsPerPage}
         />
       </div>
 

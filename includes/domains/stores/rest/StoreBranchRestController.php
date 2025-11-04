@@ -177,18 +177,29 @@ class StoreBranchRestController extends \WP_REST_Controller
                 $filters['name'] = sanitize_text_field($request['search']);
             }
 
+            // Get pagination parameters (cast to integers - WordPress returns strings from query params)
+            $per_page = isset($request['per_page']) ? (int) $request['per_page'] : null;
+            $offset = isset($request['offset']) ? (int) $request['offset'] : 0;
+
             // Get branches using filters or all if no filters
             if (!empty($filters)) {
-                $branches = $this->repository->findBy($filters);
+                $branches = $this->repository->findBy($filters, $per_page, $offset);
             } else {
-                $branches = $this->repository->getAll();
+                // For getAll, we need to use findBy with empty filters to support pagination
+                $branches = $this->repository->findBy([], $per_page, $offset);
             }
 
             $data = array_map(function($branch) {
                 return $this->prepare_item_for_response($branch, new \WP_REST_Request())->get_data();
             }, $branches);
 
-            return new \WP_REST_Response($data, 200);
+            // Get total count for pagination headers
+            $total_branches = $this->repository->countBy(!empty($filters) ? $filters : []);
+            $response = rest_ensure_response($data);
+            $response->header('X-WP-Total', (string) $total_branches);
+            $response->header('X-WP-TotalPages', (string) ceil($total_branches / ($per_page ?? 10)));
+
+            return $response;
 
         } catch (Exception $e) {
             // Log the error for debugging but return empty array to frontend
@@ -702,6 +713,19 @@ class StoreBranchRestController extends \WP_REST_Controller
                 'description' => 'Search in branch names',
                 'type' => 'string',
                 'sanitize_callback' => 'sanitize_text_field',
+            ],
+            'per_page' => [
+                'description' => 'Maximum number of items to return',
+                'type' => 'integer',
+                'default' => 10,
+                'minimum' => 1,
+                'maximum' => 100,
+            ],
+            'offset' => [
+                'description' => 'Offset for pagination',
+                'type' => 'integer',
+                'minimum' => 0,
+                'default' => 0,
             ],
         ];
     }
