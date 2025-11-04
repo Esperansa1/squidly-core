@@ -50,10 +50,7 @@ const DataTable = ({
       )}
 
       {/* Table Container with synchronized scrolling */}
-      <div
-        className="flex-1 overflow-auto scrollbar-hide"
-        style={{ maxHeight: 'calc(100vh - 300px)' }}
-      >
+      <div className="flex-1 overflow-auto scrollbar-hide min-h-0">
         <div style={{ minWidth: `${minTableWidth}px` }} className="flex flex-col">
           {/* Table Header - Fixed at top */}
           <div className="flex-shrink-0 sticky top-0 bg-white z-10 border-b border-gray-200 pb-2 pt-4 px-6 mx-2">
