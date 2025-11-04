@@ -66,7 +66,17 @@ const DataTable = ({
   const minTableWidth = calculateMinWidth();
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col relative">
+      {/* Loading overlay */}
+      {loading && (
+        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20">
+          <div className="flex flex-col items-center gap-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="text-sm text-gray-600">טוען...</span>
+          </div>
+        </div>
+      )}
+
       {/* Table Container with synchronized scrolling */}
       <div className="flex-1 overflow-auto">
         <div style={{ minWidth: `${minTableWidth}px` }} className="h-full flex flex-col">
