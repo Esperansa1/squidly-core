@@ -104,7 +104,7 @@ const MenuManagement = () => {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 px-6 pb-6 overflow-y-auto">
+      <div className="flex-1 px-6 pb-6 overflow-auto">
         <TabContent
           activeTab={activeTab}
           productGroups={productGroups}

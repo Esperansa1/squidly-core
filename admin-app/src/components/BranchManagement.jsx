@@ -285,7 +285,7 @@ const BranchManagement = () => {
   return (
     <div className="h-full flex flex-col" dir="rtl">
       {/* Content */}
-      <div className="flex-1 p-6 overflow-hidden">
+      <div className="flex-1 p-6 overflow-auto">
         <Card className="h-full flex flex-col" padding="none">
           <div className="flex-shrink-0 p-4 border-b border-gray-200">
             {/* Title */}
