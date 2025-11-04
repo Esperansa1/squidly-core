@@ -18,7 +18,10 @@ const CustomerSection = ({
   strings = {},
   loading: externalLoading = false,
   error: externalError = null,
-  onCustomerChange = () => {}
+  onCustomerChange = () => {},
+  useBackendPagination = false,
+  totalCustomers = 0,
+  onPaginationChange = null
 }) => {
   const theme = DEFAULT_THEME;
 
@@ -170,6 +173,9 @@ const CustomerSection = ({
       editingItemProp="customer"
       itemIdProp="id"
       itemNameProp="first_name"
+      useBackendPagination={useBackendPagination}
+      totalItemsFromBackend={totalCustomers}
+      onPaginationChange={onPaginationChange}
     />
   );
 };

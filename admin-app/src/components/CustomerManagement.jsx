@@ -21,6 +21,12 @@ const CustomerManagement = () => {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
+  // Pagination state
+  const [totalCustomers, setTotalCustomers] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Initialize API and load data
   useEffect(() => {
     initializeApp();
@@ -46,25 +52,43 @@ const CustomerManagement = () => {
     }
   };
 
-  const loadCustomers = async () => {
+  const loadCustomers = async (page = currentPage, perPage = itemsPerPage, search = searchTerm) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch all customers from API
-      const customersData = await api.getCustomers();
-      console.log('Customers API response:', customersData);
+      // Build filters with pagination
+      const offset = (page - 1) * perPage;
+      const filters = {
+        is_guest: false,  // Filter out guest customers
+        offset,
+        per_page: perPage
+      };
 
-      // Filter out guest customers
-      const registeredCustomers = customersData.filter(customer => !customer.is_guest);
+      // Add search if present (backend should support this)
+      if (search && search.trim()) {
+        filters.search = search.trim();
+      }
 
-      setCustomers(registeredCustomers);
+      // Fetch customers with pagination
+      const response = await api.getCustomers(filters, true);
+
+      setCustomers(response.data);
+      setTotalCustomers(response.total);
+      setLoading(false);
     } catch (err) {
       console.error('Failed to load customers:', err);
       setError(err.message || 'שגיאה בטעינת הלקוחות');
-    } finally {
       setLoading(false);
     }
+  };
+
+  // Handle pagination changes from DataSection
+  const handlePaginationChange = async (page, perPage, search) => {
+    setCurrentPage(page);
+    setItemsPerPage(perPage);
+    setSearchTerm(search);
+    return loadCustomers(page, perPage, search);
   };
 
   // Handle customer changes (create/edit/delete) - refresh data
@@ -101,6 +125,9 @@ const CustomerManagement = () => {
           loading={loading}
           error={error}
           onCustomerChange={handleCustomerChange}
+          useBackendPagination={true}
+          totalCustomers={totalCustomers}
+          onPaginationChange={handlePaginationChange}
         />
       </div>
     </div>

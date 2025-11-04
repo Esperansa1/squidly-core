@@ -22,7 +22,10 @@ const DataSection = ({
   editingItemProp = 'editingItem',
   itemIdProp = 'id',
   itemNameProp = 'name',
-  productGroups = []
+  productGroups = [],
+  useBackendPagination = false,  // New prop for backend pagination
+  totalItemsFromBackend = 0,     // Total items from backend
+  onPaginationChange = null      // Callback when pagination changes
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [apiData, setApiData] = useState([]);
@@ -33,6 +36,8 @@ const DataSection = ({
   const [apiError, setApiError] = useState(null);
   const [lastFetchedBranchId, setLastFetchedBranchId] = useState(null);
   const branchDataCache = useRef(new Map());
+  const [tableLoading, setTableLoading] = useState(false);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
 
   // Delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -97,8 +102,35 @@ const DataSection = ({
 
   // Fetch data from API only when branch actually changes
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!useBackendPagination) {
+      fetchData();
+    }
+  }, [fetchData, useBackendPagination]);
+
+  // Backend pagination: Reset to page 1 when search changes
+  useEffect(() => {
+    if (useBackendPagination) {
+      setCurrentPage(1);
+      setHasInitiallyLoaded(false);
+    }
+  }, [searchTerm, useBackendPagination]);
+
+  // Backend pagination: Notify parent when pagination changes
+  useEffect(() => {
+    if (useBackendPagination && onPaginationChange) {
+      if (hasInitiallyLoaded) {
+        setTableLoading(true);
+        onPaginationChange(currentPage, itemsPerPage, searchTerm).finally(() => {
+          setTableLoading(false);
+        });
+      } else {
+        // Initial load
+        onPaginationChange(currentPage, itemsPerPage, searchTerm).then(() => {
+          setHasInitiallyLoaded(true);
+        });
+      }
+    }
+  }, [currentPage, itemsPerPage, searchTerm, useBackendPagination, onPaginationChange, hasInitiallyLoaded]);
 
   // Delete functionality
   const handleDeleteClick = () => {
@@ -249,18 +281,23 @@ const DataSection = ({
   const loading = externalLoading || apiLoading;
   const error = externalError; // Don't show API errors inline anymore
 
-  // Filter data based on search term
+  // Filter data based on search term (only for client-side pagination)
   const filteredData = useMemo(() => {
+    if (useBackendPagination) {
+      // For backend pagination, data is already filtered
+      return dataToUse;
+    }
+
     if (!searchTerm) return dataToUse;
 
     const term = searchTerm.toLowerCase();
     return dataToUse.filter(item =>
       item[itemNameProp].toLowerCase().includes(term)
     );
-  }, [dataToUse, searchTerm, itemNameProp]);
+  }, [dataToUse, searchTerm, itemNameProp, useBackendPagination]);
 
-  // Initialize pagination with filtered data
-  const pagination = usePagination(filteredData, 10);
+  // Initialize pagination - use client-side hook only if not using backend pagination
+  const pagination = useBackendPagination ? null : usePagination(filteredData, 10);
 
   const selectedItemData = selectedItem ?
     filteredData.find(item => item[itemIdProp] === selectedItem) : null;
@@ -313,18 +350,18 @@ const DataSection = ({
       <div className="flex-1 p-8 pt-6 min-h-0">
         <DataTable
           columns={columns}
-          data={pagination.currentPageData}
+          data={useBackendPagination ? filteredData : pagination.currentPageData}
           selectedId={selectedItem}
           onSelectionChange={handleSelectionChange}
-          loading={loading}
+          loading={useBackendPagination ? tableLoading : loading}
           error={error}
           emptyMessage={strings.no_items || 'אין פריטים להצגה'}
           showPagination={true}
-          currentPage={pagination.currentPage}
-          itemsPerPage={pagination.itemsPerPage}
-          totalItems={pagination.totalItems}
-          onPageChange={pagination.goToPage}
-          onItemsPerPageChange={pagination.setItemsPerPage}
+          currentPage={useBackendPagination ? currentPage : pagination.currentPage}
+          itemsPerPage={useBackendPagination ? itemsPerPage : pagination.itemsPerPage}
+          totalItems={useBackendPagination ? totalItemsFromBackend : pagination.totalItems}
+          onPageChange={useBackendPagination ? setCurrentPage : pagination.goToPage}
+          onItemsPerPageChange={useBackendPagination ? setItemsPerPage : pagination.setItemsPerPage}
         />
       </div>
 
