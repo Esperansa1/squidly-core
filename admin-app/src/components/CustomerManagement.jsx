@@ -21,11 +21,8 @@ const CustomerManagement = () => {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
-  // Pagination state
+  // Pagination state (for backend pagination)
   const [totalCustomers, setTotalCustomers] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
 
   // Initialize API and load data
   useEffect(() => {
@@ -52,7 +49,7 @@ const CustomerManagement = () => {
     }
   };
 
-  const loadCustomers = async (page = currentPage, perPage = itemsPerPage, search = searchTerm) => {
+  const loadCustomers = async (page = 1, perPage = 10, search = '') => {
     try {
       setLoading(true);
       setError(null);
@@ -85,9 +82,8 @@ const CustomerManagement = () => {
 
   // Handle pagination changes from DataSection
   const handlePaginationChange = async (page, perPage, search) => {
-    setCurrentPage(page);
-    setItemsPerPage(perPage);
-    setSearchTerm(search);
+    // Don't set state here - it causes infinite loop with DataSection's useEffect
+    // Just load the data with the new parameters
     return loadCustomers(page, perPage, search);
   };
 
