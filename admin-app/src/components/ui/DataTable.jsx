@@ -21,27 +21,22 @@ const DataTable = ({
 }) => {
   const theme = DEFAULT_THEME;
 
-  // Note: Don't return early for loading - show overlay instead
-  // This keeps the table structure and pagination visible
-
-  // Don't return early - render table structure with pagination even when empty
-
   // Calculate minimum table width based on column widths
   const calculateMinWidth = () => {
     const columnWidths = columns.reduce((total, column) => {
-      const width = parseInt(column.width) || 150; // Default width if not specified
+      const width = parseInt(column.width) || 150;
       return total + width;
     }, 0);
-    return columnWidths + 40 + (columns.length * 24); // Add selection column + padding
+    return columnWidths + 40 + (columns.length * 24); // Selection column + padding
   };
 
   const minTableWidth = calculateMinWidth();
 
   return (
-    <div className="h-full flex flex-col relative">
+    <div className="h-full flex flex-col bg-white relative">
       {/* Loading overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20">
+        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-30">
           <div className="flex flex-col items-center gap-2">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="text-sm text-gray-600">טוען...</span>
@@ -49,81 +44,97 @@ const DataTable = ({
         </div>
       )}
 
-      {/* Table Container with synchronized scrolling - both horizontal and vertical */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto min-h-0">
-        <div style={{ minWidth: `${minTableWidth}px` }} className="flex flex-col h-full">
-          {/* Table Header - Fixed at top */}
-          <div className="flex-shrink-0 sticky top-0 bg-white z-10 border-b border-gray-200 pb-2 pt-4 px-6 mx-2">
-            <div className="flex items-center">
-              <div className="flex justify-center flex-shrink-0" style={{ width: '40px' }}>
-                <span className="text-sm text-gray-700 font-semibold">
-                  בחר
-                </span>
-              </div>
-              {columns.map((column, index) => (
-                <div
-                  key={column.key}
-                  className={`${column.className || ''} px-3 flex-shrink-0`}
-                  style={{
-                    width: column.width,
-                    minWidth: column.width,
-                    maxWidth: column.width,
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    ...(column.headerStyle || {})
-                  }}
+      {/* Scrollable table container - SINGLE OVERFLOW CONTAINER */}
+      <div className="flex-1 overflow-auto min-h-0">
+        <div style={{ minWidth: `${minTableWidth}px` }}>
+          <table className="w-full border-collapse">
+            {/* Fixed Header - Sticks to top of scroll container */}
+            <thead className="sticky top-0 z-20 bg-white border-b border-gray-200">
+              <tr>
+                {/* Selection column header */}
+                <th
+                  className="py-4 px-6 text-center"
+                  style={{ width: '40px' }}
                 >
-                  <span className="text-sm text-gray-700 font-semibold px-2">
-                    {column.title || column.label}
+                  <span className="text-sm text-gray-700 font-semibold">
+                    בחר
                   </span>
-                </div>
-              ))}
-            </div>
-          </div>
+                </th>
 
-          {/* Table Rows */}
-          <div className="flex-1 px-6 min-h-0">
-            {error ? (
-              <div className="flex items-center justify-center h-64 text-red-500">
-                <div className="text-center">
-                  <div className="text-red-600 text-xl mb-4">⚠️</div>
-                  <p className="text-red-600">שגיאה בטעינה: {error}</p>
-                </div>
-              </div>
-            ) : !data || data.length === 0 ? (
-              <div className="flex items-center justify-center h-64 text-gray-500">
-                <div className="text-center">
-                  <div className="text-4xl mb-4">📋</div>
-                  <p>{emptyMessage}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3 pt-4 pb-8">
-                {data.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center py-4 px-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+                {/* Data column headers */}
+                {columns.map((column) => (
+                  <th
+                    key={column.key}
+                    className="py-4 px-3 text-center"
                     style={{
-                      borderBottom: `1px solid ${theme.divider_color}`,
-                      minHeight: '70px'
+                      width: column.width,
+                      minWidth: column.width,
+                      maxWidth: column.width,
+                      ...(column.headerStyle || {})
+                    }}
+                  >
+                    <span className="text-sm text-gray-700 font-semibold">
+                      {column.title || column.label}
+                    </span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            {/* Scrollable Body */}
+            <tbody>
+              {error ? (
+                <tr>
+                  <td colSpan={columns.length + 1} className="py-16">
+                    <div className="flex items-center justify-center text-red-500">
+                      <div className="text-center">
+                        <div className="text-red-600 text-xl mb-4">⚠️</div>
+                        <p className="text-red-600">שגיאה בטעינה: {error}</p>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ) : !data || data.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length + 1} className="py-16">
+                    <div className="flex items-center justify-center text-gray-500">
+                      <div className="text-center">
+                        <div className="text-4xl mb-4">📋</div>
+                        <p>{emptyMessage}</p>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                data.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="hover:bg-gray-50 transition-colors cursor-pointer border-b"
+                    style={{
+                      borderColor: theme.divider_color
                     }}
                     onClick={() => onSelectionChange(item)}
                   >
-                    <div className="flex justify-center flex-shrink-0" style={{ width: '40px' }}>
-                      <ThemedRadioButton
-                        name="table-selection"
-                        value={item.id}
-                        checked={selectedId === item.id}
-                        onChange={() => onSelectionChange(item)}
-                      />
-                    </div>
+                    {/* Selection column */}
+                    <td
+                      className="py-4 px-6 text-center align-middle"
+                      style={{ width: '40px', minHeight: '70px' }}
+                    >
+                      <div className="flex justify-center">
+                        <ThemedRadioButton
+                          name="table-selection"
+                          value={item.id}
+                          checked={selectedId === item.id}
+                          onChange={() => onSelectionChange(item)}
+                        />
+                      </div>
+                    </td>
+
+                    {/* Data columns */}
                     {columns.map((column) => (
-                      <div
+                      <td
                         key={column.key}
-                        className={`${column.className || ''} px-3 flex-shrink-0`}
+                        className="py-4 px-3 text-center align-middle"
                         style={{
                           width: column.width,
                           minWidth: column.width,
@@ -131,29 +142,26 @@ const DataTable = ({
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          textAlign: 'center',
+                          minHeight: '70px',
                           ...(column.cellStyle || {})
                         }}
                       >
                         <div className="px-2 w-full">
                           {column.render ? column.render(item[column.key], item) : item[column.key]}
                         </div>
-                      </div>
+                      </td>
                     ))}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Pagination - Fixed at bottom of table */}
+      {/* Fixed Pagination - Never scrolls */}
       {showPagination && (
-        <div className="flex-shrink-0 bg-white border-t border-gray-200 z-10">
+        <div className="flex-shrink-0 border-t border-gray-200 bg-white z-10">
           <Pagination
             currentPage={currentPage}
             totalItems={totalItems}
