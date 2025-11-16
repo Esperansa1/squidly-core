@@ -102,67 +102,69 @@ const ProductGroupSection = ({
   ], [strings, branches, selectedBranchId]);
 
   return (
-    <DataSection
-      title={title}
-      data={productGroups}
-      selectedItem={selectedProductGroup}
-      setSelectedItem={setSelectedProductGroup}
-      strings={{
-        ...strings,
-        create: strings.create_product_group || 'צור קבוצה חדשה',
-        edit: strings.edit_product_group || 'ערוך קבוצה',
-        delete: strings.delete_product_group || 'מחק קבוצה',
-        search_placeholder: strings.search_product_groups || 'חפש קבוצות...',
-        no_items: strings.no_product_groups || 'אין קבוצות להצגה',
-        delete_title: 'מחיקת קבוצה',
-        delete_message_prefix: 'האם אתה בטוח שברצונך למחוק את הקבוצה',
-        delete_message_suffix: 'פעולה זו תמחק את הקבוצה ולא ניתן לבטלה.',
-        delete_confirm: 'כן, מחק',
-        cancel: 'ביטול'
-      }}
-      loading={externalLoading}
-      error={externalError}
-      branches={branches}
-      selectedBranchId={selectedBranchId}
-      onItemChange={onProductGroupChange}
-      columns={columns}
-      apiService={{
-        getAll: () => api.getAllGroups(),
-        create: (data) => {
-          // Route to correct API based on type
-          return data.type === 'ingredient'
-            ? api.createIngredientGroup(data)
-            : api.createProductGroup(data);
-        },
-        update: (id, data) => {
-          // Route to correct API based on type
-          return data.type === 'ingredient'
-            ? api.updateIngredientGroup(id, data)
-            : api.updateProductGroup(id, data);
-        },
-        delete: (id, itemData = null) => {
-          if (!id) {
-            throw new Error('No item selected for deletion');
-          }
+    <div className="h-full">
+      <DataSection
+        title={title}
+        data={productGroups}
+        selectedItem={selectedProductGroup}
+        setSelectedItem={setSelectedProductGroup}
+        strings={{
+          ...strings,
+          create: strings.create_product_group || 'צור קבוצה חדשה',
+          edit: strings.edit_product_group || 'ערוך קבוצה',
+          delete: strings.delete_product_group || 'מחק קבוצה',
+          search_placeholder: strings.search_product_groups || 'חפש קבוצות...',
+          no_items: strings.no_product_groups || 'אין קבוצות להצגה',
+          delete_title: 'מחיקת קבוצה',
+          delete_message_prefix: 'האם אתה בטוח שברצונך למחוק את הקבוצה',
+          delete_message_suffix: 'פעולה זו תמחק את הקבוצה ולא ניתן לבטלה.',
+          delete_confirm: 'כן, מחק',
+          cancel: 'ביטול'
+        }}
+        loading={externalLoading}
+        error={externalError}
+        branches={branches}
+        selectedBranchId={selectedBranchId}
+        onItemChange={onProductGroupChange}
+        columns={columns}
+        apiService={{
+          getAll: () => api.getAllGroups(),
+          create: (data) => {
+            // Route to correct API based on type
+            return data.type === 'ingredient'
+              ? api.createIngredientGroup(data)
+              : api.createProductGroup(data);
+          },
+          update: (id, data) => {
+            // Route to correct API based on type
+            return data.type === 'ingredient'
+              ? api.updateIngredientGroup(id, data)
+              : api.updateProductGroup(id, data);
+          },
+          delete: (id, itemData = null) => {
+            if (!id) {
+              throw new Error('No item selected for deletion');
+            }
 
-          // Use the provided itemData if available (from DataSection),
-          // otherwise fallback to finding in productGroups prop
-          const item = itemData || productGroups.find(group => group.id === id);
-          if (!item) {
-            throw new Error('Item not found in current data');
-          }
+            // Use the provided itemData if available (from DataSection),
+            // otherwise fallback to finding in productGroups prop
+            const item = itemData || productGroups.find(group => group.id === id);
+            if (!item) {
+              throw new Error('Item not found in current data');
+            }
 
-          // Route to correct API based on type
-          return item.type === 'ingredient'
-            ? api.deleteIngredientGroup(id)
-            : api.deleteProductGroup(id);
-        }
-      }}
-      Modal={ProductGroupModal}
-      editingItemProp="group"
-      itemIdProp="id"
-      itemNameProp="name"
-    />
+            // Route to correct API based on type
+            return item.type === 'ingredient'
+              ? api.deleteIngredientGroup(id)
+              : api.deleteProductGroup(id);
+          }
+        }}
+        Modal={ProductGroupModal}
+        editingItemProp="group"
+        itemIdProp="id"
+        itemNameProp="name"
+      />
+    </div>
   );
 };
 

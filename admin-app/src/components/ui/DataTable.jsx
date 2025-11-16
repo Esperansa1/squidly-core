@@ -50,7 +50,7 @@ const DataTable = ({
       )}
 
       {/* Table Container with synchronized scrolling - both horizontal and vertical */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto scrollbar-hide min-h-0">
+      <div className="flex-1 overflow-x-auto overflow-y-auto min-h-0">
         <div style={{ minWidth: `${minTableWidth}px` }} className="flex flex-col h-full">
           {/* Table Header - Fixed at top */}
           <div className="flex-shrink-0 sticky top-0 bg-white z-10 border-b border-gray-200 pb-2 pt-4 px-6 mx-2">
@@ -85,7 +85,7 @@ const DataTable = ({
           </div>
 
           {/* Table Rows */}
-          <div className="flex-1 px-6">
+          <div className="flex-1 px-6 min-h-0">
             {error ? (
               <div className="flex items-center justify-center h-64 text-red-500">
                 <div className="text-center">

@@ -98,7 +98,7 @@ const CustomerManagement = () => {
   return (
     <div className="h-full flex flex-col" dir="rtl">
       {/* Scrollable Content Area */}
-      <div className="flex-1 px-6 pt-6 pb-6 overflow-auto">
+      <div className="flex-1 px-6 pt-6 pb-6 min-h-0">
         <CustomerSection
           title="לקוחות רשומים"
           customers={customers}

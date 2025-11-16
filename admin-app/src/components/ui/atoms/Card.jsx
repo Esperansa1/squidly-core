@@ -21,7 +21,7 @@ const Card = React.forwardRef(({
   const theme = DEFAULT_THEME;
 
   // Base classes
-  const baseClasses = ['rounded-lg', 'border', 'transition-all', 'relative', 'overflow-hidden'];
+  const baseClasses = ['rounded-lg', 'border', 'transition-all', 'relative'];
 
   // Variant classes
   const variantClasses = {
