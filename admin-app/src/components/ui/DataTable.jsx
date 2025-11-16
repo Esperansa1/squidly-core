@@ -117,8 +117,8 @@ const DataTable = ({
                   >
                     {/* Selection column */}
                     <td
-                      className="py-4 px-6 text-center align-middle"
-                      style={{ width: '40px', minHeight: '70px' }}
+                      className="py-3 px-6 text-center align-middle"
+                      style={{ width: '40px' }}
                     >
                       <div className="flex justify-center">
                         <ThemedRadioButton
@@ -134,7 +134,7 @@ const DataTable = ({
                     {columns.map((column) => (
                       <td
                         key={column.key}
-                        className="py-4 px-3 text-center align-middle"
+                        className="py-3 px-3 text-center align-middle"
                         style={{
                           width: column.width,
                           minWidth: column.width,
@@ -142,7 +142,6 @@ const DataTable = ({
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
-                          minHeight: '70px',
                           ...(column.cellStyle || {})
                         }}
                       >
