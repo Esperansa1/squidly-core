@@ -38,7 +38,7 @@ const DataTable = ({
   const minTableWidth = calculateMinWidth();
 
   return (
-    <div className="h-full flex flex-col relative">
+    <div className="flex flex-col relative">
       {/* Loading overlay */}
       {loading && (
         <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20">
@@ -151,9 +151,9 @@ const DataTable = ({
         </div>
       </div>
 
-      {/* Pagination - Sticky at bottom */}
+      {/* Pagination - Fixed at bottom of table */}
       {showPagination && (
-        <div className="flex-shrink-0 sticky bottom-0 bg-white border-t border-gray-200 z-10">
+        <div className="flex-shrink-0 bg-white border-t border-gray-200 z-10">
           <Pagination
             currentPage={currentPage}
             totalItems={totalItems}
