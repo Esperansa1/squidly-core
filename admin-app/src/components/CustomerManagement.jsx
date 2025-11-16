@@ -5,7 +5,7 @@
  * No branch filtering as customers are global entities
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api.js';
 import CustomerSection from './CustomerSection.jsx';
 import { DEFAULT_THEME } from '../config/theme.js';
@@ -81,11 +81,12 @@ const CustomerManagement = () => {
   };
 
   // Handle pagination changes from DataSection
-  const handlePaginationChange = async (page, perPage, search) => {
+  // Wrapped with useCallback to prevent infinite loop in DataSection's useEffect
+  const handlePaginationChange = useCallback(async (page, perPage, search) => {
     // Don't set state here - it causes infinite loop with DataSection's useEffect
     // Just load the data with the new parameters
     return loadCustomers(page, perPage, search);
-  };
+  }, []);
 
   // Handle customer changes (create/edit/delete) - refresh data
   const handleCustomerChange = () => {
