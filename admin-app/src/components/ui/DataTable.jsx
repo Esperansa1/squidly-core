@@ -38,7 +38,7 @@ const DataTable = ({
   const minTableWidth = calculateMinWidth();
 
   return (
-    <div className="flex flex-col relative">
+    <div className="h-full flex flex-col relative">
       {/* Loading overlay */}
       {loading && (
         <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20">
