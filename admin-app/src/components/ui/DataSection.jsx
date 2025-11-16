@@ -347,7 +347,7 @@ const DataSection = ({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0">
+      <div className="h-full min-h-0">
         <DataTable
           columns={columns}
           data={useBackendPagination ? filteredData : pagination.currentPageData}
