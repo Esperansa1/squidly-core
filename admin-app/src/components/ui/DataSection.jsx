@@ -1,56 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Card, SearchBar, DataTable, ConfirmationModal, Toast } from './index';
+import { ActionButton } from './molecules';
+import usePagination from '../../hooks/usePagination.js';
 import { DEFAULT_THEME } from '../../config/theme.js';
-
-const ActionButton = ({ icon: Icon, variant, onClick, disabled = false, title }) => {
-  const theme = DEFAULT_THEME;
-
-  const getVariantStyles = () => {
-    switch (variant) {
-      case 'primary':
-        return {
-          backgroundColor: disabled ? theme.bg_gray_100 : theme.primary_color,
-          color: disabled ? theme.text_disabled : theme.bg_white,
-          borderColor: disabled ? theme.border_light : theme.primary_color
-        };
-      case 'secondary':
-        return {
-          backgroundColor: disabled ? theme.bg_gray_50 : theme.bg_white,
-          color: disabled ? theme.text_disabled : theme.text_primary,
-          borderColor: disabled ? theme.border_light : theme.border_color
-        };
-      case 'error':
-        return {
-          backgroundColor: disabled ? theme.bg_gray_100 : theme.danger_color,
-          color: disabled ? theme.text_disabled : theme.bg_white,
-          borderColor: disabled ? theme.border_light : theme.danger_color
-        };
-      default:
-        return {
-          backgroundColor: theme.bg_white,
-          color: theme.text_primary,
-          borderColor: theme.border_color
-        };
-    }
-  };
-
-  const styles = getVariantStyles();
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      className={`inline-flex items-center justify-center w-10 h-10 border rounded-md transition-all duration-200 ${
-        disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'
-      }`}
-      style={styles}
-    >
-      <Icon className="w-4 h-4" />
-    </button>
-  );
-};
 
 const DataSection = ({
   title = '',
@@ -69,14 +22,22 @@ const DataSection = ({
   editingItemProp = 'editingItem',
   itemIdProp = 'id',
   itemNameProp = 'name',
-  productGroups = []
+  productGroups = [],
+  useBackendPagination = false,  // New prop for backend pagination
+  totalItemsFromBackend = 0,     // Total items from backend
+  onPaginationChange = null      // Callback when pagination changes
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [apiData, setApiData] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [apiLoading, setApiLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [lastFetchedBranchId, setLastFetchedBranchId] = useState(null);
   const branchDataCache = useRef(new Map());
+  const [tableLoading, setTableLoading] = useState(false);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
 
   // Delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -141,8 +102,35 @@ const DataSection = ({
 
   // Fetch data from API only when branch actually changes
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!useBackendPagination) {
+      fetchData();
+    }
+  }, [fetchData, useBackendPagination]);
+
+  // Backend pagination: Reset to page 1 when search changes
+  useEffect(() => {
+    if (useBackendPagination) {
+      setCurrentPage(1);
+      setHasInitiallyLoaded(false);
+    }
+  }, [searchTerm, useBackendPagination]);
+
+  // Backend pagination: Notify parent when pagination changes
+  useEffect(() => {
+    if (useBackendPagination && onPaginationChange) {
+      if (hasInitiallyLoaded) {
+        setTableLoading(true);
+        onPaginationChange(currentPage, itemsPerPage, searchTerm).finally(() => {
+          setTableLoading(false);
+        });
+      } else {
+        // Initial load
+        onPaginationChange(currentPage, itemsPerPage, searchTerm).then(() => {
+          setHasInitiallyLoaded(true);
+        });
+      }
+    }
+  }, [currentPage, itemsPerPage, searchTerm, useBackendPagination, onPaginationChange, hasInitiallyLoaded]);
 
   // Delete functionality
   const handleDeleteClick = () => {
@@ -289,19 +277,29 @@ const DataSection = ({
   };
 
   // Determine data source and loading/error states
-  const dataToUse = apiData;
+  // For backend pagination, use the data prop passed from parent
+  // For client-side pagination, use internally fetched apiData
+  const dataToUse = useBackendPagination ? data : apiData;
   const loading = externalLoading || apiLoading;
   const error = externalError; // Don't show API errors inline anymore
 
-  // Filter data based on search term
+  // Filter data based on search term (only for client-side pagination)
   const filteredData = useMemo(() => {
+    if (useBackendPagination) {
+      // For backend pagination, data is already filtered
+      return dataToUse;
+    }
+
     if (!searchTerm) return dataToUse;
 
     const term = searchTerm.toLowerCase();
     return dataToUse.filter(item =>
       item[itemNameProp].toLowerCase().includes(term)
     );
-  }, [dataToUse, searchTerm, itemNameProp]);
+  }, [dataToUse, searchTerm, itemNameProp, useBackendPagination]);
+
+  // Initialize pagination - use client-side hook only if not using backend pagination
+  const pagination = useBackendPagination ? null : usePagination(filteredData, 10);
 
   const selectedItemData = selectedItem ?
     filteredData.find(item => item[itemIdProp] === selectedItem) : null;
@@ -332,34 +330,40 @@ const DataSection = ({
               variant="error"
               disabled={!selectedItem}
               onClick={handleDeleteClick}
-              title={strings.delete || 'מחק'}
+              tooltip={strings.delete || 'מחק'}
             />
             <ActionButton
               icon={PencilIcon}
               variant="secondary"
               disabled={!selectedItem}
               onClick={handleEditClick}
-              title={strings.edit || 'ערוך'}
+              tooltip={strings.edit || 'ערוך'}
             />
             <ActionButton
               icon={PlusIcon}
               variant="primary"
               onClick={handleCreateClick}
-              title={strings.create || 'צור חדש'}
+              tooltip={strings.create || 'צור חדש'}
             />
           </div>
         </div>
       </div>
 
-      <div className="flex-1 p-8 pt-6 min-h-0">
+      <div className="h-full min-h-0">
         <DataTable
           columns={columns}
-          data={filteredData}
+          data={useBackendPagination ? filteredData : pagination.currentPageData}
           selectedId={selectedItem}
           onSelectionChange={handleSelectionChange}
-          loading={loading}
+          loading={useBackendPagination ? tableLoading : loading}
           error={error}
           emptyMessage={strings.no_items || 'אין פריטים להצגה'}
+          showPagination={true}
+          currentPage={useBackendPagination ? currentPage : pagination.currentPage}
+          itemsPerPage={useBackendPagination ? itemsPerPage : pagination.itemsPerPage}
+          totalItems={useBackendPagination ? totalItemsFromBackend : pagination.totalItems}
+          onPageChange={useBackendPagination ? setCurrentPage : pagination.goToPage}
+          onItemsPerPageChange={useBackendPagination ? setItemsPerPage : pagination.setItemsPerPage}
         />
       </div>
 

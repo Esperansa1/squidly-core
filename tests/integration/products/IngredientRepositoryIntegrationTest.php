@@ -5,10 +5,12 @@ namespace SquidlyCore\Tests\Integration;
 
 use IngredientRepository;
 use GroupItemRepository;
+use ProductGroupRepository;
 use ItemType;
 use InvalidArgumentException;
 use ResourceInUseException;
 use WP_UnitTestCase;
+use GroupItemPostType;
 
 /**
  * Integration tests for IngredientRepository.
@@ -142,13 +144,60 @@ class IngredientRepositoryIntegrationTest extends WP_UnitTestCase
     {
         // 1) ingredient
         $iid = $this->repo->create(['name'=>'Onion','price'=>0.4]);
+        echo "\n=== DEBUG: Created ingredient with ID: {$iid} ===\n";
 
-        // 2) group-item wrapping that ingredient  (creates dependency)
+        // 2) group-item wrapping that ingredient
         $giRepo = new GroupItemRepository();
-        $giRepo->create([
+        $giId = $giRepo->create([
             'item_id'   => $iid,
             'item_type' => ItemType::INGREDIENT,
         ]);
+        echo "=== DEBUG: Created GroupItem with ID: {$giId} ===\n";
+
+        // 3) product-group containing the group-item (creates dependency)
+        $pgRepo = new ProductGroupRepository();
+        $pgId = $pgRepo->create([
+            'name' => 'Test Topping Group',
+            'type' => 'ingredient',
+            'group_item_ids' => [$giId],
+        ]);
+        echo "=== DEBUG: Created ProductGroup with ID: {$pgId} ===\n";
+
+        // Debug: Verify the GroupItem was created correctly
+        $groupItem = $giRepo->get($giId);
+        $this->assertNotNull($groupItem, 'GroupItem should be created');
+        $this->assertEquals($iid, $groupItem->item_id, 'GroupItem should reference the correct ingredient ID');
+        $this->assertEquals('ingredient', $groupItem->item_type->value, 'GroupItem should have correct item_type');
+        echo "=== DEBUG: GroupItem verification passed ===\n";
+
+        // Debug: Check the actual meta data saved
+        $item_id_meta = get_post_meta($giId, '_item_id', true);
+        $item_type_meta = get_post_meta($giId, '_item_type', true);
+        echo "=== DEBUG: Meta data - _item_id: {$item_id_meta}, _item_type: {$item_type_meta} ===\n";
+
+        // Debug: Force the dependency check to see what happens
+        $reflection = new \ReflectionClass($this->repo);
+        $method = $reflection->getMethod('findIngredientDependants');
+        $method->setAccessible(true);
+        $dependants = $method->invoke($this->repo, $iid);
+
+        echo "=== DEBUG: Found " . count($dependants) . " dependants for ingredient {$iid} ===\n";
+        if (!empty($dependants)) {
+            echo "=== DEBUG: Dependants: " . print_r($dependants, true) . " ===\n";
+        }
+
+        // Debug: Let's also manually run the query that should find the GroupItem
+        $giIds = get_posts([
+            'post_type'   => GroupItemPostType::POST_TYPE,
+            'fields'      => 'ids',
+            'nopaging'    => true,
+            'post_status' => 'publish',
+            'meta_query'  => [
+                [ 'key'   => '_item_id',  'value' => $iid,           'compare' => '=', 'type' => 'NUMERIC' ],
+                [ 'key'   => '_item_type','value' => 'ingredient',   'compare' => '='                       ],
+            ],
+        ]);
+        echo "=== DEBUG: Manual query found " . count($giIds) . " GroupItems with IDs: " . print_r($giIds, true) . " ===\n";
 
         $this->expectException(ResourceInUseException::class);
         $this->repo->delete($iid, true);

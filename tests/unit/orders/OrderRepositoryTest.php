@@ -432,7 +432,8 @@ class OrderRepositoryTest extends TestCase
             Order::PAYMENT_PENDING,
             Order::PAYMENT_PAID,
             Order::PAYMENT_FAILED,
-            Order::PAYMENT_REFUNDED
+            Order::PAYMENT_REFUNDED,
+            Order::PAYMENT_PARTIALLY_REFUNDED
         ];
         
         $this->assertEquals($expected, $statuses);

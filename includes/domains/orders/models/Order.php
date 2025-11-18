@@ -11,6 +11,7 @@ class Order
 {
     public int $id;
     public int $customer_id;
+    public ?int $branch_id = null;
     public string $status;
     public string $order_date;
     public float $total_amount;
@@ -22,6 +23,7 @@ class Order
     public string $notes;
     public array $order_items; // Array of OrderItem objects
     public ?string $delivery_address;
+    public ?string $gateway_transaction_id;
     public ?string $pickup_time;
     public ?string $special_instructions;
 
@@ -38,6 +40,7 @@ class Order
     public const PAYMENT_PAID = 'paid';
     public const PAYMENT_FAILED = 'failed';
     public const PAYMENT_REFUNDED = 'refunded';
+    public const PAYMENT_PARTIALLY_REFUNDED = 'partially_refunded';
 
     // Payment methods
     public const PAYMENT_CASH = 'cash';
@@ -52,6 +55,7 @@ class Order
         $order = new self();
         $order->id = $post->ID;
         $order->customer_id = (int) get_post_meta($post->ID, '_customer_id', true);
+        $order->branch_id = get_post_meta($post->ID, '_branch_id', true) ? (int) get_post_meta($post->ID, '_branch_id', true) : null;
         $order->status = get_post_meta($post->ID, '_status', true) ?: self::STATUS_PENDING;
         $order->order_date = $post->post_date;
         $order->total_amount = (float) get_post_meta($post->ID, '_total_amount', true);
@@ -62,6 +66,7 @@ class Order
         $order->payment_method = get_post_meta($post->ID, '_payment_method', true) ?: self::PAYMENT_CASH;
         $order->notes = get_post_meta($post->ID, '_notes', true) ?: '';
         $order->delivery_address = get_post_meta($post->ID, '_delivery_address', true) ?: null;
+        $order->gateway_transaction_id = get_post_meta($post->ID, '_gateway_transaction_id', true) ?: null;
         $order->pickup_time = get_post_meta($post->ID, '_pickup_time', true) ?: null;
         $order->special_instructions = get_post_meta($post->ID, '_special_instructions', true) ?: null;
 
@@ -97,6 +102,7 @@ class Order
             self::PAYMENT_PAID,
             self::PAYMENT_FAILED,
             self::PAYMENT_REFUNDED,
+            self::PAYMENT_PARTIALLY_REFUNDED,
         ];
     }
 
@@ -158,6 +164,7 @@ class Order
     {
         return [
             'customer_id' => $this->customer_id,
+            'branch_id' => $this->branch_id,
             'status' => $this->status,
             'order_date' => $this->order_date,
             'total_amount' => $this->total_amount,

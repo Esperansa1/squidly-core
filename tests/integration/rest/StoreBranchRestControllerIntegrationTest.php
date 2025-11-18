@@ -46,6 +46,15 @@ class StoreBranchRestControllerIntegrationTest extends WP_UnitTestCase
             'role' => 'subscriber'
         ]);
 
+        // Initialize WordPress REST server
+        global $wp_rest_server;
+        $wp_rest_server = new \WP_REST_Server();
+        do_action('rest_api_init');
+
+        // Register REST routes
+        add_action('rest_api_init', [$this->controller, 'register_routes']);
+        do_action('rest_api_init');
+
         // Create test data
         $this->createTestProducts();
         $this->createTestIngredients();
@@ -284,10 +293,8 @@ class StoreBranchRestControllerIntegrationTest extends WP_UnitTestCase
 
         $this->assertEquals(200, $response->get_status());
         $this->assertIsArray($data);
-        // Should contain "All Branches" option
-        $this->assertCount(1, $data);
-        $this->assertEquals(0, $data[0]['id']);
-        $this->assertEquals('כל הסניפים', $data[0]['name']);
+        // Should return empty array when no branches exist (no "All Branches" - that's UI logic)
+        $this->assertCount(0, $data);
     }
 
     public function test_get_branches_with_data(): void
@@ -301,12 +308,11 @@ class StoreBranchRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertCount(3, $data); // 2 branches + "All Branches" option
+        $this->assertCount(2, $data); // 2 branches (no "All Branches" - that's UI logic)
 
         $branch_names = array_column($data, 'name');
         $this->assertContains('Branch 1', $branch_names);
         $this->assertContains('Branch 2', $branch_names);
-        $this->assertContains('כל הסניפים', $branch_names);
     }
 
     public function test_get_branches_with_city_filter(): void
@@ -322,7 +328,7 @@ class StoreBranchRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        $this->assertCount(1, $data); // No "All Branches" when filtered
+        $this->assertCount(1, $data); // 1 matching branch
         $this->assertEquals('Tel Aviv Branch', $data[0]['name']);
         $this->assertEquals('Tel Aviv', $data[0]['city']);
     }
@@ -375,8 +381,8 @@ class StoreBranchRestControllerIntegrationTest extends WP_UnitTestCase
         $data = $response->get_data();
 
         $this->assertEquals(200, $response->get_status());
-        // Should include "All Branches" option when only search filter is used
-        $this->assertCount(3, $data); // 2 matching branches + "All Branches"
+        // Should return only matching branches (no "All Branches" - that's UI logic)
+        $this->assertCount(2, $data); // 2 matching branches
 
         $found_main_branches = 0;
         foreach ($data as $branch) {

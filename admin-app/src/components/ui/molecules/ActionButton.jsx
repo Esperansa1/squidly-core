@@ -1,30 +1,60 @@
 /**
  * ActionButton Component
- * 
- * Molecular component combining Button with Icon
+ *
+ * Consolidated molecular component for icon-based action buttons used in CED (Create/Edit/Delete) patterns
  */
 
 import React from 'react';
-import { Button } from '../atoms';
+import { IconButton } from '../atoms';
+import { DEFAULT_THEME } from '../../../config/theme.js';
 
-const ActionButton = ({ 
+const ActionButton = ({
   icon: Icon,
-  children,
-  variant = 'ghost',
-  size = 'icon',
+  variant = 'outline',
+  onClick,
+  disabled = false,
+  tooltip = '',
+  size = 'md',
   className = '',
-  ...props 
+  ...props
 }) => {
+  const theme = DEFAULT_THEME;
+
+  // Get variant styles that match DataSection's inline ActionButton
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'primary':
+        return {
+          variant: 'primary'
+        };
+      case 'secondary':
+        return {
+          variant: 'outline'
+        };
+      case 'error':
+        return {
+          variant: 'error'
+        };
+      default:
+        return {
+          variant: 'outline'
+        };
+    }
+  };
+
+  const variantProps = getVariantStyles();
+
   return (
-    <Button
-      variant={variant}
+    <IconButton
+      icon={Icon}
+      onClick={onClick}
+      disabled={disabled}
+      tooltip={tooltip}
       size={size}
-      className={`${className}`}
+      className={className}
+      {...variantProps}
       {...props}
-    >
-      {Icon && <Icon className="w-4 h-4" />}
-      {children}
-    </Button>
+    />
   );
 };
 

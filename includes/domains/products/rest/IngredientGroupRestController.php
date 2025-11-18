@@ -75,14 +75,24 @@ class IngredientGroupRestController extends \WP_REST_Controller
                 $filters['search'] = sanitize_text_field($request['search']);
             }
 
+            // Get pagination parameters
+            $per_page = isset($request['per_page']) ? (int) $request['per_page'] : null;
+            $offset = isset($request['offset']) ? (int) $request['offset'] : 0;
+
             // Get only ingredient type groups
-            $groups = $this->repository->findBy($filters);
+            $groups = $this->repository->findBy($filters, $per_page, $offset);
 
             $data = array_map(function($group) {
                 return $this->prepare_item_for_response($group, new \WP_REST_Request())->get_data();
             }, $groups);
 
-            return new \WP_REST_Response($data, 200);
+            // Add pagination headers
+            $total = $this->repository->countBy($filters);
+            $response = rest_ensure_response($data);
+            $response->header('X-WP-Total', (string) $total);
+            $response->header('X-WP-TotalPages', (string) ceil($total / ($per_page ?? 10)));
+
+            return $response;
             
         } catch (Exception $e) {
             // Log the error for debugging but return empty array to frontend
@@ -330,10 +340,17 @@ class IngredientGroupRestController extends \WP_REST_Controller
                 'default' => 'ingredient',
             ],
             'per_page' => [
-                'description' => 'Number of items per page',
+                'description' => 'Maximum number of items to return',
                 'type' => 'integer',
-                'default' => 20,
-                'sanitize_callback' => 'absint',
+                'default' => 10,
+                'minimum' => 1,
+                'maximum' => 100,
+            ],
+            'offset' => [
+                'description' => 'Offset for pagination',
+                'type' => 'integer',
+                'minimum' => 0,
+                'default' => 0,
             ],
         ];
     }

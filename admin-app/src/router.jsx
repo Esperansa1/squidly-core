@@ -3,16 +3,18 @@ import React, { useState } from 'react';
 // Import content components for SPA behavior
 import MenuManagement from './components/MenuManagement.jsx';
 import BranchManagement from './components/BranchManagement.jsx';
+import CustomerManagement from './components/CustomerManagement.jsx';
+import OrderManagement from './components/OrderManagement.jsx';
 
 // Route configuration
 const routes = {
   'management-area': MenuManagement,
   'performance': MenuManagement,
   'payments': MenuManagement,
-  'orders': MenuManagement,
+  'orders': OrderManagement,
   'branch-management': BranchManagement,
   'menu-management': MenuManagement,
-  'customers': MenuManagement,
+  'customers': CustomerManagement,
   'tutorials': MenuManagement,
   'settings': MenuManagement,
 };

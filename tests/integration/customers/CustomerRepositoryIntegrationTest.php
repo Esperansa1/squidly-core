@@ -548,4 +548,67 @@ class CustomerRepositoryIntegrationTest extends WP_UnitTestCase
         // Check that timestamps are included
         $this->assertMatchesRegularExpression('/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}:/', $labels);
     }
+
+    /* =====================================================================
+     * DELETE OPERATIONS WITH DEPENDENCIES
+     * ===================================================================*/
+
+    public function test_delete_customer_with_orders_throws_exception(): void
+    {
+        // Arrange - Create customer
+        $customer_id = $this->repository->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'phone' => '0501234567',
+            'auth_provider' => 'google',
+            'google_id' => 'google123'
+        ]);
+
+        // Create an actual order for this customer
+        $order_id = wp_insert_post([
+            'post_type' => 'order',
+            'post_status' => 'publish',
+            'post_title' => 'Test Order'
+        ]);
+        update_post_meta($order_id, '_customer_id', $customer_id);
+
+        // Act & Assert
+        $this->expectException(ResourceInUseException::class);
+        $this->expectExceptionMessageMatches('/ללקוח יש \d+ הזמנ/');
+
+        $this->repository->delete($customer_id, false);
+    }
+
+    public function test_delete_customer_with_orders_and_force_succeeds(): void
+    {
+        // Arrange - Create customer with orders
+        $customer_id = $this->repository->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'phone' => '0501234567',
+            'auth_provider' => 'google',
+            'google_id' => 'google123'
+        ]);
+
+        // Create an actual order for this customer
+        $order_id = wp_insert_post([
+            'post_type' => 'order',
+            'post_status' => 'publish',
+            'post_title' => 'Test Order'
+        ]);
+        update_post_meta($order_id, '_customer_id', $customer_id);
+
+        // Act - Force delete should succeed
+        $result = $this->repository->delete($customer_id, true);
+
+        // Assert
+        $this->assertTrue($result);
+        $this->assertNull($this->repository->get($customer_id));
+    }
+
+    public function test_delete_nonexistent_customer_returns_false(): void
+    {
+        $result = $this->repository->delete(99999);
+        $this->assertFalse($result);
+    }
 }

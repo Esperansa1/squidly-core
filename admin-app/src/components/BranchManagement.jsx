@@ -21,6 +21,13 @@ const BranchManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Pagination state
+  const [totalBranches, setTotalBranches] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
+
   // Modal states
   const [showBranchModal, setShowBranchModal] = useState(false);
   const [editingBranch, setEditingBranch] = useState(null);
@@ -36,30 +43,70 @@ const BranchManagement = () => {
 
   // Load branches on component mount
   useEffect(() => {
-    loadBranches();
+    loadBranches(false).then(() => {
+      setHasInitiallyLoaded(true);
+    });
   }, []);
 
-  const loadBranches = async () => {
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setHasInitiallyLoaded(false);
+  }, [searchTerm]);
+
+  // Full reload when search changes
+  useEffect(() => {
+    loadBranches(false).then(() => {
+      setHasInitiallyLoaded(true);
+    });
+  }, [searchTerm]);
+
+  // Table-only reload when pagination changes
+  useEffect(() => {
+    if (hasInitiallyLoaded) {
+      loadBranches(true);
+    }
+  }, [currentPage, itemsPerPage, hasInitiallyLoaded]);
+
+  const loadBranches = async (isTableOnly = false) => {
     try {
-      setLoading(true);
+      if (isTableOnly) {
+        setTableLoading(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
-      const branchesData = await api.getBranches();
-      console.log('Branches API response:', branchesData); // Debug log
-      setBranches(branchesData);
+
+      // Build filters with pagination
+      const offset = (currentPage - 1) * itemsPerPage;
+      const filters = {
+        offset,
+        per_page: itemsPerPage
+      };
+
+      // Add search filter if present
+      if (searchTerm.trim()) {
+        filters.search = searchTerm.trim();
+      }
+
+      const response = await api.getBranches(filters, true);  // Include pagination headers
+
+      setBranches(response.data);
+      setTotalBranches(response.total);
     } catch (error) {
       console.error('Failed to load branches:', error);
       setError(error.message || 'שגיאה בטעינת הסניפים');
     } finally {
-      setLoading(false);
+      if (isTableOnly) {
+        setTableLoading(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
-  // Filter branches based on search term
-  const filteredBranches = branches.filter(branch =>
-    branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    branch.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    branch.phone.includes(searchTerm)
-  );
+  // Branches are already filtered by backend based on searchTerm
+  const filteredBranches = branches;
 
   // Format activity times for display
   const formatActivityTimes = (activityTimes) => {
@@ -238,7 +285,7 @@ const BranchManagement = () => {
   return (
     <div className="h-full flex flex-col" dir="rtl">
       {/* Content */}
-      <div className="flex-1 p-6 overflow-hidden">
+      <div className="flex-1 p-6 min-h-0">
         <Card className="h-full flex flex-col" padding="none">
           <div className="flex-shrink-0 p-4 border-b border-gray-200">
             {/* Title */}
@@ -278,9 +325,15 @@ const BranchManagement = () => {
               data={filteredBranches}
               selectedId={selectedBranchId}
               onSelectionChange={handleSelectionChange}
-              loading={loading}
+              loading={tableLoading}
               error={error}
               emptyMessage="אין סניפים להצגה"
+              showPagination={true}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={totalBranches}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
             />
           </div>
         </Card>

@@ -11,7 +11,13 @@ class GroupItemRepository implements RepositoryInterface
             throw new InvalidArgumentException("GroupItem requires item_id and item_type.");
         }
 
-        if (ItemType::tryFrom($data['item_type']) === null) {
+        // Handle both string and ItemType object
+        $item_type_value = $data['item_type'];
+        if ($item_type_value instanceof ItemType) {
+            $item_type_value = $item_type_value->value;
+        }
+
+        if (ItemType::tryFrom($item_type_value) === null) {
             throw new InvalidArgumentException('Invalid item_type; must be "product" or "ingredient".');
         }
         
@@ -26,7 +32,7 @@ class GroupItemRepository implements RepositoryInterface
         }
 
         update_post_meta($post_id, '_item_id', (int) $data['item_id']);
-        update_post_meta($post_id, '_item_type', sanitize_text_field($data['item_type']));
+        update_post_meta($post_id, '_item_type', sanitize_text_field($item_type_value));
         update_post_meta($post_id, '_override_price', isset($data['override_price']) ? (float) $data['override_price'] : '');
 
         return $post_id;

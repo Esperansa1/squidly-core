@@ -83,7 +83,18 @@ class ApiService {
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+
+      // If caller wants pagination headers, return them along with data
+      if (options.includePaginationHeaders) {
+        return {
+          data,
+          total: parseInt(response.headers.get('X-WP-Total') || '0', 10),
+          totalPages: parseInt(response.headers.get('X-WP-TotalPages') || '1', 10),
+        };
+      }
+
+      return data;
     } catch (error) {
       console.error(`API request failed: ${endpoint}`, error);
       throw error;
@@ -92,8 +103,10 @@ class ApiService {
 
   // ===== BRANCHES API =====
   
-  async getBranches() {
-    return await this.fetch('branches');
+  async getBranches(filters = {}, includePaginationHeaders = false) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `branches?${queryParams}` : 'branches';
+    return await this.fetch(endpoint, { includePaginationHeaders });
   }
 
   async getBranch(id) {
@@ -123,7 +136,7 @@ class ApiService {
   // Branch service wrapper for compatibility with DataSection
   getBranchService() {
     return {
-      getAll: (filters = {}) => this.getBranches(filters),
+      getAll: (filters = {}, includePaginationHeaders = false) => this.getBranches(filters, includePaginationHeaders),
       get: (id) => this.getBranch(id),
       create: (data) => this.createBranch(data),
       update: (id, data) => this.updateBranch(id, data),
@@ -133,12 +146,12 @@ class ApiService {
 
   // ===== PRODUCT GROUPS API =====
   
-  async getProductGroups(filters = {}) {
+  async getProductGroups(filters = {}, includePaginationHeaders = false) {
     // Add item_type filter to get only product groups
     const productFilters = { ...filters, item_type: 'product' };
     const queryParams = new URLSearchParams(productFilters).toString();
     const endpoint = queryParams ? `product-groups?${queryParams}` : 'product-groups?item_type=product';
-    return await this.fetch(endpoint);
+    return await this.fetch(endpoint, { includePaginationHeaders });
   }
 
   async getProductGroup(id) {
@@ -167,10 +180,10 @@ class ApiService {
 
   // ===== INGREDIENTS API =====
   
-  async getIngredients(filters = {}) {
+  async getIngredients(filters = {}, includePaginationHeaders = false) {
     const queryParams = new URLSearchParams(filters).toString();
     const endpoint = queryParams ? `ingredients?${queryParams}` : 'ingredients';
-    return await this.fetch(endpoint);
+    return await this.fetch(endpoint, { includePaginationHeaders });
   }
 
   async getIngredient(id) {
@@ -199,10 +212,10 @@ class ApiService {
 
   // ===== PRODUCTS API =====
 
-  async getProducts(filters = {}) {
+  async getProducts(filters = {}, includePaginationHeaders = false) {
     const queryParams = new URLSearchParams(filters).toString();
     const endpoint = queryParams ? `products?${queryParams}` : 'products';
-    return await this.fetch(endpoint);
+    return await this.fetch(endpoint, { includePaginationHeaders });
   }
 
   async getProduct(id) {
@@ -231,10 +244,10 @@ class ApiService {
 
   // ===== INGREDIENT GROUPS API =====
 
-  async getIngredientGroups(filters = {}) {
+  async getIngredientGroups(filters = {}, includePaginationHeaders = false) {
     const queryParams = new URLSearchParams(filters).toString();
     const endpoint = queryParams ? `ingredient-groups?${queryParams}` : 'ingredient-groups';
-    return await this.fetch(endpoint);
+    return await this.fetch(endpoint, { includePaginationHeaders });
   }
 
   async getIngredientGroup(id) {
@@ -277,6 +290,82 @@ class ApiService {
       console.error('❌ Error stack:', error.stack);
       return [];
     }
+  }
+
+  // ===== CUSTOMERS API =====
+
+  async getCustomers(filters = {}, includePaginationHeaders = false) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `customers?${queryParams}` : 'customers';
+    return await this.fetch(endpoint, { includePaginationHeaders });
+  }
+
+  async getCustomer(id) {
+    return await this.fetch(`customers/${id}`);
+  }
+
+  async createCustomer(data) {
+    return await this.fetch('customers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateCustomer(id, data) {
+    return await this.fetch(`customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCustomer(id) {
+    return await this.fetch(`customers/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // ===== ORDERS API =====
+
+  async getOrders(filters = {}, includePaginationHeaders = false) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `orders?${queryParams}` : 'orders';
+    return await this.fetch(endpoint, { includePaginationHeaders });
+  }
+
+  async getOrder(id) {
+    return await this.fetch(`orders/${id}`);
+  }
+
+  async createOrder(data) {
+    return await this.fetch('orders', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateOrder(id, data) {
+    return await this.fetch(`orders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteOrder(id) {
+    return await this.fetch(`orders/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getOrderStatistics(filters = {}) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `orders/statistics?${queryParams}` : 'orders/statistics';
+    return await this.fetch(endpoint);
+  }
+
+  async getCustomerOrders(customerId, filters = {}) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `orders/customer/${customerId}?${queryParams}` : `orders/customer/${customerId}`;
+    return await this.fetch(endpoint);
   }
 
   // ===== UTILITY METHODS =====

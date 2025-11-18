@@ -102,6 +102,31 @@ function _load_core_classes() {
 			}
 		}
 	}
+
+	// Load post type classes (commonly used in tests)
+	$postTypes = [
+		'ProductPostType', 'IngredientPostType', 'ProductGroupPostType',
+		'GroupItemPostType', 'StoreBranchPostType', 'CustomerPostType', 'OrderPostType'
+	];
+	foreach ($postTypes as $postType) {
+		$paths = [
+			"/includes/domains/products/post-types/{$postType}.php",
+			"/includes/domains/stores/post-types/{$postType}.php",
+			"/includes/domains/customers/post-types/{$postType}.php",
+			"/includes/domains/orders/post-types/{$postType}.php"
+		];
+		foreach ($paths as $path) {
+			$file = $plugin_dir . $path;
+			if (file_exists($file)) {
+				require_once $file;
+				// Register the post type for tests
+				if (class_exists($postType) && method_exists($postType, 'register')) {
+					call_user_func([$postType, 'register']);
+				}
+				break;
+			}
+		}
+	}
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );

@@ -180,42 +180,44 @@ const ProductSection = ({
   ], [strings, productGroups]);
 
   return (
-    <DataSection
-      title={title}
-      data={products}
-      selectedItem={selectedProduct}
-      setSelectedItem={setSelectedProduct}
-      strings={{
-        ...strings,
-        create: strings.create_product || 'צור מוצר חדש',
-        edit: strings.edit_product || 'ערוך מוצר',
-        delete: strings.delete_product || 'מחק מוצר',
-        search_placeholder: strings.search_products || 'חפש מוצרים...',
-        no_items: strings.no_products || 'אין מוצרים להצגה',
-        delete_title: 'מחיקת מוצר',
-        delete_message_prefix: 'האם אתה בטוח שברצונך למחוק את המוצר',
-        delete_message_suffix: 'פעולה זו תמחק את המוצר מכל הסניפים ולא ניתן לבטלה.',
-        delete_confirm: 'כן, מחק',
-        cancel: 'ביטול'
-      }}
-      loading={externalLoading}
-      error={externalError}
-      branches={branches}
-      selectedBranchId={selectedBranchId}
-      onItemChange={onProductChange}
-      columns={columns}
-      apiService={api.products || {
-        getAll: () => api.getProducts(),
-        create: (data) => api.createProduct(data),
-        update: (id, data) => api.updateProduct(id, data),
-        delete: (id) => api.deleteProduct(id)
-      }}
-      Modal={ProductModal}
-      editingItemProp="product"
-      itemIdProp="id"
-      itemNameProp="name"
-      productGroups={productGroups}
-    />
+    <div className="h-full">
+      <DataSection
+        title={title}
+        data={products}
+        selectedItem={selectedProduct}
+        setSelectedItem={setSelectedProduct}
+        strings={{
+          ...strings,
+          create: strings.create_product || 'צור מוצר חדש',
+          edit: strings.edit_product || 'ערוך מוצר',
+          delete: strings.delete_product || 'מחק מוצר',
+          search_placeholder: strings.search_products || 'חפש מוצרים...',
+          no_items: strings.no_products || 'אין מוצרים להצגה',
+          delete_title: 'מחיקת מוצר',
+          delete_message_prefix: 'האם אתה בטוח שברצונך למחוק את המוצר',
+          delete_message_suffix: 'פעולה זו תמחק את המוצר מכל הסניפים ולא ניתן לבטלה.',
+          delete_confirm: 'כן, מחק',
+          cancel: 'ביטול'
+        }}
+        loading={externalLoading}
+        error={externalError}
+        branches={branches}
+        selectedBranchId={selectedBranchId}
+        onItemChange={onProductChange}
+        columns={columns}
+        apiService={api.products || {
+          getAll: () => api.getProducts(),
+          create: (data) => api.createProduct(data),
+          update: (id, data) => api.updateProduct(id, data),
+          delete: (id) => api.deleteProduct(id)
+        }}
+        Modal={ProductModal}
+        editingItemProp="product"
+        itemIdProp="id"
+        itemNameProp="name"
+        productGroups={productGroups}
+      />
+    </div>
   );
 };
 
