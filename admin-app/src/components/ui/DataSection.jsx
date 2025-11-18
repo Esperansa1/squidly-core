@@ -277,7 +277,9 @@ const DataSection = ({
   };
 
   // Determine data source and loading/error states
-  const dataToUse = apiData;
+  // For backend pagination, use the data prop passed from parent
+  // For client-side pagination, use internally fetched apiData
+  const dataToUse = useBackendPagination ? data : apiData;
   const loading = externalLoading || apiLoading;
   const error = externalError; // Don't show API errors inline anymore
 

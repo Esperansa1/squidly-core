@@ -212,13 +212,21 @@ class CustomerRepository implements RepositoryInterface
                     break;
                     
                 case 'is_guest':
-                    $query_args['meta_key'] = '_is_guest';
-                    $query_args['meta_value'] = $value ? '1' : '0';
+                    $query_args['meta_query'] = [[
+                        'key' => '_is_guest',
+                        'value' => $value ? 1 : 0,
+                        'compare' => '=',
+                        'type' => 'NUMERIC'
+                    ]];
                     break;
-                    
+
                 case 'is_active':
-                    $query_args['meta_key'] = '_is_active';
-                    $query_args['meta_value'] = $value ? '1' : '0';
+                    $query_args['meta_query'] = [[
+                        'key' => '_is_active',
+                        'value' => $value ? 1 : 0,
+                        'compare' => '=',
+                        'type' => 'NUMERIC'
+                    ]];
                     break;
                     
                 case 'name':
@@ -906,15 +914,17 @@ class CustomerRepository implements RepositoryInterface
             case 'is_guest':
                 return [
                     'key' => '_is_guest',
-                    'value' => $value ? '1' : '0',
-                    'compare' => '='
+                    'value' => $value ? 1 : 0,
+                    'compare' => '=',
+                    'type' => 'NUMERIC'
                 ];
-                
+
             case 'is_active':
                 return [
                     'key' => '_is_active',
-                    'value' => $value ? '1' : '0',
-                    'compare' => '='
+                    'value' => $value ? 1 : 0,
+                    'compare' => '=',
+                    'type' => 'NUMERIC'
                 ];
                 
             case 'google_id':

@@ -31,17 +31,14 @@ const CustomerManagement = () => {
 
   const initializeApp = async () => {
     try {
-      setLoading(true);
       setError(null);
 
       // Get app configuration
       const appConfig = await api.init();
       setConfig(appConfig);
 
-      // Load customers
-      await loadCustomers();
-
-      setLoading(false);
+      // Note: Don't call loadCustomers() here - DataSection will handle initial load
+      // via onPaginationChange callback when useBackendPagination={true}
     } catch (err) {
       console.error('Failed to initialize customer management:', err);
       setError(err.message || 'שגיאה בטעינת ניהול לקוחות');
@@ -49,23 +46,25 @@ const CustomerManagement = () => {
     }
   };
 
-  const loadCustomers = async (page = 1, perPage = 10, search = '') => {
+  const loadCustomers = useCallback(async (page = 1, perPage = 10, search = '') => {
     try {
       setLoading(true);
       setError(null);
 
-      // Build filters with pagination
-      const offset = (page - 1) * perPage;
+      // Build filters (separate from pagination params)
       const filters = {
         is_guest: false,  // Filter out guest customers
-        offset,
-        per_page: perPage
       };
 
       // Add search if present (backend should support this)
       if (search && search.trim()) {
         filters.search = search.trim();
       }
+
+      // Add pagination params
+      const offset = (page - 1) * perPage;
+      filters.offset = offset;
+      filters.per_page = perPage;
 
       // Fetch customers with pagination
       const response = await api.getCustomers(filters, true);
@@ -78,7 +77,7 @@ const CustomerManagement = () => {
       setError(err.message || 'שגיאה בטעינת הלקוחות');
       setLoading(false);
     }
-  };
+  }, []);
 
   // Handle pagination changes from DataSection
   // Wrapped with useCallback to prevent infinite loop in DataSection's useEffect
@@ -86,7 +85,7 @@ const CustomerManagement = () => {
     // Don't set state here - it causes infinite loop with DataSection's useEffect
     // Just load the data with the new parameters
     return loadCustomers(page, perPage, search);
-  }, []);
+  }, [loadCustomers]);
 
   // Handle customer changes (create/edit/delete) - refresh data
   const handleCustomerChange = () => {
