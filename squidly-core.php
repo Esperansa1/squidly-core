@@ -162,6 +162,10 @@ AdminApiBootstrap::init();
 require_once __DIR__ . '/includes/admin/AdminPageHandler.php';
 AdminPageHandler::init();
 
+// Initialize Customer Page Handler
+require_once __DIR__ . '/includes/admin/CustomerPageHandler.php';
+CustomerPageHandler::init();
+
 // Payment system activation hooks
 register_activation_hook(__FILE__, function() {
     // Ensure WooCommerce is loaded before creating payment product
