@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import publicApi from './services/publicApi';
+import { BranchProvider, useBranch } from './contexts/BranchContext';
+import BranchSelector from './components/branches/BranchSelector';
 
-function App() {
+function AppContent() {
   const [currentView, setCurrentView] = useState('branch-selection');
   const [apiStatus, setApiStatus] = useState({ initialized: false, error: null, config: null });
   const [testData, setTestData] = useState({ branches: null, products: null, categories: null });
+  const { selectedBranch } = useBranch();
 
   // Initialize API on mount
   useEffect(() => {
@@ -66,20 +69,36 @@ function App() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow p-8">
-          <div className="text-center py-12">
-            <h2 className="text-3xl font-bold mb-4 text-gray-900">Welcome to Squidly</h2>
-            <p className="text-gray-600 mb-8">
-              Your favorite restaurant, now online
-            </p>
-            <button
-              className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-600 transition"
-              onClick={() => setCurrentView('menu')}
-            >
-              Start Ordering
-            </button>
+        {currentView === 'branch-selection' && (
+          <div className="bg-white rounded-lg shadow p-8">
+            <BranchSelector
+              onBranchSelected={(branch) => {
+                console.log('Branch selected:', branch);
+                setCurrentView('menu');
+              }}
+            />
           </div>
-        </div>
+        )}
+
+        {currentView === 'menu' && (
+          <div className="bg-white rounded-lg shadow p-8">
+            <div className="text-center py-12">
+              <h2 className="text-3xl font-bold mb-4 text-gray-900">Menu</h2>
+              <p className="text-gray-600 mb-4">
+                Ordering from: <span className="font-bold text-primary">{selectedBranch?.name}</span>
+              </p>
+              <p className="text-gray-500 mb-8">
+                Menu page coming soon...
+              </p>
+              <button
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition"
+                onClick={() => setCurrentView('branch-selection')}
+              >
+                ← Back to Branch Selection
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* API Status */}
         <div className={`mt-8 p-4 rounded-lg border ${
@@ -153,6 +172,15 @@ function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+// Main App component with providers
+function App() {
+  return (
+    <BranchProvider>
+      <AppContent />
+    </BranchProvider>
   );
 }
 
