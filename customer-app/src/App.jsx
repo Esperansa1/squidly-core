@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import publicApi from './services/publicApi';
 import { BranchProvider, useBranch } from './contexts/BranchContext';
+import { CartProvider, useCart } from './contexts/CartContext';
 import BranchSelector from './components/branches/BranchSelector';
+import ProductGrid from './components/products/ProductGrid';
+import CategoryTabs from './components/products/CategoryTabs';
+import { t } from './i18n/translations';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('branch-selection');
   const [apiStatus, setApiStatus] = useState({ initialized: false, error: null, config: null });
   const [testData, setTestData] = useState({ branches: null, products: null, categories: null });
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   const { selectedBranch } = useBranch();
+  const { addToCart, getItemCount } = useCart();
 
   // Initialize API on mount
   useEffect(() => {
@@ -24,6 +33,50 @@ function AppContent() {
 
     initApi();
   }, []);
+
+  // Fetch products and categories when menu view is shown
+  useEffect(() => {
+    if (currentView === 'menu' && selectedBranch) {
+      fetchProductsAndCategories();
+    }
+  }, [currentView, selectedBranch, activeCategory]);
+
+  const fetchProductsAndCategories = async () => {
+    setLoadingProducts(true);
+    try {
+      // Fetch products (with optional category filter)
+      const filters = {
+        branch_id: selectedBranch.id
+      };
+      if (activeCategory) {
+        filters.category = activeCategory;
+      }
+
+      const fetchedProducts = await publicApi.getProducts(filters);
+      setProducts(fetchedProducts);
+
+      // Extract unique categories from products (if not already loaded)
+      if (categories.length === 0 && fetchedProducts.length > 0) {
+        // Get unique product group IDs
+        const categoryIds = [...new Set(fetchedProducts.flatMap(p => p.product_group_ids || []))];
+        // For now, create simple category objects (will be replaced with actual API call later)
+        const categoryObjects = categoryIds.map(id => ({ id, name: `Category ${id}` }));
+        setCategories(categoryObjects);
+      }
+
+      console.log('✅ Products loaded:', fetchedProducts);
+    } catch (error) {
+      console.error('❌ Failed to load products:', error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  // Handle adding product to cart
+  const handleAddToCart = (product) => {
+    addToCart(product, 1);
+    console.log('Added to cart:', product.name);
+  };
 
   // Test API endpoints
   const testApiEndpoints = async () => {
@@ -59,9 +112,9 @@ function AppContent() {
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-primary">Squidly Orders</h1>
-            <button className="px-4 py-2 text-sm text-primary hover:bg-primary-50 rounded-lg transition">
-              Cart (0)
+            <h1 className="text-2xl font-bold">Squidly Orders</h1>
+            <button className="px-4 py-2 text-sm border">
+              {t('cart')} ({getItemCount()})
             </button>
           </div>
         </div>
@@ -81,22 +134,34 @@ function AppContent() {
         )}
 
         {currentView === 'menu' && (
-          <div className="bg-white rounded-lg shadow p-8">
-            <div className="text-center py-12">
-              <h2 className="text-3xl font-bold mb-4 text-gray-900">Menu</h2>
-              <p className="text-gray-600 mb-4">
-                Ordering from: <span className="font-bold text-primary">{selectedBranch?.name}</span>
-              </p>
-              <p className="text-gray-500 mb-8">
-                Menu page coming soon...
+          <div>
+            {/* Menu Header */}
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold mb-2">{t('menu')}</h2>
+              <p className="text-gray-600">
+                {selectedBranch?.name}
               </p>
               <button
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition"
+                className="text-sm text-blue-600 mt-2"
                 onClick={() => setCurrentView('branch-selection')}
               >
-                ← Back to Branch Selection
+                ← {t('back')}
               </button>
             </div>
+
+            {/* Category Tabs */}
+            <CategoryTabs
+              categories={categories}
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
+            />
+
+            {/* Product Grid */}
+            <ProductGrid
+              products={products}
+              onAddToCart={handleAddToCart}
+              loading={loadingProducts}
+            />
           </div>
         )}
 
@@ -179,7 +244,9 @@ function AppContent() {
 function App() {
   return (
     <BranchProvider>
-      <AppContent />
+      <CartProvider>
+        <AppContent />
+      </CartProvider>
     </BranchProvider>
   );
 }
