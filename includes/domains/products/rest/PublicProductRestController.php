@@ -248,8 +248,16 @@ class PublicProductRestController extends PublicRestController
             // Filter by branch availability
             if (isset($filters['branch_id'])) {
                 $branch = $this->branchRepository->get($filters['branch_id']);
-                if ($branch && !$branch->isProductAvailable($product->id)) {
-                    return false;
+                if ($branch) {
+                    // PROTOTYPE MODE: If branch has no products configured, show all products
+                    // TODO: In production, require explicit product availability configuration
+                    if (!empty($branch->product_availability)) {
+                        // Branch has configured products - apply strict filtering
+                        if (!$branch->isProductAvailable($product->id)) {
+                            return false;
+                        }
+                    }
+                    // If product_availability is empty, assume all products are available (prototype mode)
                 }
             }
 
