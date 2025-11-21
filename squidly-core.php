@@ -150,6 +150,12 @@ require_once __DIR__ . '/includes/domains/orders/rest/OrderRestController.php';
 require_once __DIR__ . '/includes/domains/customers/rest/CustomerRestController.php';
 require_once __DIR__ . '/includes/api/AdminApiBootstrap.php';
 
+// Public REST API Controllers (no authentication required)
+require_once __DIR__ . '/includes/api/PublicRestController.php';
+require_once __DIR__ . '/includes/domains/stores/rest/PublicBranchRestController.php';
+require_once __DIR__ . '/includes/domains/products/rest/PublicProductRestController.php';
+require_once __DIR__ . '/includes/api/PublicApiBootstrap.php';
+
 // Initialize Payment Gateway System immediately after classes are loaded
 if (class_exists('Squidly\Domains\Payments\Bootstrap\PaymentBootstrap')) {
     \Squidly\Domains\Payments\Bootstrap\PaymentBootstrap::init();
@@ -157,6 +163,9 @@ if (class_exists('Squidly\Domains\Payments\Bootstrap\PaymentBootstrap')) {
 
 // Initialize Admin API
 AdminApiBootstrap::init();
+
+// Initialize Public API
+PublicApiBootstrap::init();
 
 // Initialize Admin Page Handler
 require_once __DIR__ . '/includes/admin/AdminPageHandler.php';
