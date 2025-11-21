@@ -34,17 +34,34 @@ function AppContent() {
     initApi();
   }, []);
 
-  // Fetch products and categories when menu view is shown
+  // Fetch categories once when menu view is shown
+  useEffect(() => {
+    if (currentView === 'menu' && categories.length === 0) {
+      fetchCategories();
+    }
+  }, [currentView]);
+
+  // Fetch products when branch or category filter changes
   useEffect(() => {
     if (currentView === 'menu' && selectedBranch) {
-      fetchProductsAndCategories();
+      fetchProducts();
     }
   }, [currentView, selectedBranch, activeCategory]);
 
-  const fetchProductsAndCategories = async () => {
+  const fetchCategories = async () => {
+    try {
+      const fetchedCategories = await publicApi.getCategories();
+      setCategories(fetchedCategories);
+      console.log('✅ Categories loaded:', fetchedCategories);
+    } catch (error) {
+      console.error('❌ Failed to load categories:', error);
+    }
+  };
+
+  const fetchProducts = async () => {
     setLoadingProducts(true);
     try {
-      // Fetch products (with optional category filter)
+      // Build filters
       const filters = {
         branch_id: selectedBranch.id
       };
@@ -54,17 +71,7 @@ function AppContent() {
 
       const fetchedProducts = await publicApi.getProducts(filters);
       setProducts(fetchedProducts);
-
-      // Extract unique categories from products (if not already loaded)
-      if (categories.length === 0 && fetchedProducts.length > 0) {
-        // Get unique product group IDs
-        const categoryIds = [...new Set(fetchedProducts.flatMap(p => p.product_group_ids || []))];
-        // For now, create simple category objects (will be replaced with actual API call later)
-        const categoryObjects = categoryIds.map(id => ({ id, name: `Category ${id}` }));
-        setCategories(categoryObjects);
-      }
-
-      console.log('✅ Products loaded:', fetchedProducts);
+      console.log('✅ Products loaded:', fetchedProducts.length, 'products', activeCategory ? `for category ${activeCategory}` : '(all categories)');
     } catch (error) {
       console.error('❌ Failed to load products:', error);
     } finally {

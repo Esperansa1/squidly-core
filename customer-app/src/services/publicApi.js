@@ -84,6 +84,13 @@ class PublicApiService {
   }
 
   /**
+   * Get all product categories
+   */
+  async getCategories() {
+    return await this.fetch('products/categories');
+  }
+
+  /**
    * Check product availability at branch
    * @param {number} branchId
    * @param {Array} productIds
