@@ -5,6 +5,7 @@ import { CartProvider, useCart } from './contexts/CartContext';
 import BranchSelector from './components/branches/BranchSelector';
 import ProductGrid from './components/products/ProductGrid';
 import CategoryTabs from './components/products/CategoryTabs';
+import CartModal from './components/cart/CartModal';
 import { t } from './i18n/translations';
 
 function AppContent() {
@@ -16,6 +17,7 @@ function AppContent() {
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [showCart, setShowCart] = useState(false);
   const { selectedBranch } = useBranch();
   const { addToCart, getItemCount } = useCart();
 
@@ -103,6 +105,13 @@ function AppContent() {
     console.log('Added to cart:', product.name);
   };
 
+  // Handle checkout
+  const handleCheckout = () => {
+    setShowCart(false);
+    setCurrentView('checkout');
+    console.log('Proceeding to checkout...');
+  };
+
   // Test API endpoints
   const testApiEndpoints = async () => {
     try {
@@ -138,7 +147,10 @@ function AppContent() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Squidly Orders</h1>
-            <button className="px-4 py-2 text-sm border">
+            <button
+              onClick={() => setShowCart(true)}
+              className="px-4 py-2 text-sm border hover:bg-gray-100"
+            >
               {t('cart')} ({getItemCount()})
             </button>
           </div>
@@ -187,6 +199,23 @@ function AppContent() {
               onAddToCart={handleAddToCart}
               loading={loadingProducts}
             />
+          </div>
+        )}
+
+        {currentView === 'checkout' && (
+          <div className="bg-white rounded-lg shadow p-8">
+            <div className="text-center py-12">
+              <h2 className="text-3xl font-bold mb-4 text-gray-900">{t('checkout')}</h2>
+              <p className="text-gray-600 mb-8">
+                Checkout flow coming soon...
+              </p>
+              <button
+                className="px-6 py-3 bg-gray-200 text-gray-700 font-medium hover:bg-gray-300"
+                onClick={() => setCurrentView('menu')}
+              >
+                ← {t('back')}
+              </button>
+            </div>
           </div>
         )}
 
@@ -252,6 +281,13 @@ function AppContent() {
           </p>
         </div>
       </main>
+
+      {/* Cart Modal */}
+      <CartModal
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+        onCheckout={handleCheckout}
+      />
 
       {/* Footer */}
       <footer className="bg-white border-t mt-12">
