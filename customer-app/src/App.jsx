@@ -11,6 +11,7 @@ function AppContent() {
   const [currentView, setCurrentView] = useState('branch-selection');
   const [apiStatus, setApiStatus] = useState({ initialized: false, error: null, config: null });
   const [testData, setTestData] = useState({ branches: null, products: null, categories: null });
+  const [allProducts, setAllProducts] = useState([]);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
@@ -34,48 +35,65 @@ function AppContent() {
     initApi();
   }, []);
 
-  // Fetch categories once when menu view is shown
-  useEffect(() => {
-    if (currentView === 'menu' && categories.length === 0) {
-      fetchCategories();
-    }
-  }, [currentView]);
-
-  // Fetch products when branch or category filter changes
+  // Fetch all products when menu view is shown (to extract categories)
   useEffect(() => {
     if (currentView === 'menu' && selectedBranch) {
-      fetchProducts();
+      fetchAllProductsAndCategories();
     }
-  }, [currentView, selectedBranch, activeCategory]);
+  }, [currentView, selectedBranch]);
 
-  const fetchCategories = async () => {
-    try {
-      const fetchedCategories = await publicApi.getCategories();
-      setCategories(fetchedCategories);
-      console.log('✅ Categories loaded:', fetchedCategories);
-    } catch (error) {
-      console.error('❌ Failed to load categories:', error);
+  // Filter displayed products when category changes
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      filterProductsByCategory();
     }
-  };
+  }, [activeCategory, allProducts]);
 
-  const fetchProducts = async () => {
+  const fetchAllProductsAndCategories = async () => {
     setLoadingProducts(true);
     try {
-      // Build filters
-      const filters = {
-        branch_id: selectedBranch.id
-      };
-      if (activeCategory) {
-        filters.category = activeCategory;
-      }
-
+      // Fetch all products for this branch
+      const filters = { branch_id: selectedBranch.id };
       const fetchedProducts = await publicApi.getProducts(filters);
+
+      setAllProducts(fetchedProducts);
+
+      // Extract unique categories from products (free text field)
+      const uniqueCategories = [...new Set(
+        fetchedProducts
+          .map(p => p.category)
+          .filter(cat => cat) // Remove null/undefined
+      )];
+
+      // Create category objects
+      const categoryObjects = uniqueCategories.map(name => ({
+        id: name, // Use name as ID for filtering
+        name
+      }));
+
+      setCategories(categoryObjects);
+
+      // Initially show all products
       setProducts(fetchedProducts);
-      console.log('✅ Products loaded:', fetchedProducts.length, 'products', activeCategory ? `for category ${activeCategory}` : '(all categories)');
+
+      console.log('✅ Products loaded:', fetchedProducts.length);
+      console.log('✅ Categories extracted:', categoryObjects);
     } catch (error) {
       console.error('❌ Failed to load products:', error);
     } finally {
       setLoadingProducts(false);
+    }
+  };
+
+  const filterProductsByCategory = () => {
+    if (activeCategory === null) {
+      // Show all products
+      setProducts(allProducts);
+    } else {
+      // Filter by category
+      const filtered = allProducts.filter(p => p.category === activeCategory);
+      setProducts(filtered);
+      console.log(`✅ Filtered to ${filtered.length} products in category "${activeCategory}"`);
     }
   };
 
