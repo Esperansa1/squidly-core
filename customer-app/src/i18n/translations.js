@@ -233,9 +233,9 @@ const translations = {
   },
 };
 
-// Current language (default: English)
+// Current language (default: Hebrew)
 // Can be set from WordPress settings or user preference later
-let currentLanguage = 'en';
+let currentLanguage = 'he';
 
 /**
  * Set the current language
@@ -248,8 +248,14 @@ export function setLanguage(lang) {
     document.documentElement.dir = (lang === 'he' || lang === 'ar') ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
   } else {
-    console.warn(`Language '${lang}' not supported, using English`);
+    console.warn(`Language '${lang}' not supported, using Hebrew`);
   }
+}
+
+// Initialize document direction on load
+if (typeof document !== 'undefined') {
+  document.documentElement.dir = 'rtl';
+  document.documentElement.lang = 'he';
 }
 
 /**
