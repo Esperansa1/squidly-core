@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPinIcon, PhoneIcon, ClockIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { t } from '../../i18n/translations';
 
 /**
  * Branch Card Component
@@ -49,12 +50,12 @@ export default function BranchCard({ branch, onSelect, selected = false }) {
             {is_currently_open ? (
               <>
                 <CheckCircleIcon className="w-4 h-4" />
-                <span>Open Now</span>
+                <span>{t('openNow')}</span>
               </>
             ) : (
               <>
                 <XCircleIcon className="w-4 h-4" />
-                <span>Closed</span>
+                <span>{t('closed')}</span>
               </>
             )}
           </div>
@@ -78,7 +79,7 @@ export default function BranchCard({ branch, onSelect, selected = false }) {
         {!is_currently_open && next_opening_time && (
           <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
             <ClockIcon className="w-5 h-5 flex-shrink-0" />
-            <span>Opens: {next_opening_time}</span>
+            <span>{t('opens')}: {next_opening_time}</span>
           </div>
         )}
 
@@ -110,7 +111,7 @@ export default function BranchCard({ branch, onSelect, selected = false }) {
             }
           `}
         >
-          {selected ? '✓ Selected' : 'Select Branch'}
+          {selected ? `✓ ${t('selectedBranch')}` : t('selectBranch')}
         </button>
       </div>
     </div>

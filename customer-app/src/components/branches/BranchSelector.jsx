@@ -1,6 +1,7 @@
 import React from 'react';
 import { useBranch } from '../../contexts/BranchContext';
 import BranchCard from './BranchCard';
+import { t } from '../../i18n/translations';
 
 /**
  * Branch Selector Component
@@ -27,7 +28,7 @@ export default function BranchSelector({ onBranchSelected }) {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-600">Loading branches...</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -43,13 +44,13 @@ export default function BranchSelector({ onBranchSelected }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">Failed to Load Branches</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">{t('failedToLoadBranches')}</h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition"
           >
-            Try Again
+            {t('tryAgain')}
           </button>
         </div>
       </div>
@@ -66,9 +67,9 @@ export default function BranchSelector({ onBranchSelected }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">No Branches Available</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">{t('noBranchesAvailable')}</h3>
           <p className="text-gray-600">
-            We couldn't find any branches at the moment. Please check back later.
+            {t('noBranchesMessage')}
           </p>
         </div>
       </div>
@@ -80,16 +81,16 @@ export default function BranchSelector({ onBranchSelected }) {
     <div>
       {/* Header */}
       <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Choose Your Branch</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('chooseBranch')}</h2>
         <p className="text-gray-600">
-          Select a branch to start ordering
+          {t('selectBranchPrompt')}
         </p>
         {selectedBranch && (
           <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-            Selected: {selectedBranch.name}
+            {t('selectedBranch')}: {selectedBranch.name}
           </div>
         )}
       </div>
@@ -109,7 +110,7 @@ export default function BranchSelector({ onBranchSelected }) {
       {/* Info Footer */}
       <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p className="text-blue-800 text-sm text-center">
-          💡 Tip: You can only order from branches that are currently open
+          💡 {t('branchTip')}
         </p>
       </div>
     </div>
