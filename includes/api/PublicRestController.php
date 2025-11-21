@@ -11,18 +11,12 @@ if (!defined('ABSPATH')) {
  * Base class for all public-facing REST API endpoints
  * No authentication required - accessible to all users
  */
-abstract class PublicRestController extends WP_REST_Controller
+abstract class PublicRestController extends \WP_REST_Controller
 {
     /**
      * API namespace for public endpoints
      */
     protected $namespace = 'squidly/v1/public';
-
-    /**
-     * Register routes for this controller
-     * Must be implemented by child classes
-     */
-    abstract public function register_routes();
 
     /**
      * Public permission callback - allows all requests
@@ -94,7 +88,7 @@ abstract class PublicRestController extends WP_REST_Controller
     protected function public_permission_with_rate_limit(int $max_requests = 100, int $time_window = 60)
     {
         if (!$this->check_rate_limit($max_requests, $time_window)) {
-            return new WP_Error(
+            return new \WP_Error(
                 'rate_limit_exceeded',
                 'Too many requests. Please try again later.',
                 ['status' => 429]
@@ -113,9 +107,9 @@ abstract class PublicRestController extends WP_REST_Controller
      * @param int $offset Current offset
      * @return WP_REST_Response
      */
-    protected function prepare_collection_response(array $items, int $total, int $per_page, int $offset): WP_REST_Response
+    protected function prepare_collection_response(array $items, int $total, int $per_page, int $offset): \WP_REST_Response
     {
-        $response = new WP_REST_Response($items, 200);
+        $response = new \WP_REST_Response($items, 200);
 
         // Add pagination headers
         $response->header('X-WP-Total', $total);
@@ -128,9 +122,9 @@ abstract class PublicRestController extends WP_REST_Controller
      * Sanitize and validate pagination parameters
      *
      * @param WP_REST_Request $request
-     * @return array [per_page, offset]
+     * @return array ['per_page' => int, 'offset' => int]
      */
-    protected function get_pagination_params(WP_REST_Request $request): array
+    protected function get_pagination_params(\WP_REST_Request $request): array
     {
         $per_page = $request->get_param('per_page') ?: 20;
         $per_page = min(max(1, (int) $per_page), 100); // Limit between 1-100
@@ -138,7 +132,10 @@ abstract class PublicRestController extends WP_REST_Controller
         $offset = $request->get_param('offset') ?: 0;
         $offset = max(0, (int) $offset);
 
-        return [$per_page, $offset];
+        return [
+            'per_page' => $per_page,
+            'offset' => $offset
+        ];
     }
 
     /**
@@ -148,9 +145,9 @@ abstract class PublicRestController extends WP_REST_Controller
      * @param int $status_code HTTP status code
      * @return WP_REST_Response
      */
-    protected function handle_error(Exception $e, int $status_code = 500): WP_REST_Response
+    protected function handle_error(\Exception $e, int $status_code = 500): \WP_REST_Response
     {
-        return new WP_REST_Response([
+        return new \WP_REST_Response([
             'error' => $e->getMessage(),
             'code' => $e->getCode()
         ], $status_code);
@@ -163,11 +160,11 @@ abstract class PublicRestController extends WP_REST_Controller
      * @param array $required_params Array of required parameter names
      * @return WP_Error|bool True if valid, WP_Error if invalid
      */
-    protected function validate_required_params(WP_REST_Request $request, array $required_params)
+    protected function validate_required_params(\WP_REST_Request $request, array $required_params)
     {
         foreach ($required_params as $param) {
             if (!$request->has_param($param) || empty($request->get_param($param))) {
-                return new WP_Error(
+                return new \WP_Error(
                     'missing_parameter',
                     sprintf('Missing required parameter: %s', $param),
                     ['status' => 400]

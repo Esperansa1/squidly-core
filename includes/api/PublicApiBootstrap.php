@@ -74,7 +74,7 @@ class PublicApiBootstrap
      * @param WP_REST_Request $request Request object
      * @return WP_REST_Response Response with public configuration
      */
-    public static function get_public_config($request): WP_REST_Response
+    public static function get_public_config($request)
     {
         $config = [
             'api' => [

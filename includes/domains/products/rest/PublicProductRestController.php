@@ -78,7 +78,7 @@ class PublicProductRestController extends PublicRestController
      * @param WP_REST_Request $request Full request object
      * @return WP_REST_Response Response object
      */
-    public function get_items($request): WP_REST_Response
+    public function get_items($request)
     {
         // Apply rate limiting
         if (!$this->check_rate_limit()) {
@@ -160,7 +160,7 @@ class PublicProductRestController extends PublicRestController
      * @param WP_REST_Request $request Full request object
      * @return WP_REST_Response Response object
      */
-    public function get_item($request): WP_REST_Response
+    public function get_item($request)
     {
         // Apply rate limiting
         if (!$this->check_rate_limit()) {
@@ -205,7 +205,7 @@ class PublicProductRestController extends PublicRestController
      * @param WP_REST_Request $request Full request object
      * @return WP_REST_Response Response object
      */
-    public function get_categories($request): WP_REST_Response
+    public function get_categories($request)
     {
         // Apply rate limiting
         if (!$this->check_rate_limit()) {
