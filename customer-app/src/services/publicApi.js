@@ -6,7 +6,7 @@
 class PublicApiService {
   constructor() {
     // API configuration from WordPress
-    this.baseUrl = window.wpConfig?.apiUrl || '/wp-json/squidly/v1/public/';
+    this.baseUrl = window.wpConfig?.publicApiUrl || '/wp-json/squidly/v1/public/';
     this.config = null;
   }
 
