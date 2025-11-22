@@ -39,6 +39,10 @@ class PublicApiBootstrap
         $orders_controller = new PublicOrderRestController();
         $orders_controller->register_routes();
 
+        // Public Customers API (guest creation)
+        $customers_controller = new PublicCustomerRestController();
+        $customers_controller->register_routes();
+
         // Public config endpoint for customer app
         register_rest_route('squidly/v1/public', '/config', [
             'methods' => WP_REST_Server::READABLE,
