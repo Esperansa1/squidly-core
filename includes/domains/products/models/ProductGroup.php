@@ -10,6 +10,8 @@ class ProductGroup
     public ItemType $type;
     public array $group_item_ids; // int[]
     public array $availability; // array [branch_id => boolean]
+    public int $min_selections; // Minimum items customer must select (0 = optional)
+    public int $max_selections; // Maximum items customer can select (0 = unlimited)
 
     public function __construct(array $data)
     {
@@ -19,6 +21,8 @@ class ProductGroup
         $this->type            = ItemType::from($data['type']);
         $this->group_item_ids  = $data['group_item_ids'] ?? [];
         $this->availability    = $data['availability'] ?? [];
+        $this->min_selections  = isset($data['min_selections']) ? (int) $data['min_selections'] : 0;
+        $this->max_selections  = isset($data['max_selections']) ? (int) $data['max_selections'] : 0;
     }
 
     public function toArray(): array
@@ -30,6 +34,8 @@ class ProductGroup
             'type'            => $this->type->value,
             'group_item_ids'  => $this->group_item_ids,
             'availability'    => $this->availability,
+            'min_selections'  => $this->min_selections,
+            'max_selections'  => $this->max_selections,
         ];
     }
 

@@ -28,6 +28,10 @@ class ProductGroupRepository implements RepositoryInterface
         update_post_meta($post_id, '_type', $data['type']);
         update_post_meta($post_id, '_group_item_ids', array_map('intval', $data['group_item_ids'] ?? []));
 
+        // Save min/max selection constraints (default to 0)
+        update_post_meta($post_id, '_min_selections', isset($data['min_selections']) ? max(0, (int) $data['min_selections']) : 0);
+        update_post_meta($post_id, '_max_selections', isset($data['max_selections']) ? max(0, (int) $data['max_selections']) : 0);
+
         // Handle branch availability if provided
         if (isset($data['availability']) && is_array($data['availability'])) {
             $this->updateAvailability($post_id, $data['availability']);
@@ -57,6 +61,8 @@ class ProductGroupRepository implements RepositoryInterface
             'type'            => $type,
             'group_item_ids'  => get_post_meta($id, '_group_item_ids', true) ?? [],
             'availability'    => $this->getAvailability($id),
+            'min_selections'  => (int) get_post_meta($id, '_min_selections', true),
+            'max_selections'  => (int) get_post_meta($id, '_max_selections', true),
         ]);
     }
 
@@ -99,6 +105,14 @@ class ProductGroupRepository implements RepositoryInterface
         }
         if (array_key_exists('group_item_ids', $data)) {
             update_post_meta($id, '_group_item_ids', array_map('intval', $data['group_item_ids']));
+        }
+
+        // Update min/max selections constraints
+        if (array_key_exists('min_selections', $data)) {
+            update_post_meta($id, '_min_selections', max(0, (int) $data['min_selections']));
+        }
+        if (array_key_exists('max_selections', $data)) {
+            update_post_meta($id, '_max_selections', max(0, (int) $data['max_selections']));
         }
 
         // Update branch availability if provided

@@ -165,6 +165,14 @@ class ProductGroupRestController extends \WP_REST_Controller
                 $data['group_item_ids'] = [];
             }
 
+            // Handle min/max selection constraints
+            if (isset($request['min_selections'])) {
+                $data['min_selections'] = max(0, (int) $request['min_selections']);
+            }
+            if (isset($request['max_selections'])) {
+                $data['max_selections'] = max(0, (int) $request['max_selections']);
+            }
+
             $group_id = $this->repository->create($data);
             $group = $this->repository->get($group_id);
 
@@ -216,6 +224,14 @@ class ProductGroupRestController extends \WP_REST_Controller
 
             if (isset($request['status'])) {
                 $data['status'] = sanitize_text_field($request['status']);
+            }
+
+            // Handle min/max selection constraints
+            if (isset($request['min_selections'])) {
+                $data['min_selections'] = max(0, (int) $request['min_selections']);
+            }
+            if (isset($request['max_selections'])) {
+                $data['max_selections'] = max(0, (int) $request['max_selections']);
             }
 
             $success = $this->repository->update($id, $data);
@@ -312,6 +328,8 @@ class ProductGroupRestController extends \WP_REST_Controller
             'final_availability' => $final_availability, // Final combined availability
             'status' => 'active', // Add status logic based on your requirements
             'items_count' => count($item->group_item_ids),
+            'min_selections' => $item->min_selections,
+            'max_selections' => $item->max_selections,
         ];
 
         return new \WP_REST_Response($data, 200);
