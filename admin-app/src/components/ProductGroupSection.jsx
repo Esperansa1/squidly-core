@@ -81,6 +81,38 @@ const ProductGroupSection = ({
       }
     },
     {
+      key: 'selections',
+      label: strings.selection_range || 'טווח בחירה',
+      width: '120px',
+      cellStyle: {
+        textAlign: 'center'
+      },
+      render: (_, item) => {
+        const min = item.min_selections || 0;
+        const max = item.max_selections || 0;
+
+        // Build readable text
+        let text = '';
+        if (min === 0 && max === 0) {
+          text = 'אופציונלי, ללא הגבלה';
+        } else if (min === 0 && max > 0) {
+          text = `עד ${max} בחירות`;
+        } else if (min > 0 && max === 0) {
+          text = `לפחות ${min} בחירות`;
+        } else if (min === max) {
+          text = `בדיוק ${min} ${min === 1 ? 'בחירה' : 'בחירות'}`;
+        } else {
+          text = `${min}-${max} בחירות`;
+        }
+
+        return (
+          <span className="text-sm text-gray-700" title={`מינימום: ${min}, מקסימום: ${max === 0 ? 'ללא הגבלה' : max}`}>
+            {text}
+          </span>
+        );
+      }
+    },
+    {
       key: 'final_availability',
       label: strings.availability || 'זמינות',
       width: '180px',
