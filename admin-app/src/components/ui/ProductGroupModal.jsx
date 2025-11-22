@@ -18,7 +18,9 @@ const ProductGroupModal = ({
     description: '',
     type: 'ingredient',
     group_item_ids: [],
-    availability: {}
+    availability: {},
+    min_selections: 0,
+    max_selections: 0
   });
 
   const [availableItems, setAvailableItems] = useState([]);
@@ -47,7 +49,9 @@ const ProductGroupModal = ({
         description: group.description || '',
         type: group.type || 'ingredient',
         group_item_ids: group.group_item_ids,
-        availability: availability
+        availability: availability,
+        min_selections: group.min_selections || 0,
+        max_selections: group.max_selections || 0
       });
 
       // Check if all branches are selected (excluding "All Branches" entries)
@@ -75,7 +79,9 @@ const ProductGroupModal = ({
         description: '',
         type: 'ingredient',
         group_item_ids: [],
-        availability: defaultAvailability
+        availability: defaultAvailability,
+        min_selections: 0,
+        max_selections: 0
       });
       setSelectedItems([]);
       setSelectAllBranches(true);
@@ -130,10 +136,10 @@ const ProductGroupModal = ({
   };
 
   const handleInputChange = useCallback((e) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'number' ? parseInt(value) || 0 : value
     }));
   }, []);
 
@@ -359,7 +365,9 @@ const ProductGroupModal = ({
       description: '',
       type: 'ingredient',
       group_item_ids: [],
-      availability: defaultAvailability
+      availability: defaultAvailability,
+      min_selections: 0,
+      max_selections: 0
     });
     setSelectedItems([]);
     setError('');
@@ -563,6 +571,58 @@ const ProductGroupModal = ({
                     }
                   </p>
                 )}
+              </div>
+
+              {/* Selection Constraints */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
+                    {strings.min_selections || 'מינימום בחירות'}
+                  </label>
+                  <input
+                    type="number"
+                    name="min_selections"
+                    value={formData.min_selections}
+                    onChange={handleInputChange}
+                    min="0"
+                    className="w-full px-3 py-2 rounded text-right"
+                    style={{
+                      border: `1px solid ${theme.border_color}`,
+                      backgroundColor: theme.background_secondary
+                    }}
+                    onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${theme.primary_color}40`}
+                    onBlur={(e) => e.target.style.boxShadow = 'none'}
+                    placeholder="0"
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs mt-1 text-right" style={{ color: theme.text_secondary }}>
+                    0 = אופציונלי
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
+                    {strings.max_selections || 'מקסימום בחירות'}
+                  </label>
+                  <input
+                    type="number"
+                    name="max_selections"
+                    value={formData.max_selections}
+                    onChange={handleInputChange}
+                    min="0"
+                    className="w-full px-3 py-2 rounded text-right"
+                    style={{
+                      border: `1px solid ${theme.border_color}`,
+                      backgroundColor: theme.background_secondary
+                    }}
+                    onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${theme.primary_color}40`}
+                    onBlur={(e) => e.target.style.boxShadow = 'none'}
+                    placeholder="0"
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs mt-1 text-right" style={{ color: theme.text_secondary }}>
+                    0 = ללא הגבלה
+                  </p>
+                </div>
               </div>
 
               {/* Branch Availability */}
