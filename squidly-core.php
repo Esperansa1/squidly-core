@@ -159,6 +159,13 @@ require_once __DIR__ . '/includes/domains/stores/rest/PublicBranchRestController
 require_once __DIR__ . '/includes/domains/products/rest/PublicProductRestController.php';
 require_once __DIR__ . '/includes/domains/orders/rest/PublicOrderRestController.php';
 require_once __DIR__ . '/includes/domains/customers/rest/PublicCustomerRestController.php';
+
+// Cart models and services
+require_once __DIR__ . '/includes/domains/orders/models/Cart.php';
+require_once __DIR__ . '/includes/domains/orders/models/CartItem.php';
+require_once __DIR__ . '/includes/domains/orders/services/CartService.php';
+require_once __DIR__ . '/includes/domains/orders/rest/PublicCartRestController.php';
+
 require_once __DIR__ . '/includes/api/PublicApiBootstrap.php';
 
 // Initialize Payment Gateway System immediately after classes are loaded
