@@ -36,24 +36,52 @@ export function CartProvider({ children }) {
   }, [cart]);
 
   // Add item to cart
-  const addToCart = (product, quantity = 1) => {
+  const addToCart = (product, quantity = 1, customizations = null) => {
     setCart(prev => {
-      // Check if product already in cart
-      const existingIndex = prev.items.findIndex(item => item.product.id === product.id);
+      // Generate unique key for item (includes customizations)
+      const itemKey = generateItemKey(product.id, customizations);
+
+      // Check if exact same product+customizations already in cart
+      const existingIndex = prev.items.findIndex(item =>
+        generateItemKey(item.product.id, item.customizations) === itemKey
+      );
 
       if (existingIndex >= 0) {
-        // Update quantity
+        // Update quantity of existing customized item
         const newItems = [...prev.items];
         newItems[existingIndex].quantity += quantity;
         return { ...prev, items: newItems };
       } else {
-        // Add new item
+        // Add new item with customizations
+        const newItem = {
+          product,
+          quantity,
+          customizations: customizations || {},
+          final_price: product.final_price || product.discounted_price || product.price
+        };
         return {
           ...prev,
-          items: [...prev.items, { product, quantity }]
+          items: [...prev.items, newItem]
         };
       }
     });
+  };
+
+  // Generate unique key for cart item (product + customizations)
+  const generateItemKey = (productId, customizations) => {
+    if (!customizations || Object.keys(customizations).length === 0) {
+      return `product_${productId}`;
+    }
+    // Create consistent key from customizations
+    const customizationKey = Object.keys(customizations)
+      .sort()
+      .map(groupId => {
+        const items = customizations[groupId] || [];
+        const itemIds = items.map(i => i.id).sort().join(',');
+        return `${groupId}:${itemIds}`;
+      })
+      .join('|');
+    return `product_${productId}_custom_${customizationKey}`;
   };
 
   // Update item quantity
@@ -89,7 +117,8 @@ export function CartProvider({ children }) {
   // Calculate totals
   const getTotal = () => {
     return cart.items.reduce((total, item) => {
-      const price = item.product.discounted_price || item.product.price;
+      // Use final_price if available (includes customizations), otherwise base price
+      const price = item.final_price || item.product.discounted_price || item.product.price;
       return total + (price * item.quantity);
     }, 0);
   };

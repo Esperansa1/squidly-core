@@ -6,6 +6,7 @@ import BranchSelector from './components/branches/BranchSelector';
 import ProductGrid from './components/products/ProductGrid';
 import CategoryTabs from './components/products/CategoryTabs';
 import CartModal from './components/cart/CartModal';
+import ProductCustomizationModal from './components/products/ProductCustomizationModal';
 import { t } from './i18n/translations';
 
 function AppContent() {
@@ -18,6 +19,7 @@ function AppContent() {
   const [activeCategory, setActiveCategory] = useState(null);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [showCart, setShowCart] = useState(false);
+  const [customizingProduct, setCustomizingProduct] = useState(null);
   const { selectedBranch } = useBranch();
   const { addToCart, getItemCount } = useCart();
 
@@ -101,8 +103,26 @@ function AppContent() {
 
   // Handle adding product to cart
   const handleAddToCart = (product) => {
-    addToCart(product, 1);
-    console.log('Added to cart:', product.name);
+    // Check if product has customization groups
+    if (product.product_group_ids && product.product_group_ids.length > 0) {
+      // Show customization modal
+      setCustomizingProduct(product);
+    } else {
+      // Add directly to cart (no customization)
+      addToCart(product, 1);
+      console.log('Added to cart:', product.name);
+    }
+  };
+
+  // Handle customized product confirmation
+  const handleCustomizationConfirm = (customizedProduct) => {
+    addToCart(
+      customizedProduct,
+      1,
+      customizedProduct.customizations
+    );
+    console.log('Added customized product to cart:', customizedProduct.name);
+    setCustomizingProduct(null);
   };
 
   // Handle checkout
@@ -287,6 +307,14 @@ function AppContent() {
         isOpen={showCart}
         onClose={() => setShowCart(false)}
         onCheckout={handleCheckout}
+      />
+
+      {/* Product Customization Modal */}
+      <ProductCustomizationModal
+        product={customizingProduct}
+        isOpen={!!customizingProduct}
+        onClose={() => setCustomizingProduct(null)}
+        onConfirm={handleCustomizationConfirm}
       />
 
       {/* Footer */}

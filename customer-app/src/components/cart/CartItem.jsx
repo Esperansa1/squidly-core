@@ -5,9 +5,15 @@ import { t } from '../../i18n/translations';
  * CartItem - Display single cart item with quantity controls
  */
 export default function CartItem({ item, onUpdateQuantity, onRemove }) {
-  const { product, quantity } = item;
-  const price = product.discounted_price || product.price;
+  const { product, quantity, customizations, final_price } = item;
+  const price = final_price || product.discounted_price || product.price;
   const itemTotal = price * quantity;
+
+  // Check if item has customizations
+  const hasCustomizations = customizations && Object.keys(customizations).length > 0;
+  const customizationItems = hasCustomizations
+    ? Object.values(customizations).flat()
+    : [];
 
   return (
     <div className="border-b py-4">
@@ -17,6 +23,17 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }) {
           <h4 className="font-bold">{product.name}</h4>
           {product.category && (
             <p className="text-xs text-gray-500">{product.category}</p>
+          )}
+          {/* Show customizations */}
+          {hasCustomizations && customizationItems.length > 0 && (
+            <div className="mt-1 text-xs text-gray-600">
+              {customizationItems.map((item, idx) => (
+                <span key={idx}>
+                  • {item.name}{item.price > 0 && ` (+₪${item.price})`}
+                  {idx < customizationItems.length - 1 && ', '}
+                </span>
+              ))}
+            </div>
           )}
         </div>
         <div className="text-left ml-4">

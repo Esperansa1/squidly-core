@@ -89,10 +89,12 @@ class Product
             $resolved = $group->getResolvedItems($giRepo, $prodRepo, $ingRepo);
 
             $groupsOut[] = [
+                'group_id'   => $group->id,
                 'group_name' => $group->name,
                 'type'       => $group->type->value,
+                'description'=> $group->description,
                 'items'      => array_map(
-                    fn ($i) => ['name' => $i->name, 'price' => $i->price],
+                    fn ($i) => ['id' => $i->id, 'name' => $i->name, 'price' => $i->price],
                     $resolved
                 ),
             ];

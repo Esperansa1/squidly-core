@@ -70,6 +70,24 @@ class PublicProductRestController extends PublicRestController
                 'permission_callback' => [$this, 'public_permission_callback'],
             ],
         ]);
+
+        // GET /squidly/v1/public/products/{id}/customize - Get product with groups for customization
+        register_rest_route($this->namespace, '/' . $this->rest_base . '/(?P<id>\d+)/customize', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'get_product_with_groups'],
+                'permission_callback' => [$this, 'public_permission_callback'],
+                'args'                => [
+                    'id' => [
+                        'required'          => true,
+                        'type'              => 'integer',
+                        'validate_callback' => function($param) {
+                            return is_numeric($param) && $param > 0;
+                        },
+                    ],
+                ],
+            ],
+        ]);
     }
 
     /**
@@ -191,6 +209,48 @@ class PublicProductRestController extends PublicRestController
             }
 
             return new WP_REST_Response($product_data, 200);
+
+        } catch (Exception $e) {
+            return new WP_REST_Response([
+                'error' => 'Failed to retrieve product: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get product with all its groups and items for customization.
+     *
+     * @param WP_REST_Request $request Full request object
+     * @return WP_REST_Response Response object
+     */
+    public function get_product_with_groups($request)
+    {
+        // Apply rate limiting
+        if (!$this->check_rate_limit()) {
+            return new WP_REST_Response([
+                'error' => 'Rate limit exceeded. Please try again later.'
+            ], 429);
+        }
+
+        try {
+            $id = (int) $request->get_param('id');
+            $product = $this->repository->get($id);
+
+            if (!$product) {
+                return new WP_REST_Response([
+                    'error' => 'Product not found'
+                ], 404);
+            }
+
+            // Build product with groups and items resolved
+            $productData = $product->buildProduct(
+                $this->groupRepository,
+                new GroupItemRepository(),
+                $this->repository,
+                new IngredientRepository()
+            );
+
+            return new WP_REST_Response($productData, 200);
 
         } catch (Exception $e) {
             return new WP_REST_Response([

@@ -91,6 +91,14 @@ class PublicApiService {
   }
 
   /**
+   * Get product with groups for customization
+   * @param {number} id Product ID
+   */
+  async getProductWithGroups(id) {
+    return await this.fetch(`products/${id}/customize`);
+  }
+
+  /**
    * Check product availability at branch
    * @param {number} branchId
    * @param {Array} productIds
