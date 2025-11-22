@@ -19,6 +19,8 @@ class PublicCartRestController extends WP_REST_Controller
     protected $rest_base = 'public/cart';
 
     private CartService $cartService;
+    private OrderRepository $orderRepo;
+    private CustomerRepository $customerRepo;
 
     // Rate limiting
     private const RATE_LIMIT_REQUESTS = 30;
@@ -27,6 +29,8 @@ class PublicCartRestController extends WP_REST_Controller
     public function __construct()
     {
         $this->cartService = new CartService();
+        $this->orderRepo = new OrderRepository();
+        $this->customerRepo = new CustomerRepository();
     }
 
     /**
@@ -104,6 +108,16 @@ class PublicCartRestController extends WP_REST_Controller
                         'required'    => true,
                     ],
                 ],
+            ],
+        ]);
+
+        // POST /squidly/v1/public/cart/{token}/checkout - Convert cart to order
+        register_rest_route($this->namespace, '/' . $this->rest_base . '/(?P<token>[a-zA-Z0-9_]+)/checkout', [
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'checkout'],
+                'permission_callback' => [$this, 'public_permission_callback'],
+                'args'                => $this->get_checkout_args(),
             ],
         ]);
     }
@@ -432,6 +446,181 @@ class PublicCartRestController extends WP_REST_Controller
             ],
             'notes' => [
                 'description' => 'Item notes',
+                'type'        => 'string',
+            ],
+        ];
+    }
+
+    /**
+     * Checkout - Convert cart to order
+     */
+    public function checkout($request)
+    {
+        if (!$this->check_rate_limit()) {
+            return new WP_REST_Response([
+                'error' => 'Rate limit exceeded. Please try again in a moment.'
+            ], 429);
+        }
+
+        try {
+            $token = sanitize_text_field($request->get_param('token'));
+            $data = $request->get_json_params();
+
+            // Step 1: Validate customer exists
+            $customer_id = $data['customer_id'] ?? null;
+            if (!$customer_id) {
+                return new WP_REST_Response([
+                    'error' => 'customer_id is required'
+                ], 400);
+            }
+
+            $customer = $this->customerRepo->get($customer_id);
+            if (!$customer) {
+                return new WP_REST_Response([
+                    'error' => 'Customer not found'
+                ], 400);
+            }
+
+            // Step 2: Convert cart to order data
+            $order_data = $this->cartService->convertToOrderData($token, $data);
+
+            // Step 3: Create order
+            $order_id = $this->orderRepo->create($order_data);
+
+            // Step 4: Get created order
+            $order = $this->orderRepo->get($order_id);
+
+            // Step 5: Prepare payment URL (if online payment)
+            $payment_url = null;
+            $payment_method = $data['payment_method'] ?? 'online';
+            if ($payment_method === 'woocommerce' || $payment_method === 'online') {
+                // Create WooCommerce order for payment
+                try {
+                    $wc_order_id = $this->create_woocommerce_order($order);
+                    $this->orderRepo->linkWooCommerceOrder($order_id, $wc_order_id);
+
+                    $wc_order = wc_get_order($wc_order_id);
+                    $payment_url = $wc_order->get_checkout_payment_url();
+                } catch (Exception $e) {
+                    error_log("Failed to create WooCommerce order: " . $e->getMessage());
+                    // Continue without payment URL - can be retried later
+                }
+            }
+
+            // Step 6: Clear cart after successful order creation
+            $this->cartService->clearCart($token);
+
+            // Step 7: Return response
+            return new WP_REST_Response([
+                'order_id'        => $order_id,
+                'tracking_token'  => $order->tracking_token,
+                'total_price'     => $order->total_amount,
+                'subtotal'        => $order->subtotal,
+                'tax_amount'      => $order->tax_amount,
+                'delivery_fee'    => $order->delivery_fee,
+                'status'          => $order->status,
+                'payment_status'  => $order->payment_status,
+                'payment_url'     => $payment_url,
+                'message'         => 'Order created successfully',
+            ], 201);
+
+        } catch (InvalidArgumentException $e) {
+            return new WP_REST_Response([
+                'error' => 'Validation failed',
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Exception $e) {
+            error_log("Checkout error: " . $e->getMessage());
+
+            return new WP_REST_Response([
+                'error' => 'Failed to complete checkout',
+                'message' => 'An unexpected error occurred. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Create WooCommerce order for payment processing
+     */
+    private function create_woocommerce_order(Order $order): int
+    {
+        if (!function_exists('wc_create_order')) {
+            throw new RuntimeException('WooCommerce is not active');
+        }
+
+        $wc_order = wc_create_order([
+            'customer_id' => $order->customer_id,
+        ]);
+
+        // Add line items
+        foreach ($order->order_items as $item) {
+            $wc_order->add_product(
+                wc_get_product($item['product_id']),
+                $item['quantity'],
+                [
+                    'subtotal' => $item['unit_price'] * $item['quantity'],
+                    'total' => $item['total_price'],
+                ]
+            );
+        }
+
+        // Set totals
+        $wc_order->set_total($order->subtotal, 'cart');
+        $wc_order->set_total($order->tax_amount, 'tax');
+        $wc_order->set_total($order->delivery_fee, 'shipping');
+        $wc_order->calculate_totals();
+
+        $wc_order->save();
+
+        return $wc_order->get_id();
+    }
+
+    /**
+     * Get arguments for checkout endpoint
+     */
+    private function get_checkout_args(): array
+    {
+        return [
+            'token' => [
+                'description' => 'Cart token',
+                'type'        => 'string',
+                'required'    => true,
+            ],
+            'customer_id' => [
+                'description'       => 'Customer ID',
+                'type'              => 'integer',
+                'required'          => true,
+                'validate_callback' => function($param) {
+                    return is_numeric($param) && $param > 0;
+                },
+            ],
+            'delivery_type' => [
+                'description' => 'Delivery type (pickup or delivery)',
+                'type'        => 'string',
+                'enum'        => ['pickup', 'delivery'],
+                'default'     => 'pickup',
+            ],
+            'delivery_address' => [
+                'description' => 'Delivery address (required if delivery_type is delivery)',
+                'type'        => 'string',
+            ],
+            'delivery_time' => [
+                'description' => 'Preferred delivery/pickup time',
+                'type'        => 'string',
+            ],
+            'payment_method' => [
+                'description' => 'Payment method',
+                'type'        => 'string',
+                'enum'        => ['cash', 'card', 'online', 'woocommerce'],
+                'default'     => 'online',
+            ],
+            'delivery_fee' => [
+                'description' => 'Delivery fee (calculated by frontend)',
+                'type'        => 'number',
+                'default'     => 0.0,
+            ],
+            'notes' => [
+                'description' => 'Order notes',
                 'type'        => 'string',
             ],
         ];

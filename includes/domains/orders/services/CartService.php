@@ -228,6 +228,107 @@ class CartService
     }
 
     /**
+     * Convert cart to order data
+     * Returns order data array ready for OrderRepository->create()
+     * Does NOT delete the cart - that's done after successful order creation
+     */
+    public function convertToOrderData(
+        string $token,
+        array $checkout_data
+    ): array {
+        $cart = $this->getCart($token);
+
+        if (!$cart) {
+            throw new InvalidArgumentException('Cart not found or expired');
+        }
+
+        if (empty($cart->items)) {
+            throw new InvalidArgumentException('Cannot checkout with empty cart');
+        }
+
+        // Validate required checkout data
+        $this->validateCheckoutData($checkout_data);
+
+        // Convert cart items to order items format
+        $order_items = [];
+        $subtotal = 0.0;
+
+        foreach ($cart->items as $cart_item) {
+            $order_items[] = [
+                'product_id'    => $cart_item->product_id,
+                'product_name'  => $cart_item->product_name,
+                'quantity'      => $cart_item->quantity,
+                'unit_price'    => $cart_item->unit_price,
+                'total_price'   => $cart_item->total_price,
+                'modifications' => $cart_item->customizations,
+                'notes'         => $cart_item->notes,
+            ];
+            $subtotal += $cart_item->total_price;
+        }
+
+        // Calculate delivery fee (if delivery)
+        $delivery_fee = 0.0;
+        if (($checkout_data['delivery_type'] ?? 'pickup') === 'delivery') {
+            // TODO: Calculate delivery fee based on branch settings and distance
+            $delivery_fee = $checkout_data['delivery_fee'] ?? 0.0;
+        }
+
+        // Calculate tax and total
+        $tax_rate = (float) get_option('squidly_tax_rate', 0.17);
+        $tax_amount = $subtotal * $tax_rate;
+        $total_amount = $subtotal + $tax_amount + $delivery_fee;
+
+        // Generate tracking token
+        $tracking_token = 'tk_' . bin2hex(random_bytes(16));
+
+        // Prepare order data
+        return [
+            'customer_id'          => $cart->customer_id ?? $checkout_data['customer_id'],
+            'branch_id'            => $cart->branch_id,
+            'status'               => Order::STATUS_PENDING,
+            'subtotal'             => $subtotal,
+            'tax_amount'           => $tax_amount,
+            'delivery_fee'         => $delivery_fee,
+            'total_amount'         => $total_amount,
+            'payment_status'       => Order::PAYMENT_PENDING,
+            'payment_method'       => $checkout_data['payment_method'] ?? 'online',
+            'delivery_type'        => $checkout_data['delivery_type'] ?? 'pickup',
+            'delivery_address'     => $checkout_data['delivery_address'] ?? null,
+            'pickup_time'          => $checkout_data['delivery_time'] ?? null,
+            'notes'                => sanitize_textarea_field($checkout_data['notes'] ?? ''),
+            'special_instructions' => sanitize_textarea_field($checkout_data['notes'] ?? ''),
+            'tracking_token'       => $tracking_token,
+            'order_items'          => $order_items,
+        ];
+    }
+
+    /**
+     * Validate checkout data
+     */
+    private function validateCheckoutData(array $data): void
+    {
+        // Customer ID required if cart doesn't have one
+        if (empty($data['customer_id'])) {
+            throw new InvalidArgumentException('customer_id is required for checkout');
+        }
+
+        // Validate delivery type
+        if (isset($data['delivery_type']) && !in_array($data['delivery_type'], ['pickup', 'delivery'])) {
+            throw new InvalidArgumentException('delivery_type must be either "pickup" or "delivery"');
+        }
+
+        // Validate payment method
+        if (isset($data['payment_method']) && !in_array($data['payment_method'], ['cash', 'card', 'online', 'woocommerce'])) {
+            throw new InvalidArgumentException('Invalid payment_method');
+        }
+
+        // Require delivery address if delivery type is delivery
+        if (($data['delivery_type'] ?? 'pickup') === 'delivery' && empty($data['delivery_address'])) {
+            throw new InvalidArgumentException('delivery_address is required for delivery orders');
+        }
+    }
+
+    /**
      * Generate unique cart token
      */
     private function generateToken(): string
