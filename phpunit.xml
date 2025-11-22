@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit bootstrap="tests/bootstrap.php" colors="true" cacheResult="false">
+    <php>
+        <env name="WP_TESTS_DIR" value="C:/Users/oresp/AppData/Local/Temp/wordpress-tests-lib" />
+    </php>
     <testsuites>
         <testsuite name="unit">
             <directory suffix="Test.php">tests/unit</directory>
