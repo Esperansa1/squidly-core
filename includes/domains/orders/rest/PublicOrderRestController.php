@@ -118,7 +118,7 @@ class PublicOrderRestController extends WP_REST_Controller
             foreach ($data['items'] as $item_data) {
                 $validated_item = $this->validate_and_calculate_item($item_data, $branch);
                 $validated_items[] = $validated_item;
-                $subtotal += $validated_item['item_total'];
+                $subtotal += $validated_item['total_price'];
             }
 
             // Step 5: Calculate delivery fee (if delivery)
@@ -164,7 +164,8 @@ class PublicOrderRestController extends WP_REST_Controller
 
             // Step 11: Prepare payment URL (if online payment)
             $payment_url = null;
-            if ($data['payment_method'] === 'woocommerce' || $data['payment_method'] === 'online') {
+            $payment_method = $data['payment_method'] ?? 'online';
+            if ($payment_method === 'woocommerce' || $payment_method === 'online') {
                 // Create WooCommerce order for payment
                 try {
                     $wc_order_id = $this->create_woocommerce_order($order);
