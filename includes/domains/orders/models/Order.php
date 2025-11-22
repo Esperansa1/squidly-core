@@ -23,6 +23,8 @@ class Order
     public string $notes;
     public array $order_items; // Array of OrderItem objects
     public ?string $delivery_address;
+    public ?string $delivery_type; // 'pickup' or 'delivery'
+    public ?string $tracking_token; // Guest order tracking token
     public ?string $gateway_transaction_id;
     public ?string $pickup_time;
     public ?string $special_instructions;
@@ -66,6 +68,8 @@ class Order
         $order->payment_method = get_post_meta($post->ID, '_payment_method', true) ?: self::PAYMENT_CASH;
         $order->notes = get_post_meta($post->ID, '_notes', true) ?: '';
         $order->delivery_address = get_post_meta($post->ID, '_delivery_address', true) ?: null;
+        $order->delivery_type = get_post_meta($post->ID, '_delivery_type', true) ?: null;
+        $order->tracking_token = get_post_meta($post->ID, '_tracking_token', true) ?: null;
         $order->gateway_transaction_id = get_post_meta($post->ID, '_gateway_transaction_id', true) ?: null;
         $order->pickup_time = get_post_meta($post->ID, '_pickup_time', true) ?: null;
         $order->special_instructions = get_post_meta($post->ID, '_special_instructions', true) ?: null;
@@ -177,6 +181,8 @@ class Order
             'notes' => $this->notes,
             'order_items' => $this->order_items,
             'delivery_address' => $this->delivery_address,
+            'delivery_type' => $this->delivery_type,
+            'tracking_token' => $this->tracking_token,
             'pickup_time' => $this->pickup_time,
             'special_instructions' => $this->special_instructions,
         ];
