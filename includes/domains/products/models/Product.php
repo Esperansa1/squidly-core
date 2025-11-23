@@ -12,6 +12,7 @@ class Product
     public ?string $category;
     public array $tags;              // string[]
     public array $product_group_ids; // int[]
+    public ?string $image_url;       // Product image URL
 
     public function __construct(array $data)
     {
@@ -23,6 +24,7 @@ class Product
         $this->category          = isset($data['category']) ? (string) $data['category'] : null;
         $this->tags              = $data['tags'] ?? [];
         $this->product_group_ids = $data['product_group_ids'] ?? [];
+        $this->image_url         = $data['image_url'] ?? null;
     }
 
     public function toArray(): array
@@ -36,6 +38,7 @@ class Product
             'category'           => $this->category,
             'tags'               => $this->tags,
             'product_group_ids'  => $this->product_group_ids,
+            'image_url'          => $this->image_url,
         ];
     }
 

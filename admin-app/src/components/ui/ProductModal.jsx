@@ -21,7 +21,9 @@ const ProductModal = ({
     category: '',
     tags: '',
     product_group_ids: [],
-    availability: {}
+    availability: {},
+    image_id: null,
+    image_url: null
   });
   const [errors, setErrors] = useState({});
   const [selectAllBranches, setSelectAllBranches] = useState(false);
@@ -44,7 +46,9 @@ const ProductModal = ({
           category: product.category || '',
           tags: product.tags.join(', '),
           product_group_ids: product.product_group_ids,
-          availability: availability
+          availability: availability,
+          image_id: null,
+          image_url: product.image_url || null
         });
         // Check if all branches are selected (excluding "All Branches" entries)
         const filteredBranches = branches.filter(branch =>
@@ -73,7 +77,9 @@ const ProductModal = ({
           category: '',
           tags: '',
           product_group_ids: [],
-          availability: defaultAvailability
+          availability: defaultAvailability,
+          image_id: null,
+          image_url: null
         });
         setSelectAllBranches(true);
       }
@@ -251,6 +257,11 @@ const ProductModal = ({
     // Only include discounted_price if it has a value
     if (formData.discounted_price.trim()) {
       submitData.discounted_price = parseFloat(formData.discounted_price);
+    }
+
+    // Include image_id if an image was selected
+    if (formData.image_id) {
+      submitData.image_id = formData.image_id;
     }
 
     await onSave(submitData);
@@ -456,6 +467,61 @@ const ProductModal = ({
                   <p className="text-xs mt-1 text-right" style={{ color: theme.text_secondary }}>
                     הפרד תגיות בפסיקים (לדוגמה: בשר, קלאסי, גבינה)
                   </p>
+                </div>
+
+                {/* Product Image */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-right" style={{ color: theme.text_primary }}>
+                    {strings.product_image || 'תמונת מוצר'}
+                  </label>
+                  {formData.image_url && (
+                    <div className="mb-3 relative">
+                      <img
+                        src={formData.image_url}
+                        alt={formData.name || 'Product image'}
+                        className="w-full h-48 object-cover rounded-md"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange('image_url', null)}
+                        className="absolute top-2 left-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        disabled={loading}
+                      >
+                        <XMarkIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Open WordPress media uploader
+                      if (typeof wp !== 'undefined' && wp.media) {
+                        const frame = wp.media({
+                          title: 'Select Product Image',
+                          button: { text: 'Use this image' },
+                          multiple: false,
+                          library: { type: 'image' }
+                        });
+
+                        frame.on('select', () => {
+                          const attachment = frame.state().get('selection').first().toJSON();
+                          handleInputChange('image_id', attachment.id);
+                          handleInputChange('image_url', attachment.url);
+                        });
+
+                        frame.open();
+                      }
+                    }}
+                    className="w-full px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2"
+                    style={{
+                      backgroundColor: formData.image_url ? theme.bg_secondary : theme.primary_color,
+                      color: formData.image_url ? theme.text_primary : theme.bg_white,
+                      border: formData.image_url ? `1px solid ${theme.border_color}` : 'none'
+                    }}
+                    disabled={loading}
+                  >
+                    {formData.image_url ? (strings.change_image || 'שנה תמונה') : (strings.upload_image || 'העלה תמונה')}
+                  </button>
                 </div>
 
                 {/* Product Groups */}

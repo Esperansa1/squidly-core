@@ -52,6 +52,11 @@ class ProductRepository implements RepositoryInterface
             // Set product groups safely
             $this->setProductGroupsSafely($post_id, $data['product_group_ids'] ?? []);
 
+            // Handle product image if provided
+            if (isset($data['image_id'])) {
+                $this->setProductImage($post_id, $data['image_id']);
+            }
+
             // Handle branch availability if provided
             if (isset($data['availability']) && is_array($data['availability'])) {
                 $this->updateAvailability($post_id, $data['availability']);
@@ -104,6 +109,7 @@ class ProductRepository implements RepositoryInterface
                 'category'         => $category,
                 'tags'             => $tags,
                 'product_group_ids'=> $group_ids,
+                'image_url'        => $this->getImageUrlSafely($id),
             ]);
 
         } catch (Exception $e) {
@@ -223,6 +229,11 @@ class ProductRepository implements RepositoryInterface
 
             // Update product groups if provided
             $this->updateProductGroups($id, $data);
+
+            // Update product image if provided
+            if (array_key_exists('image_id', $data)) {
+                $this->setProductImage($id, $data['image_id']);
+            }
 
             // Update branch availability if provided
             if (array_key_exists('availability', $data)) {
@@ -958,6 +969,49 @@ class ProductRepository implements RepositoryInterface
         }
 
         return $product->getAvailabilityInfo($this, new ProductGroupRepository());
+    }
+
+    /* ======================================================================
+     *  IMAGE HANDLING
+     * ====================================================================*/
+
+    /**
+     * Get product image URL
+     *
+     * @param int $post_id Product post ID
+     * @return string|null Image URL or null if no image
+     */
+    private function getImageUrlSafely(int $post_id): ?string
+    {
+        if (!has_post_thumbnail($post_id)) {
+            return null;
+        }
+
+        $image_url = get_the_post_thumbnail_url($post_id, 'large');
+
+        return $image_url ?: null;
+    }
+
+    /**
+     * Set product image from attachment ID
+     *
+     * @param int $post_id Product post ID
+     * @param int|null $attachment_id WordPress attachment ID
+     * @return bool Success
+     */
+    private function setProductImage(int $post_id, ?int $attachment_id): bool
+    {
+        if ($attachment_id === null) {
+            // Remove featured image
+            return delete_post_thumbnail($post_id);
+        }
+
+        // Validate attachment exists and is an image
+        if (!wp_attachment_is_image($attachment_id)) {
+            throw new InvalidArgumentException("Attachment ID {$attachment_id} is not a valid image");
+        }
+
+        return (bool) set_post_thumbnail($post_id, $attachment_id);
     }
 
 }
