@@ -4,8 +4,11 @@
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo get_bloginfo('name'); ?> - ניהול מסעדה</title>
-    
+
     <?php
+    // Enqueue WordPress media uploader
+    wp_enqueue_media();
+
     // Load built assets
     $plugin_url = plugin_dir_url(__FILE__) . '../../';
     $dist_path = plugin_dir_path(__FILE__) . '../../admin-app/dist/';
@@ -80,19 +83,23 @@
     <style>
         body { margin: 0; }
         #squidly-admin { min-height: 100vh; }
-        .loading { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             font-family: system-ui, -apple-system, sans-serif;
             color: #666;
         }
     </style>
+
+    <?php wp_head(); ?>
 </head>
-<body>
+<body <?php body_class(); ?>>
     <div id="squidly-admin">
         <div class="loading">טוען ממשק ניהול...</div>
     </div>
+
+    <?php wp_footer(); ?>
 </body>
 </html>
