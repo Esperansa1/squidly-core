@@ -4,11 +4,8 @@
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo get_bloginfo('name'); ?> - ניהול מסעדה</title>
-
+    
     <?php
-    // Enqueue WordPress media uploader (but don't output yet)
-    wp_enqueue_media();
-
     // Load built assets
     $plugin_url = plugin_dir_url(__FILE__) . '../../';
     $dist_path = plugin_dir_path(__FILE__) . '../../admin-app/dist/';
@@ -81,60 +78,21 @@
     </script>
     
     <style>
-        /* Hide WordPress admin elements */
-        #wpadminbar,
-        .wp-admin,
-        #wp-admin-bar-root-default,
-        body.admin-bar {
-            display: none !important;
-        }
-
-        body {
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        html {
-            margin-top: 0 !important;
-        }
-
-        #squidly-admin {
-            min-height: 100vh;
-        }
-
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        body { margin: 0; }
+        #squidly-admin { min-height: 100vh; }
+        .loading { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
             font-family: system-ui, -apple-system, sans-serif;
             color: #666;
         }
     </style>
-
-    <?php
-    // Output only media uploader scripts (without admin bar and other WordPress UI)
-    // Remove admin bar
-    show_admin_bar(false);
-
-    // Print only the essential styles and scripts
-    wp_print_styles();
-    wp_print_scripts();
-    ?>
 </head>
 <body>
     <div id="squidly-admin">
         <div class="loading">טוען ממשק ניהול...</div>
     </div>
-
-    <?php
-    // Output footer scripts (needed for media uploader)
-    wp_print_footer_scripts();
-
-    // Output media templates (required for media uploader to work)
-    // These are Underscore.js templates that the media uploader needs
-    do_action('admin_footer', '');
-    do_action('admin_print_footer_scripts');
-    ?>
 </body>
 </html>
