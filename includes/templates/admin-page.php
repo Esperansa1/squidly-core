@@ -130,6 +130,11 @@
     <?php
     // Output footer scripts (needed for media uploader)
     wp_print_footer_scripts();
+
+    // Output media templates (required for media uploader to work)
+    // These are Underscore.js templates that the media uploader needs
+    do_action('admin_footer', '');
+    do_action('admin_print_footer_scripts');
     ?>
 </body>
 </html>
