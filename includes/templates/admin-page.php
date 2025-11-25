@@ -94,14 +94,5 @@
     <div id="squidly-admin">
         <div class="loading">טוען ממשק ניהול...</div>
     </div>
-
-    <?php
-    // Load WordPress media templates without wp_footer (which adds admin bar)
-    // We need these Underscore.js templates for the media uploader to work
-    if (is_page('restaurant-admin')) {
-        // Output media templates to the page
-        wp_print_media_templates();
-    }
-    ?>
 </body>
 </html>

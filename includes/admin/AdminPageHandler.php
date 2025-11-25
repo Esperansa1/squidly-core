@@ -13,7 +13,6 @@ class AdminPageHandler
         add_action('init', [self::class, 'create_admin_page']);
         add_action('template_redirect', [self::class, 'handle_admin_page']);
         add_filter('page_template', [self::class, 'admin_page_template']);
-        add_action('wp_enqueue_scripts', [self::class, 'enqueue_media_scripts']);
     }
 
     /**
@@ -67,16 +66,5 @@ class AdminPageHandler
             }
         }
         return $template;
-    }
-
-    /**
-     * Enqueue WordPress media uploader scripts on admin page
-     */
-    public static function enqueue_media_scripts(): void
-    {
-        if (is_page('restaurant-admin')) {
-            // Enqueue media uploader
-            wp_enqueue_media();
-        }
     }
 }
