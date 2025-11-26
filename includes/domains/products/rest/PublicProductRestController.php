@@ -309,15 +309,23 @@ class PublicProductRestController extends PublicRestController
             if (isset($filters['branch_id'])) {
                 $branch = $this->branchRepository->get($filters['branch_id']);
                 if ($branch) {
-                    // PROTOTYPE MODE: If branch has no products configured, show all products
-                    // TODO: In production, require explicit product availability configuration
-                    if (!empty($branch->product_availability)) {
-                        // Branch has configured products - apply strict filtering
+                    $strict_mode = (bool) get_option('squidly_strict_availability_mode', false);
+
+                    if ($strict_mode) {
+                        // STRICT MODE: Only show explicitly configured products
                         if (!$branch->isProductAvailable($product->id)) {
                             return false;
                         }
+                    } else {
+                        // PROTOTYPE MODE: If branch has no products configured, show all products
+                        if (!empty($branch->product_availability)) {
+                            // Branch has configured products - apply filtering
+                            if (!$branch->isProductAvailable($product->id)) {
+                                return false;
+                            }
+                        }
+                        // If product_availability is empty, assume all products are available
                     }
-                    // If product_availability is empty, assume all products are available (prototype mode)
                 }
             }
 

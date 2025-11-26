@@ -123,6 +123,20 @@ class PublicOrderRestController extends WP_REST_Controller
                 $subtotal += $validated_item['total_price'];
             }
 
+            // Validate minimum order amount
+            if ($branch->min_order_amount > 0 && $subtotal < $branch->min_order_amount) {
+                return new WP_REST_Response([
+                    'error' => 'Minimum order amount not met',
+                    'message' => sprintf(
+                        'Order subtotal (%.2f) is below minimum order amount (%.2f) for this branch',
+                        $subtotal,
+                        $branch->min_order_amount
+                    ),
+                    'min_order_amount' => $branch->min_order_amount,
+                    'current_subtotal' => $subtotal
+                ], 400);
+            }
+
             // Step 5: Calculate delivery fee (if delivery)
             $delivery_fee = 0.0;
             $delivery_address = $data['delivery_address'] ?? null;
