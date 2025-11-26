@@ -97,10 +97,16 @@ class StoreBranchRepository implements RepositoryInterface
             'activity_times'         => get_post_meta($id, '_activity_times', true)      ?: [],
             'kosher_type'            => (string) get_post_meta($id, '_kosher_type', true),
             'accessibility_list'     => get_post_meta($id, '_accessibility_list', true)  ?: [],
-            'products'               => array_map(fn($pid)=> $prodRepo->get((int)$pid), $productIds),            
+            'products'               => array_map(fn($pid)=> $prodRepo->get((int)$pid), $productIds),
             'ingredients'            => array_map(fn($iid)=> $ingRepo->get((int)$iid),  $ingredientIds),
             'product_availability'   => get_post_meta($id, '_product_availability', true)    ?: [],
             'ingredient_availability'=> get_post_meta($id, '_ingredient_availability', true) ?: [],
+            'delivery_enabled'       => (bool)   get_post_meta($id, '_delivery_enabled', true),
+            'delivery_base_fee'      => (float)  get_post_meta($id, '_delivery_base_fee', true),
+            'delivery_free_threshold'=> (float)  get_post_meta($id, '_delivery_free_threshold', true),
+            'delivery_max_distance'  => (float)  get_post_meta($id, '_delivery_max_distance', true),
+            'min_order_amount'       => (float)  get_post_meta($id, '_min_order_amount', true),
+            'delivery_zones'         => get_post_meta($id, '_delivery_zones', true) ?: [],
         ]);
     }
 
@@ -398,6 +404,26 @@ class StoreBranchRepository implements RepositoryInterface
             if (array_key_exists($fld, $data)) {
                 update_post_meta($id, $metaKey, $data[$fld]);
             }
+        }
+
+        /* ---------- delivery configuration ---------- */
+        if (array_key_exists('delivery_enabled', $data)) {
+            update_post_meta($id, '_delivery_enabled', (bool) $data['delivery_enabled']);
+        }
+        if (array_key_exists('delivery_base_fee', $data)) {
+            update_post_meta($id, '_delivery_base_fee', (float) $data['delivery_base_fee']);
+        }
+        if (array_key_exists('delivery_free_threshold', $data)) {
+            update_post_meta($id, '_delivery_free_threshold', (float) $data['delivery_free_threshold']);
+        }
+        if (array_key_exists('delivery_max_distance', $data)) {
+            update_post_meta($id, '_delivery_max_distance', (float) $data['delivery_max_distance']);
+        }
+        if (array_key_exists('min_order_amount', $data)) {
+            update_post_meta($id, '_min_order_amount', (float) $data['min_order_amount']);
+        }
+        if (array_key_exists('delivery_zones', $data)) {
+            update_post_meta($id, '_delivery_zones', $data['delivery_zones']);
         }
 
         return true;

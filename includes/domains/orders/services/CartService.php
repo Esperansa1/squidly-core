@@ -14,11 +14,13 @@ class CartService
 
     private ProductRepository $productRepo;
     private ProductCustomizationValidator $validator;
+    private DeliveryFeeService $deliveryFeeService;
 
     public function __construct()
     {
         $this->productRepo = new ProductRepository();
         $this->validator = new ProductCustomizationValidator();
+        $this->deliveryFeeService = new DeliveryFeeService();
     }
 
     /**
@@ -268,9 +270,17 @@ class CartService
 
         // Calculate delivery fee (if delivery)
         $delivery_fee = 0.0;
+        $delivery_address = $checkout_data['delivery_address'] ?? null;
         if (($checkout_data['delivery_type'] ?? 'pickup') === 'delivery') {
-            // TODO: Calculate delivery fee based on branch settings and distance
-            $delivery_fee = $checkout_data['delivery_fee'] ?? 0.0;
+            try {
+                $delivery_fee = $this->deliveryFeeService->calculateFee(
+                    $cart->branch_id,
+                    $delivery_address,
+                    $subtotal
+                );
+            } catch (InvalidArgumentException $e) {
+                throw new InvalidArgumentException('Delivery fee calculation failed: ' . $e->getMessage());
+            }
         }
 
         // Calculate tax and total

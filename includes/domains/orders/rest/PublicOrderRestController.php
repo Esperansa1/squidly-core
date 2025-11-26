@@ -25,6 +25,7 @@ class PublicOrderRestController extends WP_REST_Controller
     private StoreBranchRepository $branchRepo;
     private ProductRepository $productRepo;
     private ProductCustomizationValidator $validator;
+    private DeliveryFeeService $deliveryFeeService;
 
     // Rate limiting (simple IP-based)
     private const RATE_LIMIT_REQUESTS = 10;
@@ -37,6 +38,7 @@ class PublicOrderRestController extends WP_REST_Controller
         $this->branchRepo = new StoreBranchRepository();
         $this->productRepo = new ProductRepository();
         $this->validator = new ProductCustomizationValidator();
+        $this->deliveryFeeService = new DeliveryFeeService();
     }
 
     /**
@@ -123,9 +125,20 @@ class PublicOrderRestController extends WP_REST_Controller
 
             // Step 5: Calculate delivery fee (if delivery)
             $delivery_fee = 0.0;
+            $delivery_address = $data['delivery_address'] ?? null;
             if (($data['delivery_type'] ?? 'pickup') === 'delivery') {
-                // TODO: Calculate delivery fee based on branch settings and distance
-                $delivery_fee = 0.0; // Placeholder
+                try {
+                    $delivery_fee = $this->deliveryFeeService->calculateFee(
+                        $data['branch_id'],
+                        $delivery_address,
+                        $subtotal
+                    );
+                } catch (InvalidArgumentException $e) {
+                    return new WP_REST_Response([
+                        'error' => 'Delivery fee calculation failed',
+                        'message' => $e->getMessage()
+                    ], 400);
+                }
             }
 
             // Step 6: Calculate totals

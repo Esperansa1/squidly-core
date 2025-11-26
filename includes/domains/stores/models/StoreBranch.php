@@ -33,6 +33,15 @@ class StoreBranch
     /** @var array<int, bool> [ingredient_id => available?] */
     public array  $ingredient_availability = [];
 
+    // Delivery configuration
+    public bool   $delivery_enabled = false;          // Enable/disable delivery for this branch
+    public float  $delivery_base_fee = 0.0;           // Base delivery fee (e.g., 15.00 ILS)
+    public float  $delivery_free_threshold = 0.0;     // Free delivery above this order amount (e.g., 100.00 ILS)
+    public float  $delivery_max_distance = 0.0;       // Maximum delivery radius in km (e.g., 5.0)
+    public float  $min_order_amount = 0.0;            // Minimum order amount (e.g., 50.00 ILS)
+    /** @var array<int, array{max_distance: float, fee: float}> Zone-based pricing */
+    public array  $delivery_zones = [];
+
     public function __construct(array $data)
     {
         $this->id        = (int)    $data['id'];
@@ -57,6 +66,14 @@ class StoreBranch
 
         $this->product_availability    = $data['product_availability']    ?? [];
         $this->ingredient_availability = $data['ingredient_availability'] ?? [];
+
+        // Delivery configuration
+        $this->delivery_enabled         = (bool)  ($data['delivery_enabled']         ?? false);
+        $this->delivery_base_fee        = (float) ($data['delivery_base_fee']        ?? 0.0);
+        $this->delivery_free_threshold  = (float) ($data['delivery_free_threshold']  ?? 0.0);
+        $this->delivery_max_distance    = (float) ($data['delivery_max_distance']    ?? 0.0);
+        $this->min_order_amount         = (float) ($data['min_order_amount']         ?? 0.0);
+        $this->delivery_zones           = $data['delivery_zones'] ?? [];
     }
 
     /* ---------- Helper look-ups ---------- */
@@ -189,6 +206,12 @@ class StoreBranch
             'ingredient_availability'=> $this->ingredient_availability,
             'is_currently_open'      => $this->isCurrentlyOpen(),
             'next_opening_time'      => $this->getNextOpeningTime(),
+            'delivery_enabled'       => $this->delivery_enabled,
+            'delivery_base_fee'      => $this->delivery_base_fee,
+            'delivery_free_threshold'=> $this->delivery_free_threshold,
+            'delivery_max_distance'  => $this->delivery_max_distance,
+            'min_order_amount'       => $this->min_order_amount,
+            'delivery_zones'         => $this->delivery_zones,
         ];
     }
 }
