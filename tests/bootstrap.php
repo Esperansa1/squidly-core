@@ -64,14 +64,16 @@ function _load_core_classes() {
 
 	// Load domain models (commonly used in tests)
 	$models = [
-		'Product', 'Ingredient', 'ProductGroup', 'GroupItem', 'StoreBranch', 'Customer', 'Order'
+		'Product', 'Ingredient', 'ProductGroup', 'GroupItem', 'StoreBranch', 'Customer', 'Order',
+		'OrderItem', 'Cart', 'CartItem', 'Address'
 	];
 	foreach ($models as $model) {
 		$paths = [
 			"/includes/domains/products/models/{$model}.php",
 			"/includes/domains/stores/models/{$model}.php",
 			"/includes/domains/customers/models/{$model}.php",
-			"/includes/domains/orders/models/{$model}.php"
+			"/includes/domains/orders/models/{$model}.php",
+			"/includes/shared/models/{$model}.php"
 		];
 		foreach ($paths as $path) {
 			$file = $plugin_dir . $path;
@@ -93,6 +95,25 @@ function _load_core_classes() {
 			"/includes/domains/stores/repositories/{$repo}.php",
 			"/includes/domains/customers/repositories/{$repo}.php",
 			"/includes/domains/orders/repositories/{$repo}.php"
+		];
+		foreach ($paths as $path) {
+			$file = $plugin_dir . $path;
+			if (file_exists($file)) {
+				require_once $file;
+				break;
+			}
+		}
+	}
+
+	// Load domain services (commonly used in tests)
+	$services = [
+		'DeliveryFeeService', 'CartService', 'ProductCustomizationValidator'
+	];
+	foreach ($services as $service) {
+		$paths = [
+			"/includes/domains/orders/services/{$service}.php",
+			"/includes/domains/products/services/{$service}.php",
+			"/includes/domains/customers/services/{$service}.php"
 		];
 		foreach ($paths as $path) {
 			$file = $plugin_dir . $path;
