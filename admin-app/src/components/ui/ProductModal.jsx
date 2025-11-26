@@ -28,6 +28,7 @@ const ProductModal = ({
   const [errors, setErrors] = useState({});
   const [selectAllBranches, setSelectAllBranches] = useState(false);
   const [availabilityWarnings, setAvailabilityWarnings] = useState([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const theme = DEFAULT_THEME;
 
@@ -47,7 +48,7 @@ const ProductModal = ({
           tags: product.tags.join(', '),
           product_group_ids: product.product_group_ids,
           availability: availability,
-          image_id: null,
+          image_id: product.image_id || null,
           image_url: product.image_url || null
         });
         // Check if all branches are selected (excluding "All Branches" entries)
@@ -204,6 +205,79 @@ const ProductModal = ({
       ...prev,
       product_group_ids: prev.product_group_ids.filter(id => id !== groupId)
     }));
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setErrors(prev => ({
+        ...prev,
+        image: 'יש להעלות קובץ תמונה בלבד'
+      }));
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      setErrors(prev => ({
+        ...prev,
+        image: 'גודל התמונה חייב להיות עד 5MB'
+      }));
+      return;
+    }
+
+    setUploadingImage(true);
+    setErrors(prev => ({ ...prev, image: '' }));
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+
+      const response = await fetch('/wp-json/wp/v2/media', {
+        method: 'POST',
+        headers: {
+          'X-WP-Nonce': window.wpConfig.nonce
+        },
+        body: formDataUpload,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'שגיאה בהעלאת התמונה');
+      }
+
+      const media = await response.json();
+
+      setFormData(prev => ({
+        ...prev,
+        image_id: media.id,
+        image_url: media.source_url
+      }));
+    } catch (error) {
+      console.error('Image upload error:', error);
+      setErrors(prev => ({
+        ...prev,
+        image: error.message || 'שגיאה בהעלאת התמונה. נסה שוב.'
+      }));
+    } finally {
+      setUploadingImage(false);
+      // Reset file input
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({
+      ...prev,
+      image_id: null,
+      image_url: null
+    }));
+    setErrors(prev => ({ ...prev, image: '' }));
   };
 
   const validateForm = () => {
@@ -483,45 +557,42 @@ const ProductModal = ({
                       />
                       <button
                         type="button"
-                        onClick={() => handleInputChange('image_url', null)}
-                        className="absolute top-2 left-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                        disabled={loading}
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 left-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        disabled={loading || uploadingImage}
+                        aria-label="הסר תמונה"
                       >
                         <XMarkIcon className="h-5 w-5" />
                       </button>
                     </div>
                   )}
+                  <input
+                    type="file"
+                    id="product-image-upload"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={loading || uploadingImage}
+                  />
                   <button
                     type="button"
-                    onClick={() => {
-                      // Open WordPress media uploader
-                      if (typeof wp !== 'undefined' && wp.media) {
-                        const frame = wp.media({
-                          title: 'Select Product Image',
-                          button: { text: 'Use this image' },
-                          multiple: false,
-                          library: { type: 'image' }
-                        });
-
-                        frame.on('select', () => {
-                          const attachment = frame.state().get('selection').first().toJSON();
-                          handleInputChange('image_id', attachment.id);
-                          handleInputChange('image_url', attachment.url);
-                        });
-
-                        frame.open();
-                      }
-                    }}
-                    className="w-full px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2"
+                    onClick={() => document.getElementById('product-image-upload').click()}
+                    className="w-full px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
                       backgroundColor: formData.image_url ? theme.bg_secondary : theme.primary_color,
                       color: formData.image_url ? theme.text_primary : theme.bg_white,
                       border: formData.image_url ? `1px solid ${theme.border_color}` : 'none'
                     }}
-                    disabled={loading}
+                    disabled={loading || uploadingImage}
                   >
-                    {formData.image_url ? (strings.change_image || 'שנה תמונה') : (strings.upload_image || 'העלה תמונה')}
+                    {uploadingImage ? 'מעלה תמונה...' : formData.image_url ? (strings.change_image || 'שנה תמונה') : (strings.upload_image || 'העלה תמונה')}
                   </button>
+                  {errors.image && (
+                    <p className="text-sm mt-1 text-right" style={{ color: theme.danger_color }}>{errors.image}</p>
+                  )}
+                  <p className="text-xs mt-1 text-right" style={{ color: theme.text_secondary }}>
+                    קבצי תמונה בלבד, עד 5MB
+                  </p>
                 </div>
 
                 {/* Product Groups */}

@@ -159,6 +159,11 @@ class ProductRestController extends \WP_REST_Controller
                 $data['product_group_ids'] = array_map('intval', $request['product_group_ids']);
             }
 
+            // Handle product image if provided
+            if (isset($request['image_id'])) {
+                $data['image_id'] = (int)$request['image_id'];
+            }
+
             // Handle branch availability if provided
             if (!empty($request['availability']) && is_array($request['availability'])) {
                 $data['availability'] = $request['availability'];
@@ -217,6 +222,11 @@ class ProductRestController extends \WP_REST_Controller
 
             if (isset($request['product_group_ids']) && is_array($request['product_group_ids'])) {
                 $data['product_group_ids'] = array_map('intval', $request['product_group_ids']);
+            }
+
+            // Handle product image if provided
+            if (array_key_exists('image_id', $request->get_params())) {
+                $data['image_id'] = $request['image_id'] !== null ? (int)$request['image_id'] : null;
             }
 
             // Handle branch availability updates if provided
@@ -304,6 +314,8 @@ class ProductRestController extends \WP_REST_Controller
                 'category' => $item->category,
                 'tags' => $item->tags,
                 'product_group_ids' => $item->product_group_ids,
+                'image_id' => $item->image_id,
+                'image_url' => $item->image_url,
                 'availability' => $availability_info['direct_availability'], // Direct product availability
                 'final_availability' => $availability_info['final_availability'], // Availability considering groups
                 'group_restrictions' => $availability_info['group_restrictions'], // Branches where groups restrict

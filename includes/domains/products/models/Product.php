@@ -12,6 +12,7 @@ class Product
     public ?string $category;
     public array $tags;              // string[]
     public array $product_group_ids; // int[]
+    public ?int $image_id;           // WordPress attachment ID
     public ?string $image_url;       // Product image URL
 
     public function __construct(array $data)
@@ -24,6 +25,7 @@ class Product
         $this->category          = isset($data['category']) ? (string) $data['category'] : null;
         $this->tags              = $data['tags'] ?? [];
         $this->product_group_ids = $data['product_group_ids'] ?? [];
+        $this->image_id          = isset($data['image_id']) ? (int) $data['image_id'] : null;
         $this->image_url         = $data['image_url'] ?? null;
     }
 
@@ -38,6 +40,7 @@ class Product
             'category'           => $this->category,
             'tags'               => $this->tags,
             'product_group_ids'  => $this->product_group_ids,
+            'image_id'           => $this->image_id,
             'image_url'          => $this->image_url,
         ];
     }

@@ -109,6 +109,7 @@ class ProductRepository implements RepositoryInterface
                 'category'         => $category,
                 'tags'             => $tags,
                 'product_group_ids'=> $group_ids,
+                'image_id'         => $this->getImageIdSafely($id),
                 'image_url'        => $this->getImageUrlSafely($id),
             ]);
 
@@ -974,6 +975,19 @@ class ProductRepository implements RepositoryInterface
     /* ======================================================================
      *  IMAGE HANDLING
      * ====================================================================*/
+
+    /**
+     * Get product image ID
+     *
+     * @param int $post_id Product post ID
+     * @return int|null Image attachment ID or null if no image
+     */
+    private function getImageIdSafely(int $post_id): ?int
+    {
+        $image_id = get_post_thumbnail_id($post_id);
+
+        return $image_id ? (int) $image_id : null;
+    }
 
     /**
      * Get product image URL
