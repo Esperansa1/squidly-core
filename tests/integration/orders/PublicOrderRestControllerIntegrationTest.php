@@ -264,9 +264,10 @@ class PublicOrderRestControllerIntegrationTest extends WP_UnitTestCase
         // Item 1: 25.0 * 2 = 50.0
         // Item 2: 20.0 + 5.0 = 25.0
         // Subtotal: 75.0
+        // Delivery fee: 10.0 (delivery order)
         // Tax: 75.0 * 0.17 = 12.75
-        // Total: 87.75
-        $this->assertEquals(87.75, $data['total_price']);
+        // Total: 75.0 + 10.0 + 12.75 = 97.75
+        $this->assertEquals(97.75, $data['total_price']);
 
         $order = $this->orderRepo->get($data['order_id']);
         $this->assertEquals('delivery', $order->delivery_type);
