@@ -221,6 +221,8 @@ class ProductRestControllerTest extends TestCase
         $product->description = 'Test description';
         $product->tags = [];
         $product->product_group_ids = [];
+        $product->image_id = null;
+        $product->image_url = null;
         return $product;
     }
 }

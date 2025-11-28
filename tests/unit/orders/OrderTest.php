@@ -226,6 +226,8 @@ class OrderTest extends TestCase
             new OrderItem(101, 'Test Product', 1, 85.0, [], null)
         ];
         $order->delivery_address = '123 Test St';
+        $order->delivery_type = 'delivery';
+        $order->tracking_token = 'tk_abc123xyz';
         $order->pickup_time = '2024-01-15 12:00:00';
         $order->special_instructions = 'Ring doorbell';
         $order->gateway_transaction_id = 'txn_123';

@@ -50,8 +50,15 @@ class CustomerRestControllerTest extends TestCase
 
         $this->mockRepository
             ->expects($this->once())
-            ->method('getAll')
+            ->method('findBy')
+            ->with([], null, 0)
             ->willReturn($customers);
+
+        $this->mockRepository
+            ->expects($this->once())
+            ->method('countBy')
+            ->with([])
+            ->willReturn(2);
 
         $request = new WP_REST_Request('GET', '/squidly/v1/customers');
         $response = $this->controller->get_items($request);
@@ -87,7 +94,7 @@ class CustomerRestControllerTest extends TestCase
     {
         $this->mockRepository
             ->expects($this->once())
-            ->method('getAll')
+            ->method('findBy')
             ->willThrowException(new \Exception('Database error'));
 
         $request = new WP_REST_Request('GET', '/squidly/v1/customers');

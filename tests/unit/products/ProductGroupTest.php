@@ -19,6 +19,8 @@ class ProductGroupTest extends TestCase
             'type'           => ItemType::PRODUCT,
             'group_item_ids' => [11, 12],
             'availability'   => [1 => true, 2 => false],
+            'min_selections' => 0,
+            'max_selections' => 0,
         ];
 
         $pg = new ProductGroup($data);
@@ -61,6 +63,8 @@ class ProductGroupTest extends TestCase
             'type'           => ItemType::PRODUCT,
             'group_item_ids' => [11, 12],
             'availability'   => [],
+            'min_selections' => 0,
+            'max_selections' => 0,
         ];
         $this->assertSame($expected, $pg->toArray());
     }

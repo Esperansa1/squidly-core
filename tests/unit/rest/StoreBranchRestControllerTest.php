@@ -141,8 +141,15 @@ class StoreBranchRestControllerTest extends TestCase
     {
         $this->mockRepository
             ->expects($this->once())
-            ->method('getAll')
+            ->method('findBy')
+            ->with([], null, 0)
             ->willReturn([]);
+
+        $this->mockRepository
+            ->expects($this->once())
+            ->method('countBy')
+            ->with([])
+            ->willReturn(0);
 
         $request = $this->createRequest();
         $response = $this->controller->get_items($request);
@@ -174,15 +181,22 @@ class StoreBranchRestControllerTest extends TestCase
 
         $this->mockRepository
             ->expects($this->once())
-            ->method('getAll')
+            ->method('findBy')
+            ->with([], null, 0)
             ->willReturn([$mockBranch1, $mockBranch2]);
+
+        $this->mockRepository
+            ->expects($this->once())
+            ->method('countBy')
+            ->with([])
+            ->willReturn(2);
 
         $request = $this->createRequest();
         $response = $this->controller->get_items($request);
 
         $this->assertEquals(200, $response->get_status());
         $data = $response->get_data();
-        $this->assertCount(2, $data); // 2 branches 
+        $this->assertCount(2, $data); // 2 branches
     }
 
     public function testGetItemsWithCityFilter(): void
@@ -227,12 +241,13 @@ class StoreBranchRestControllerTest extends TestCase
     {
         $this->mockRepository
             ->expects($this->once())
-            ->method('getAll')
+            ->method('findBy')
             ->willThrowException(new Exception('Database error'));
 
         $request = $this->createRequest();
         $response = $this->controller->get_items($request);
 
+        // Controller returns 200 with empty array to not break UI
         $this->assertEquals(200, $response->get_status());
         $data = $response->get_data();
         $this->assertIsArray($data);

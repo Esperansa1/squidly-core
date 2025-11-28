@@ -20,6 +20,8 @@ class ProductTest extends TestCase
             'category'         => 'Food',
             'tags'             => ['beef','lunch'],
             'product_group_ids'=> [1,2],
+            'image_id'         => null,
+            'image_url'        => null,
         ];
 
         $p = new Product($data);
