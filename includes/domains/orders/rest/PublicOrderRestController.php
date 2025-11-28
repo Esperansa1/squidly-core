@@ -76,6 +76,57 @@ class PublicOrderRestController extends WP_REST_Controller
                 ],
             ],
         ]);
+
+        // DELETE /squidly/v1/public/orders/{id}?token={tracking_token}
+        register_rest_route($this->namespace, '/' . $this->rest_base . '/(?P<id>\d+)', [
+            [
+                'methods'             => WP_REST_Server::DELETABLE,
+                'callback'            => [$this, 'cancel_order'],
+                'permission_callback' => [$this, 'public_permission_callback'],
+                'args'                => [
+                    'id' => [
+                        'description' => 'Order ID',
+                        'type'        => 'integer',
+                        'required'    => true,
+                    ],
+                    'token' => [
+                        'description' => 'Tracking token',
+                        'type'        => 'string',
+                        'required'    => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        // GET /squidly/v1/public/delivery-fee?branch_id={id}&address={address}&subtotal={amount}
+        register_rest_route($this->namespace, '/public/delivery-fee', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'get_delivery_fee'],
+                'permission_callback' => [$this, 'public_permission_callback'],
+                'args'                => [
+                    'branch_id' => [
+                        'description'       => 'Branch ID',
+                        'type'              => 'integer',
+                        'required'          => true,
+                        'validate_callback' => function($param) {
+                            return is_numeric($param) && $param > 0;
+                        },
+                    ],
+                    'address' => [
+                        'description' => 'Delivery address',
+                        'type'        => 'string',
+                        'required'    => true,
+                    ],
+                    'subtotal' => [
+                        'description' => 'Order subtotal for free delivery threshold check',
+                        'type'        => 'number',
+                        'required'    => false,
+                        'default'     => 0,
+                    ],
+                ],
+            ],
+        ]);
     }
 
     /**
@@ -267,6 +318,116 @@ class PublicOrderRestController extends WP_REST_Controller
             'total_amount'   => $order->total_amount,
             'order_date'     => $order->order_date,
         ], 200);
+    }
+
+    /**
+     * Cancel an order (public endpoint - requires tracking token)
+     */
+    public function cancel_order($request)
+    {
+        $order_id = (int) $request->get_param('id');
+        $token = sanitize_text_field($request->get_param('token'));
+
+        try {
+            $order = $this->orderRepo->get($order_id);
+
+            if (!$order) {
+                return new WP_REST_Response([
+                    'error' => 'Order not found'
+                ], 404);
+            }
+
+            // Verify tracking token
+            if ($order->tracking_token !== $token) {
+                return new WP_REST_Response([
+                    'error' => 'Invalid tracking token'
+                ], 403);
+            }
+
+            // Only allow cancellation if order is in pending or confirmed status
+            if (!in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_CONFIRMED])) {
+                return new WP_REST_Response([
+                    'error' => 'Order cannot be cancelled',
+                    'message' => 'Orders can only be cancelled when pending or confirmed. Current status: ' . $order->status
+                ], 400);
+            }
+
+            // Update order status to cancelled
+            $this->orderRepo->update($order_id, [
+                'status' => Order::STATUS_CANCELLED
+            ]);
+
+            return new WP_REST_Response([
+                'message' => 'Order cancelled successfully',
+                'order_id' => $order_id,
+                'status' => Order::STATUS_CANCELLED,
+            ], 200);
+
+        } catch (Exception $e) {
+            error_log("Order cancellation error: " . $e->getMessage());
+            return new WP_REST_Response([
+                'error' => 'Failed to cancel order',
+                'message' => 'An unexpected error occurred. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get delivery fee estimate (public endpoint)
+     */
+    public function get_delivery_fee($request)
+    {
+        $branch_id = (int) $request->get_param('branch_id');
+        $address = sanitize_text_field($request->get_param('address'));
+        $subtotal = (float) ($request->get_param('subtotal') ?? 0);
+
+        try {
+            // Validate branch exists and has delivery enabled
+            $branch = $this->branchRepo->get($branch_id);
+
+            if (!$branch) {
+                return new WP_REST_Response([
+                    'error' => 'Branch not found'
+                ], 404);
+            }
+
+            if (!$branch->delivery_enabled) {
+                return new WP_REST_Response([
+                    'error' => 'Delivery not available',
+                    'message' => 'This branch does not offer delivery service'
+                ], 400);
+            }
+
+            // Calculate delivery fee
+            $delivery_fee = $this->deliveryFeeService->calculateFee(
+                $branch_id,
+                $address,
+                $subtotal
+            );
+
+            // Check if delivery is available to this address
+            $is_deliverable = $this->deliveryFeeService->isAddressInRange($branch_id, $address);
+
+            return new WP_REST_Response([
+                'delivery_fee' => $delivery_fee,
+                'is_deliverable' => $is_deliverable,
+                'branch_id' => $branch_id,
+                'free_delivery_threshold' => $branch->delivery_free_threshold ?? 0,
+                'is_free_delivery' => $delivery_fee === 0.0 && $subtotal > 0,
+            ], 200);
+
+        } catch (InvalidArgumentException $e) {
+            return new WP_REST_Response([
+                'error' => 'Validation failed',
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Exception $e) {
+            error_log("Delivery fee calculation error: " . $e->getMessage());
+            return new WP_REST_Response([
+                'error' => 'Failed to calculate delivery fee',
+                'message' => 'An unexpected error occurred. Please try again.'
+            ], 500);
+        }
     }
 
     /**
