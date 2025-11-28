@@ -66,6 +66,14 @@ class StoreBranchRepository implements RepositoryInterface
         update_post_meta($post_id, '_product_availability',    $data['product_availability']    ?? []);
         update_post_meta($post_id, '_ingredient_availability', $data['ingredient_availability'] ?? []);
 
+        // Delivery configuration fields
+        update_post_meta($post_id, '_delivery_enabled',        (bool)  ($data['delivery_enabled']        ?? false));
+        update_post_meta($post_id, '_delivery_base_fee',       (float) ($data['delivery_base_fee']       ?? 0.0));
+        update_post_meta($post_id, '_delivery_free_threshold', (float) ($data['delivery_free_threshold'] ?? 0.0));
+        update_post_meta($post_id, '_delivery_max_distance',   (float) ($data['delivery_max_distance']   ?? 0.0));
+        update_post_meta($post_id, '_min_order_amount',        (float) ($data['min_order_amount']        ?? 0.0));
+        update_post_meta($post_id, '_delivery_zones',                  ($data['delivery_zones']          ?? []));
+
         return $post_id;
     }
 
