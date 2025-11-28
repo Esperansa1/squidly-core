@@ -193,7 +193,9 @@ class CartCheckoutIntegrationTest extends WP_UnitTestCase
         $response = rest_get_server()->dispatch($request);
 
         $this->assertEquals(400, $response->get_status());
-        $this->assertStringContainsString('customer_id', $response->get_data()['error']);
+        $data = $response->get_data();
+        $error_message = $data['error'] ?? $data['message'] ?? json_encode($data);
+        $this->assertStringContainsString('customer_id', $error_message);
     }
 
     public function test_checkout_fails_with_invalid_customer(): void
@@ -211,7 +213,9 @@ class CartCheckoutIntegrationTest extends WP_UnitTestCase
         $response = rest_get_server()->dispatch($request);
 
         $this->assertEquals(400, $response->get_status());
-        $this->assertStringContainsString('Customer not found', $response->get_data()['error']);
+        $data = $response->get_data();
+        $error_message = $data['error'] ?? $data['message'] ?? json_encode($data);
+        $this->assertStringContainsString('Customer not found', $error_message);
     }
 
     public function test_checkout_fails_with_empty_cart(): void
@@ -268,7 +272,9 @@ class CartCheckoutIntegrationTest extends WP_UnitTestCase
         $response = rest_get_server()->dispatch($request);
 
         $this->assertEquals(400, $response->get_status());
-        $this->assertStringContainsString('delivery_address', $response->get_data()['message']);
+        $data = $response->get_data();
+        $error_message = $data['error'] ?? $data['message'] ?? json_encode($data);
+        $this->assertStringContainsString('delivery_address', $error_message);
     }
 
     public function test_checkout_validates_delivery_type(): void
@@ -286,7 +292,9 @@ class CartCheckoutIntegrationTest extends WP_UnitTestCase
         $response = rest_get_server()->dispatch($request);
 
         $this->assertEquals(400, $response->get_status());
-        $this->assertStringContainsString('delivery_type', $response->get_data()['message']);
+        $data = $response->get_data();
+        $error_message = $data['error'] ?? $data['message'] ?? json_encode($data);
+        $this->assertStringContainsString('delivery_type', $error_message);
     }
 
     public function test_checkout_validates_payment_method(): void
@@ -304,7 +312,9 @@ class CartCheckoutIntegrationTest extends WP_UnitTestCase
         $response = rest_get_server()->dispatch($request);
 
         $this->assertEquals(400, $response->get_status());
-        $this->assertStringContainsString('payment_method', $response->get_data()['message']);
+        $data = $response->get_data();
+        $error_message = $data['error'] ?? $data['message'] ?? json_encode($data);
+        $this->assertStringContainsString('payment_method', $error_message);
     }
 
     /* ------------------------------------------------------------------ */

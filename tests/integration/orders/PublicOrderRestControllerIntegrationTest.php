@@ -89,6 +89,8 @@ class PublicOrderRestControllerIntegrationTest extends WP_UnitTestCase
             'activity_times' => ['MONDAY' => ['09:00-22:00'], 'SUNDAY' => ['09:00-22:00']],
             'kosher_type' => 'None',
             'accessibility_list' => [],
+            'delivery_enabled' => true,
+            'delivery_base_fee' => 10.0,
         ]);
 
         // Create simple product (no customizations)
