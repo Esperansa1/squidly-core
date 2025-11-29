@@ -328,8 +328,14 @@ class CartService
         }
 
         // Validate payment method
-        if (isset($data['payment_method']) && !in_array($data['payment_method'], ['cash', 'card', 'online', 'woocommerce'])) {
-            throw new InvalidArgumentException('Invalid payment_method');
+        if (isset($data['payment_method'])) {
+            error_log('💳 CartService - payment_method value: ' . var_export($data['payment_method'], true) . ' (type: ' . gettype($data['payment_method']) . ')');
+            error_log('💳 CartService - valid methods: ' . json_encode(['cash', 'card', 'online', 'woocommerce']));
+
+            if (!in_array($data['payment_method'], ['cash', 'card', 'online', 'woocommerce'], true)) {
+                error_log('💳 CartService - INVALID payment_method detected!');
+                throw new InvalidArgumentException('Invalid payment_method');
+            }
         }
 
         // Require delivery address if delivery type is delivery

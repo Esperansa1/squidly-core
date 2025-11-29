@@ -476,6 +476,9 @@ class PublicCartRestController extends WP_REST_Controller
             $token = sanitize_text_field($request->get_param('token'));
             $data = $request->get_json_params();
 
+            // Debug logging
+            error_log('🛒 Checkout - Received data: ' . json_encode($data));
+
             // Step 1: Validate customer exists
             $customer_id = $data['customer_id'] ?? null;
             if (!$customer_id) {

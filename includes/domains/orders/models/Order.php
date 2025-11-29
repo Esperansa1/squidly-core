@@ -48,6 +48,7 @@ class Order
     public const PAYMENT_CASH = 'cash';
     public const PAYMENT_CARD = 'card';
     public const PAYMENT_ONLINE = 'online';
+    public const PAYMENT_WOOCOMMERCE = 'woocommerce';
 
     /**
      * Create Order from WordPress post data
@@ -119,6 +120,7 @@ class Order
             self::PAYMENT_CASH,
             self::PAYMENT_CARD,
             self::PAYMENT_ONLINE,
+            self::PAYMENT_WOOCOMMERCE,
         ];
     }
 
