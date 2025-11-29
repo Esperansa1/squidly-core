@@ -6,9 +6,12 @@ import { t } from '../../i18n/translations';
  * Uses backend cart item ID for update/remove operations
  */
 export default function CartItem({ item, onUpdateQuantity, onRemove }) {
-  const { id, product, quantity, customizations, final_price } = item;
-  const price = final_price || product.discounted_price || product.price;
-  const itemTotal = price * quantity;
+  // Backend cart item structure: { id, product_id, product_name, quantity, unit_price, total_price, customizations, notes }
+  const { id, product_id, product_name, quantity, unit_price, total_price, customizations, notes } = item;
+
+  // Use backend-calculated prices (already includes customizations)
+  const price = unit_price;
+  const itemTotal = total_price;
 
   // Check if item has customizations
   const hasCustomizations = customizations && Object.keys(customizations).length > 0;
@@ -21,10 +24,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }) {
       {/* Product Info */}
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1">
-          <h4 className="font-bold">{product.name}</h4>
-          {product.category && (
-            <p className="text-xs text-gray-500">{product.category}</p>
-          )}
+          <h4 className="font-bold">{product_name}</h4>
           {/* Show customizations */}
           {hasCustomizations && customizationItems.length > 0 && (
             <div className="mt-1 text-xs text-gray-600">
