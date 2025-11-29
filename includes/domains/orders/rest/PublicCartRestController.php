@@ -568,11 +568,11 @@ class PublicCartRestController extends WP_REST_Controller
         // Add line items
         foreach ($order->order_items as $item) {
             $wc_order->add_product(
-                wc_get_product($item['product_id']),
-                $item['quantity'],
+                wc_get_product($item->product_id),
+                $item->quantity,
                 [
-                    'subtotal' => $item['unit_price'] * $item['quantity'],
-                    'total' => $item['total_price'],
+                    'subtotal' => $item->unit_price * $item->quantity,
+                    'total' => $item->total_price,
                 ]
             );
         }
