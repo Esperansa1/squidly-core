@@ -565,8 +565,16 @@ class PublicCartRestController extends WP_REST_Controller
             'customer_id' => $order->customer_id,
         ]);
 
+        // Set payment method to Cash on Delivery
+        $wc_order->set_payment_method('cod');
+        $wc_order->set_payment_method_title('Cash on delivery');
+
+        error_log('🛍️ WC Order created with ID: ' . $wc_order->get_id());
+        error_log('🛍️ Order items count: ' . count($order->order_items));
+
         // Add line items
         foreach ($order->order_items as $item) {
+            error_log('🛍️ Adding product ' . $item->product_id . ' (qty: ' . $item->quantity . ', unit_price: ' . $item->unit_price . ')');
             $wc_order->add_product(
                 wc_get_product($item->product_id),
                 $item->quantity,
@@ -577,11 +585,13 @@ class PublicCartRestController extends WP_REST_Controller
             );
         }
 
-        // Set totals
-        $wc_order->set_total($order->subtotal, 'cart');
-        $wc_order->set_total($order->tax_amount, 'tax');
-        $wc_order->set_total($order->delivery_fee, 'shipping');
+        // Set totals using correct WooCommerce 3.0+ methods
+        $wc_order->set_cart_tax($order->tax_amount);
+        $wc_order->set_shipping_total($order->delivery_fee);
         $wc_order->calculate_totals();
+
+        error_log('🛍️ WC Order totals - Subtotal: ' . $wc_order->get_subtotal() . ', Total: ' . $wc_order->get_total());
+        error_log('🛍️ WC Order status: ' . $wc_order->get_status());
 
         $wc_order->save();
 
