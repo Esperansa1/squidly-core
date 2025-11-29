@@ -164,13 +164,64 @@ class PublicApiService {
     return await this.fetch(`orders/${orderId}/status?token=${token}`);
   }
 
-  // ===== Cart Session API (if implemented server-side) =====
+  // ===== Cart Session API =====
 
   /**
-   * Create cart session
+   * Create cart session with initial item
+   * @param {number} branchId - Branch ID
+   * @param {number} productId - Product ID
+   * @param {number} quantity - Quantity (default 1)
+   * @param {Array} customizations - Customization array
+   * @param {string} notes - Optional notes
+   * @param {number} customerId - Optional customer ID
+   * @returns {Object} { cart, message } - Cart object with token
    */
-  async createCart() {
-    return await this.fetch('cart', { method: 'POST' });
+  async createCartSession(branchId, productId, quantity = 1, customizations = [], notes = '', customerId = null) {
+    const body = {
+      branch_id: branchId,
+      product_id: productId,
+      quantity,
+      customizations,
+    };
+
+    if (notes) body.notes = notes;
+    if (customerId) body.customer_id = customerId;
+
+    console.log('📤 createCartSession - Sending body:', JSON.stringify(body, null, 2));
+
+    return await this.fetch('cart', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Add item to existing cart session
+   * @param {string} cartToken - Cart token
+   * @param {number} productId - Product ID
+   * @param {number} quantity - Quantity
+   * @param {number} branchId - Branch ID (required)
+   * @param {Array} customizations - Customization array
+   * @param {string} notes - Optional notes
+   * @returns {Object} { cart, message }
+   */
+  async addToCart(cartToken, productId, quantity, branchId, customizations = [], notes = '') {
+    const body = {
+      token: cartToken,
+      branch_id: branchId,
+      product_id: productId,
+      quantity,
+      customizations,
+    };
+
+    if (notes) body.notes = notes;
+
+    console.log('📤 addToCart - Sending body:', JSON.stringify(body, null, 2));
+
+    return await this.fetch('cart', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
   }
 
   /**
@@ -181,32 +232,90 @@ class PublicApiService {
   }
 
   /**
-   * Update cart items
+   * Update specific cart item
+   * @param {string} cartToken - Cart token
+   * @param {string} itemId - Cart item ID
+   * @param {number} quantity - New quantity
+   * @param {string} notes - Updated notes
+   * @returns {Object} { cart, message }
    */
-  async updateCart(token, items) {
-    return await this.fetch(`cart/${token}`, {
+  async updateCartItem(cartToken, itemId, quantity, notes = '') {
+    const body = { quantity };
+    if (notes) body.notes = notes;
+
+    return await this.fetch(`cart/${cartToken}/item/${itemId}`, {
       method: 'PUT',
-      body: JSON.stringify({ items }),
+      body: JSON.stringify(body),
     });
   }
 
   /**
-   * Clear cart
+   * Remove specific cart item
+   * @param {string} cartToken - Cart token
+   * @param {string} itemId - Cart item ID
+   * @returns {Object} { cart, message }
+   */
+  async removeCartItem(cartToken, itemId) {
+    return await this.fetch(`cart/${cartToken}/item/${itemId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  /**
+   * Clear all cart items
    */
   async clearCart(token) {
     return await this.fetch(`cart/${token}`, { method: 'DELETE' });
+  }
+
+  /**
+   * Checkout cart session - convert to order
+   * @param {string} cartToken - Cart token
+   * @param {Object} checkoutData - Checkout details
+   * @param {number} checkoutData.customer_id - Customer ID
+   * @param {string} checkoutData.delivery_type - 'pickup' or 'delivery'
+   * @param {string} checkoutData.delivery_address - Delivery address (if delivery)
+   * @param {string} checkoutData.delivery_time - Scheduled delivery time
+   * @param {string} checkoutData.payment_method - Payment method
+   * @param {number} checkoutData.delivery_fee - Calculated delivery fee
+   * @param {string} checkoutData.notes - Special instructions
+   * @returns {Object} { order_id, tracking_token, total_price, payment_url }
+   */
+  async checkoutCart(cartToken, checkoutData) {
+    return await this.fetch(`cart/${cartToken}/checkout`, {
+      method: 'POST',
+      body: JSON.stringify(checkoutData),
+    });
   }
 
   // ===== Delivery Fee API =====
 
   /**
    * Calculate delivery fee
-   * @param {number} branchId
-   * @param {string} address
+   * @param {number} branchId - Branch ID
+   * @param {string} address - Delivery address
+   * @param {number} subtotal - Order subtotal (for free delivery threshold check)
+   * @returns {Object} { delivery_fee, is_deliverable, free_delivery_threshold, is_free_delivery }
    */
-  async getDeliveryFee(branchId, address) {
-    const params = new URLSearchParams({ branch_id: branchId, address });
+  async getDeliveryFee(branchId, address, subtotal = 0) {
+    const params = new URLSearchParams({
+      branch_id: branchId,
+      address,
+      subtotal: subtotal.toString()
+    });
     return await this.fetch(`delivery-fee?${params}`);
+  }
+
+  /**
+   * Cancel an order
+   * @param {number} orderId - Order ID
+   * @param {string} trackingToken - Tracking token for authentication
+   * @returns {Object} { message, order_id, status }
+   */
+  async cancelOrder(orderId, trackingToken) {
+    return await this.fetch(`orders/${orderId}?token=${trackingToken}`, {
+      method: 'DELETE',
+    });
   }
 
   // ===== Payment API =====

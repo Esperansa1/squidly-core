@@ -28,11 +28,13 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       // Initialize empty selections
       const initialSelections = {};
       data.groups_product_data?.forEach(group => {
+        console.log('🔍 Initializing group:', group.group_id, group.group_name);
         initialSelections[group.group_id] = [];
       });
       setSelections(initialSelections);
       setValidationErrors({});
       console.log('✅ Product data loaded:', data);
+      console.log('🔍 Initial selections object:', initialSelections);
     } catch (error) {
       console.error('❌ Failed to load product groups:', error);
     } finally {
@@ -164,9 +166,29 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       return;
     }
 
+    // Filter out empty groups (groups with no selections)
+    // IMPORTANT: Only send groups with valid IDs (non-zero integers) and items
+    // CRITICAL: Keep keys as STRINGS to prevent JSON.stringify from converting to array
+    const customizationsToSend = {};
+    Object.keys(selections).forEach(groupId => {
+      const numericGroupId = parseInt(groupId);
+      // Only include if:
+      // 1. Group ID is a valid number
+      // 2. Group ID is greater than 0
+      // 3. Group has at least one selected item
+      if (!isNaN(numericGroupId) && numericGroupId > 0 && selections[groupId] && selections[groupId].length > 0) {
+        // IMPORTANT: Use groupId (string) as key, NOT numericGroupId (integer)
+        // Using integer keys causes JSON.stringify to convert object to array
+        customizationsToSend[groupId] = selections[groupId];
+      }
+    });
+
+    console.log('🔍 All selections:', selections);
+    console.log('🔍 Filtered customizations to send:', customizationsToSend);
+
     const customizedProduct = {
       ...product,
-      customizations: selections,
+      customizations: customizationsToSend,
       final_price: calculateTotalPrice()
     };
     onConfirm(customizedProduct);

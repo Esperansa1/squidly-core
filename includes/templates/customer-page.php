@@ -63,6 +63,13 @@
             siteUrl: '<?php echo site_url(); ?>',
             currency: '<?php echo get_option('squidly_currency', 'ILS'); ?>',
             currencySymbol: '<?php echo get_option('squidly_currency_symbol', '₪'); ?>',
+            // Payment return detection (WooCommerce redirect)
+            paymentReturn: {
+                isReturn: <?php echo (isset($_GET['payment']) || isset($_GET['order_id'])) ? 'true' : 'false'; ?>,
+                orderId: <?php echo isset($_GET['order_id']) ? intval($_GET['order_id']) : 'null'; ?>,
+                status: '<?php echo isset($_GET['payment']) ? sanitize_text_field($_GET['payment']) : ''; ?>',
+                key: '<?php echo isset($_GET['key']) ? sanitize_text_field($_GET['key']) : ''; ?>',
+            },
         };
 
         // Debug logging

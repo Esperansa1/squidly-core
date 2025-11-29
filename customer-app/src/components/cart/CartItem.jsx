@@ -3,9 +3,10 @@ import { t } from '../../i18n/translations';
 
 /**
  * CartItem - Display single cart item with quantity controls
+ * Uses backend cart item ID for update/remove operations
  */
 export default function CartItem({ item, onUpdateQuantity, onRemove }) {
-  const { product, quantity, customizations, final_price } = item;
+  const { id, product, quantity, customizations, final_price } = item;
   const price = final_price || product.discounted_price || product.price;
   const itemTotal = price * quantity;
 
@@ -47,7 +48,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }) {
         {/* Quantity Controls */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onUpdateQuantity(product.id, quantity - 1)}
+            onClick={() => onUpdateQuantity(id, quantity - 1)}
             className="w-8 h-8 border flex items-center justify-center hover:bg-gray-100"
             disabled={quantity <= 1}
           >
@@ -55,7 +56,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }) {
           </button>
           <span className="w-8 text-center font-bold">{quantity}</span>
           <button
-            onClick={() => onUpdateQuantity(product.id, quantity + 1)}
+            onClick={() => onUpdateQuantity(id, quantity + 1)}
             className="w-8 h-8 border flex items-center justify-center hover:bg-gray-100"
           >
             +
@@ -64,7 +65,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }) {
 
         {/* Remove Button */}
         <button
-          onClick={() => onRemove(product.id)}
+          onClick={() => onRemove(id)}
           className="text-sm text-red-600 hover:text-red-800"
         >
           {t('removeFromCart')}

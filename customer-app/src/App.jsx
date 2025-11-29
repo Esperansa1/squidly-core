@@ -7,6 +7,8 @@ import ProductGrid from './components/products/ProductGrid';
 import CategoryTabs from './components/products/CategoryTabs';
 import CartModal from './components/cart/CartModal';
 import ProductCustomizationModal from './components/products/ProductCustomizationModal';
+import CheckoutFlow from './components/checkout/CheckoutFlow';
+import OrderTracker from './components/orders/OrderTracker';
 import { t } from './i18n/translations';
 
 function AppContent() {
@@ -37,6 +39,27 @@ function AppContent() {
     };
 
     initApi();
+  }, []);
+
+  // Detect payment return and auto-load order tracking
+  useEffect(() => {
+    const paymentReturn = window.wpConfig?.paymentReturn;
+
+    if (paymentReturn?.isReturn && paymentReturn?.orderId) {
+      console.log('🔔 Payment return detected:', paymentReturn);
+
+      // Check if we have a saved tracking token
+      const savedOrderId = sessionStorage.getItem('squidly_order_id');
+      const savedToken = sessionStorage.getItem('squidly_tracking_token');
+
+      if (savedOrderId && savedToken && parseInt(savedOrderId) === paymentReturn.orderId) {
+        console.log('✅ Auto-loading order tracking for order #' + paymentReturn.orderId);
+        // Auto-navigate to tracking view
+        setCurrentView('tracking');
+      } else {
+        console.warn('⚠️ Payment return detected but no matching tracking token found');
+      }
+    }
   }, []);
 
   // Fetch all products when menu view is shown (to extract categories)
@@ -109,7 +132,7 @@ function AppContent() {
       setCustomizingProduct(product);
     } else {
       // Add directly to cart (no customization)
-      addToCart(product, 1);
+      addToCart(product, 1, null, '', selectedBranch?.id);
       console.log('Added to cart:', product.name);
     }
   };
@@ -119,7 +142,9 @@ function AppContent() {
     addToCart(
       customizedProduct,
       1,
-      customizedProduct.customizations
+      customizedProduct.customizations,
+      '',
+      selectedBranch?.id
     );
     console.log('Added customized product to cart:', customizedProduct.name);
     setCustomizingProduct(null);
@@ -167,12 +192,20 @@ function AppContent() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Squidly Orders</h1>
-            <button
-              onClick={() => setShowCart(true)}
-              className="px-4 py-2 text-sm border hover:bg-gray-100"
-            >
-              {t('cart')} ({getItemCount()})
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setCurrentView('tracking')}
+                className="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
+              >
+                {t('trackOrder')}
+              </button>
+              <button
+                onClick={() => setShowCart(true)}
+                className="px-4 py-2 text-sm border hover:bg-gray-100 relative"
+              >
+                {t('cart')} ({getItemCount()})
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -223,20 +256,16 @@ function AppContent() {
         )}
 
         {currentView === 'checkout' && (
-          <div className="bg-white rounded-lg shadow p-8">
-            <div className="text-center py-12">
-              <h2 className="text-3xl font-bold mb-4 text-gray-900">{t('checkout')}</h2>
-              <p className="text-gray-600 mb-8">
-                Checkout flow coming soon...
-              </p>
-              <button
-                className="px-6 py-3 bg-gray-200 text-gray-700 font-medium hover:bg-gray-300"
-                onClick={() => setCurrentView('menu')}
-              >
-                ← {t('back')}
-              </button>
-            </div>
-          </div>
+          <CheckoutFlow
+            onBack={() => setCurrentView('menu')}
+            branchId={selectedBranch?.id}
+          />
+        )}
+
+        {currentView === 'tracking' && (
+          <OrderTracker
+            onBack={() => setCurrentView('menu')}
+          />
         )}
 
         {/* API Status */}

@@ -44,7 +44,7 @@ export default function CartModal({ isOpen, onClose, onCheckout }) {
             <div>
               {cart.items.map((item) => (
                 <CartItem
-                  key={item.product.id}
+                  key={item.id}
                   item={item}
                   onUpdateQuantity={updateQuantity}
                   onRemove={removeFromCart}

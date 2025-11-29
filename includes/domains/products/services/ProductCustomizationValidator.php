@@ -46,8 +46,15 @@ class ProductCustomizationValidator
             throw new InvalidArgumentException("Product not found: {$product_id}");
         }
 
+        // Debug logging
+        error_log('🔍 Validator - Product group IDs: ' . json_encode($product->product_group_ids));
+        error_log('🔍 Validator - Customizations structure: ' . json_encode($customizations));
+        error_log('🔍 Validator - Customizations keys: ' . json_encode(array_keys($customizations)));
+
         // Validate each group's customizations
         foreach ($customizations as $group_id => $selected_items) {
+            error_log('🔍 Validator - Processing group_id (raw): ' . var_export($group_id, true) . ' (type: ' . gettype($group_id) . ')');
+            error_log('🔍 Validator - Processing group_id (cast to int): ' . (int) $group_id);
             $this->validateGroupCustomization($product, (int) $group_id, $selected_items);
         }
 

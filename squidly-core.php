@@ -164,6 +164,7 @@ require_once __DIR__ . '/includes/domains/customers/rest/PublicCustomerRestContr
 require_once __DIR__ . '/includes/domains/orders/models/Cart.php';
 require_once __DIR__ . '/includes/domains/orders/models/CartItem.php';
 require_once __DIR__ . '/includes/domains/orders/services/CartService.php';
+require_once __DIR__ . '/includes/domains/orders/services/DeliveryFeeService.php';
 require_once __DIR__ . '/includes/domains/orders/rest/PublicCartRestController.php';
 
 require_once __DIR__ . '/includes/api/PublicApiBootstrap.php';

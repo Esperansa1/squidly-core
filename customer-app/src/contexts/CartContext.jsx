@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import publicApi from '../services/publicApi';
 
 const CartContext = createContext();
 
@@ -11,132 +12,249 @@ export function useCart() {
 }
 
 /**
- * CartProvider - Manages shopping cart state
- * Persists cart to sessionStorage
+ * CartProvider - Manages shopping cart with backend session
+ * Integrates with backend cart session API for server-side price calculation
  */
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState(() => {
-    // Load from sessionStorage on mount
-    try {
-      const saved = sessionStorage.getItem('squidly_cart');
-      return saved ? JSON.parse(saved) : { items: [] };
-    } catch (error) {
-      console.error('Failed to load cart:', error);
-      return { items: [] };
-    }
+  const [cartToken, setCartToken] = useState(() => {
+    // Load cart token from sessionStorage
+    return sessionStorage.getItem('squidly_cart_token') || null;
   });
 
-  // Save to sessionStorage whenever cart changes
+  const [cart, setCart] = useState({ items: [] });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Load cart from backend on mount if token exists
   useEffect(() => {
+    if (cartToken) {
+      loadCart();
+    }
+  }, [cartToken]);
+
+  // Save cart token to sessionStorage whenever it changes
+  useEffect(() => {
+    if (cartToken) {
+      sessionStorage.setItem('squidly_cart_token', cartToken);
+    } else {
+      sessionStorage.removeItem('squidly_cart_token');
+    }
+  }, [cartToken]);
+
+  /**
+   * Load cart from backend
+   */
+  const loadCart = async () => {
+    if (!cartToken) return;
+
     try {
-      sessionStorage.setItem('squidly_cart', JSON.stringify(cart));
-    } catch (error) {
-      console.error('Failed to save cart:', error);
+      setLoading(true);
+      setError(null);
+      const response = await publicApi.getCart(cartToken);
+      setCart(response.cart || { items: [] });
+    } catch (err) {
+      console.error('Failed to load cart:', err);
+      setError('Failed to load cart');
+      // Clear invalid token
+      setCartToken(null);
+      setCart({ items: [] });
+    } finally {
+      setLoading(false);
     }
-  }, [cart]);
+  };
 
-  // Add item to cart
-  const addToCart = (product, quantity = 1, customizations = null) => {
-    setCart(prev => {
-      // Generate unique key for item (includes customizations)
-      const itemKey = generateItemKey(product.id, customizations);
+  /**
+   * Add item to cart
+   * Creates cart session if doesn't exist, otherwise adds to existing cart
+   */
+  const addToCart = async (product, quantity = 1, customizations = null, notes = '', branchId = null) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-      // Check if exact same product+customizations already in cart
-      const existingIndex = prev.items.findIndex(item =>
-        generateItemKey(item.product.id, item.customizations) === itemKey
-      );
-
-      if (existingIndex >= 0) {
-        // Update quantity of existing customized item
-        const newItems = [...prev.items];
-        newItems[existingIndex].quantity += quantity;
-        return { ...prev, items: newItems };
-      } else {
-        // Add new item with customizations
-        const newItem = {
-          product,
-          quantity,
-          customizations: customizations || {},
-          final_price: product.final_price || product.discounted_price || product.price
-        };
-        return {
-          ...prev,
-          items: [...prev.items, newItem]
-        };
+      // Get branch ID from product or parameter
+      const branch = branchId || product.branch_id;
+      if (!branch) {
+        throw new Error('Branch ID is required to add items to cart');
       }
-    });
-  };
 
-  // Generate unique key for cart item (product + customizations)
-  const generateItemKey = (productId, customizations) => {
-    if (!customizations || Object.keys(customizations).length === 0) {
-      return `product_${productId}`;
+      let response;
+
+      if (!cartToken) {
+        // Create new cart session with first item
+        response = await publicApi.createCartSession(
+          branch,
+          product.id,
+          quantity,
+          customizations || [],
+          notes
+        );
+
+        // Store cart token
+        if (response.cart && response.cart.token) {
+          setCartToken(response.cart.token);
+        }
+      } else {
+        // Add to existing cart
+        response = await publicApi.addToCart(
+          cartToken,
+          product.id,
+          quantity,
+          branch,
+          customizations || [],
+          notes
+        );
+      }
+
+      // Update local cart state from backend response
+      if (response.cart) {
+        setCart(response.cart);
+      }
+
+      return response;
+    } catch (err) {
+      console.error('Failed to add to cart:', err);
+      setError(err.message || 'Failed to add item to cart');
+      throw err;
+    } finally {
+      setLoading(false);
     }
-    // Create consistent key from customizations
-    const customizationKey = Object.keys(customizations)
-      .sort()
-      .map(groupId => {
-        const items = customizations[groupId] || [];
-        const itemIds = items.map(i => i.id).sort().join(',');
-        return `${groupId}:${itemIds}`;
-      })
-      .join('|');
-    return `product_${productId}_custom_${customizationKey}`;
   };
 
-  // Update item quantity
-  const updateQuantity = (productId, quantity) => {
+  /**
+   * Update item quantity
+   * Uses backend cart item ID for updates
+   */
+  const updateQuantity = async (itemId, quantity) => {
+    if (!cartToken) return;
+
     if (quantity <= 0) {
-      removeFromCart(productId);
+      return removeFromCart(itemId);
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await publicApi.updateCartItem(cartToken, itemId, quantity);
+
+      if (response.cart) {
+        setCart(response.cart);
+      }
+
+      return response;
+    } catch (err) {
+      console.error('Failed to update quantity:', err);
+      setError(err.message || 'Failed to update quantity');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Remove item from cart
+   */
+  const removeFromCart = async (itemId) => {
+    if (!cartToken) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await publicApi.removeCartItem(cartToken, itemId);
+
+      if (response.cart) {
+        setCart(response.cart);
+      }
+
+      return response;
+    } catch (err) {
+      console.error('Failed to remove item:', err);
+      setError(err.message || 'Failed to remove item');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Clear entire cart
+   */
+  const clearCart = async () => {
+    if (!cartToken) {
+      setCart({ items: [] });
       return;
     }
 
-    setCart(prev => ({
-      ...prev,
-      items: prev.items.map(item =>
-        item.product.id === productId
-          ? { ...item, quantity }
-          : item
-      )
-    }));
+    try {
+      setLoading(true);
+      setError(null);
+
+      await publicApi.clearCart(cartToken);
+
+      // Clear local state and token
+      setCart({ items: [] });
+      setCartToken(null);
+    } catch (err) {
+      console.error('Failed to clear cart:', err);
+      setError(err.message || 'Failed to clear cart');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Remove item from cart
-  const removeFromCart = (productId) => {
-    setCart(prev => ({
-      ...prev,
-      items: prev.items.filter(item => item.product.id !== productId)
-    }));
-  };
-
-  // Clear entire cart
-  const clearCart = () => {
-    setCart({ items: [] });
-  };
-
-  // Calculate totals
+  /**
+   * Calculate totals from backend cart data
+   * Backend calculates prices server-side (prevents manipulation)
+   */
   const getTotal = () => {
+    if (!cart.items || cart.items.length === 0) return 0;
+
     return cart.items.reduce((total, item) => {
-      // Use final_price if available (includes customizations), otherwise base price
-      const price = item.final_price || item.product.discounted_price || item.product.price;
-      return total + (price * item.quantity);
+      const price = item.final_price || item.unit_price || 0;
+      const quantity = item.quantity || 1;
+      return total + (price * quantity);
     }, 0);
   };
 
+  /**
+   * Get total item count
+   */
   const getItemCount = () => {
-    return cart.items.reduce((count, item) => count + item.quantity, 0);
+    if (!cart.items || cart.items.length === 0) return 0;
+
+    return cart.items.reduce((count, item) => count + (item.quantity || 0), 0);
+  };
+
+  /**
+   * Get cart data for checkout
+   */
+  const getCartData = () => {
+    return {
+      token: cartToken,
+      items: cart.items || [],
+      subtotal: getTotal(),
+      itemCount: getItemCount()
+    };
   };
 
   return (
     <CartContext.Provider
       value={{
         cart,
+        cartToken,
+        loading,
+        error,
         addToCart,
         updateQuantity,
         removeFromCart,
         clearCart,
         getTotal,
-        getItemCount
+        getItemCount,
+        getCartData,
+        refreshCart: loadCart
       }}
     >
       {children}

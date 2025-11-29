@@ -144,6 +144,16 @@ class PublicCartRestController extends WP_REST_Controller
             $notes = $data['notes'] ?? null;
             $customer_id = $data['customer_id'] ?? null;
 
+            // Debug logging
+            error_log('📥 PublicCartRestController - Raw JSON params: ' . json_encode($data));
+            error_log('📥 PublicCartRestController - Received customizations: ' . json_encode($customizations));
+            error_log('📥 PublicCartRestController - Customizations type: ' . gettype($customizations));
+            if (is_array($customizations)) {
+                error_log('📥 PublicCartRestController - Customizations keys: ' . json_encode(array_keys($customizations)));
+                error_log('📥 PublicCartRestController - First key type: ' . gettype(array_key_first($customizations)));
+                error_log('📥 PublicCartRestController - First key value: ' . var_export(array_key_first($customizations), true));
+            }
+
             // Track if we're creating a new cart
             $is_new_cart = !$token;
 
@@ -406,8 +416,8 @@ class PublicCartRestController extends WP_REST_Controller
                 },
             ],
             'customizations' => [
-                'description' => 'Product customizations',
-                'type'        => 'array',
+                'description' => 'Product customizations (object with group IDs as keys)',
+                'type'        => 'object',
                 'default'     => [],
             ],
             'notes' => [
