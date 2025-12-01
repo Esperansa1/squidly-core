@@ -513,6 +513,12 @@ class PublicCartRestController extends WP_REST_Controller
             $payment_url = null;
             $payment_method = $data['payment_method'] ?? 'online';
             if ($payment_method === 'woocommerce' || $payment_method === 'online') {
+                // Verify payment product exists before attempting to create WooCommerce order
+                $payment_product_id = get_option('squidly_wc_payment_product_id');
+                if (!$payment_product_id || !wc_get_product($payment_product_id)) {
+                    throw new RuntimeException('WooCommerce payment system not configured. Please contact administrator.');
+                }
+
                 // Create WooCommerce order for payment
                 try {
                     $wc_order_id = $this->create_woocommerce_order($order, $customer);
@@ -606,18 +612,42 @@ class PublicCartRestController extends WP_REST_Controller
         error_log('🛍️ WC Order billing address set: ' . $customer->first_name . ' ' . $customer->last_name);
         error_log('🛍️ Order items count: ' . count($order->order_items));
 
-        // Add line items
-        foreach ($order->order_items as $item) {
-            error_log('🛍️ Adding product ' . $item->product_id . ' (qty: ' . $item->quantity . ', unit_price: ' . $item->unit_price . ')');
-            $wc_order->add_product(
-                wc_get_product($item->product_id),
-                $item->quantity,
-                [
-                    'subtotal' => $item->unit_price * $item->quantity,
-                    'total' => $item->total_price,
-                ]
-            );
+        // Get Squidly payment product (created during plugin activation)
+        $payment_product_id = get_option('squidly_wc_payment_product_id');
+        if (!$payment_product_id) {
+            throw new RuntimeException('WooCommerce payment product not configured. Please deactivate and reactivate the plugin.');
         }
+
+        $payment_product = wc_get_product($payment_product_id);
+        if (!$payment_product) {
+            throw new RuntimeException('WooCommerce payment product not found (ID: ' . $payment_product_id . ')');
+        }
+
+        // Add single payment product with order total
+        // The product price is set to match the order total
+        $item_id = $wc_order->add_product(
+            $payment_product,
+            1,  // Quantity is always 1
+            [
+                'subtotal' => $order->subtotal,
+                'total' => $order->subtotal,
+            ]
+        );
+
+        // Add metadata to show what the payment is for
+        if ($item_id) {
+            wc_add_order_item_meta($item_id, '_squidly_order_id', $order->id);
+            wc_add_order_item_meta($item_id, '_squidly_order_items_count', count($order->order_items));
+
+            // Add order items as metadata for reference
+            $items_summary = [];
+            foreach ($order->order_items as $squidly_item) {
+                $items_summary[] = $squidly_item->product_name . ' x' . $squidly_item->quantity;
+            }
+            wc_add_order_item_meta($item_id, '_squidly_items_summary', implode(', ', $items_summary));
+        }
+
+        error_log('🛍️ Added payment product (ID: ' . $payment_product_id . ') with total: ' . $order->subtotal);
 
         // Set totals using correct WooCommerce 3.0+ methods
         $wc_order->set_cart_tax($order->tax_amount);
