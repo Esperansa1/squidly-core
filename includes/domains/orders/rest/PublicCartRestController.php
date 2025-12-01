@@ -503,13 +503,19 @@ class PublicCartRestController extends WP_REST_Controller
             // Step 4: Get created order
             $order = $this->orderRepo->get($order_id);
 
+            // Step 4b: Retrieve customer data for WooCommerce billing
+            $customer = $this->customerRepo->get($order->customer_id);
+            if (!$customer) {
+                throw new RuntimeException('Customer not found for order');
+            }
+
             // Step 5: Prepare payment URL (if online payment)
             $payment_url = null;
             $payment_method = $data['payment_method'] ?? 'online';
             if ($payment_method === 'woocommerce' || $payment_method === 'online') {
                 // Create WooCommerce order for payment
                 try {
-                    $wc_order_id = $this->create_woocommerce_order($order);
+                    $wc_order_id = $this->create_woocommerce_order($order, $customer);
                     $this->orderRepo->linkWooCommerceOrder($order_id, $wc_order_id);
 
                     $wc_order = wc_get_order($wc_order_id);
@@ -555,7 +561,7 @@ class PublicCartRestController extends WP_REST_Controller
     /**
      * Create WooCommerce order for payment processing
      */
-    private function create_woocommerce_order(Order $order): int
+    private function create_woocommerce_order(Order $order, Customer $customer): int
     {
         if (!function_exists('wc_create_order')) {
             throw new RuntimeException('WooCommerce is not active');
@@ -569,7 +575,35 @@ class PublicCartRestController extends WP_REST_Controller
         $wc_order->set_payment_method('cod');
         $wc_order->set_payment_method_title('Cash on delivery');
 
+        // Set billing address (REQUIRED for WooCommerce to allow payment)
+        $billing_address = [
+            'first_name' => $customer->first_name,
+            'last_name'  => $customer->last_name,
+            'email'      => $customer->email ?: '',
+            'phone'      => $customer->phone ?: '',
+            'address_1'  => $order->delivery_address ?: '',
+            'city'       => '',
+            'postcode'   => '',
+            'country'    => 'IL',  // Israel
+        ];
+
+        $wc_order->set_address($billing_address, 'billing');
+
+        // Set shipping address if delivery order
+        if ($order->delivery_type === 'delivery' && $order->delivery_address) {
+            $shipping_address = [
+                'first_name' => $customer->first_name,
+                'last_name'  => $customer->last_name,
+                'address_1'  => $order->delivery_address,
+                'phone'      => $customer->phone ?: '',
+                'country'    => 'IL',
+            ];
+
+            $wc_order->set_address($shipping_address, 'shipping');
+        }
+
         error_log('🛍️ WC Order created with ID: ' . $wc_order->get_id());
+        error_log('🛍️ WC Order billing address set: ' . $customer->first_name . ' ' . $customer->last_name);
         error_log('🛍️ Order items count: ' . count($order->order_items));
 
         // Add line items
