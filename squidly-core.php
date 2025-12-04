@@ -220,10 +220,20 @@ register_activation_hook(__FILE__, function() {
     }
 });
 
-// One-time fix: Update existing payment product status to 'publish' (temporary)
+// Ensure payment product exists (creates if missing or deleted)
 add_action('init', function() {
     if (class_exists('WooCommerce') && class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {
-        // Check if we've already run this fix
+        $existing = get_option('squidly_wc_payment_product_id');
+
+        // Create if missing or if product was deleted
+        if (!$existing || !wc_get_product($existing)) {
+            error_log('⚠️ Payment product missing or deleted, creating now...');
+            \Squidly\Domains\Payments\Activation\PaymentProductActivation::createPaymentProduct();
+            $new_id = get_option('squidly_wc_payment_product_id');
+            error_log('✅ Payment product created with ID: ' . $new_id);
+        }
+
+        // Update status to 'publish' if needed (one-time fix for old installations)
         if (!get_option('squidly_payment_product_status_fixed')) {
             \Squidly\Domains\Payments\Activation\PaymentProductActivation::updatePaymentProductStatus();
             update_option('squidly_payment_product_status_fixed', true);

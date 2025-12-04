@@ -84,10 +84,98 @@ $remaining = get_posts([
 ]);
 
 $remaining_count = count($remaining);
-echo "Verification: {$remaining_count} orders remaining in database\n";
+echo "Verification: {$remaining_count} Squidly orders remaining in database\n";
 
 if ($remaining_count === 0) {
-    echo "✓ SUCCESS: All orders deleted!\n\n";
+    echo "✓ SUCCESS: All Squidly orders deleted!\n\n";
 } else {
-    echo "⚠ WARNING: {$remaining_count} orders still exist!\n\n";
+    echo "⚠ WARNING: {$remaining_count} Squidly orders still exist!\n\n";
 }
+
+// Delete WooCommerce orders
+echo "\n========================================\n";
+echo "🗑️  DELETING WOOCOMMERCE ORDERS\n";
+echo "========================================\n\n";
+
+if (class_exists('WooCommerce')) {
+    echo "Querying WooCommerce orders...\n";
+
+    // Get payment product ID to exclude it from deletion
+    $payment_product_id = get_option('squidly_wc_payment_product_id');
+
+    $wc_query = new WP_Query([
+        'post_type' => 'shop_order',
+        'posts_per_page' => -1,
+        'post_status' => 'any',
+        'fields' => 'ids',
+        'no_found_rows' => true,
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false
+    ]);
+
+    $wc_orders = $wc_query->posts;
+    wp_reset_postdata();
+
+    // Exclude payment product from deletion
+    if ($payment_product_id) {
+        $wc_orders = array_diff($wc_orders, [$payment_product_id]);
+        echo "ℹ️  Excluding payment product (ID: {$payment_product_id}) from deletion\n";
+    }
+
+    echo "Query completed. Found " . count($wc_orders) . " WooCommerce orders\n\n";
+
+    $wc_count = count($wc_orders);
+
+    if ($wc_count === 0) {
+        echo "✓ No WooCommerce orders found. Database is clean!\n\n";
+    } else {
+        echo "Found {$wc_count} WooCommerce orders to delete...\n";
+        echo "Starting deletion process...\n\n";
+
+        $wc_deleted = 0;
+        $wc_failed = 0;
+
+        foreach ($wc_orders as $wc_order_id) {
+            $result = wp_delete_post($wc_order_id, true);
+
+            if ($result) {
+                $wc_deleted++;
+                echo "✓ Deleted WooCommerce order ID: {$wc_order_id}\n";
+            } else {
+                $wc_failed++;
+                echo "✗ Failed to delete WooCommerce order ID: {$wc_order_id}\n";
+            }
+        }
+
+        echo "\n========================================\n";
+        echo "WOOCOMMERCE DELETION COMPLETE!\n";
+        echo "========================================\n";
+        echo "Total WC orders found:    {$wc_count}\n";
+        echo "Successfully deleted:     {$wc_deleted}\n";
+        echo "Failed to delete:         {$wc_failed}\n";
+        echo "========================================\n\n";
+
+        // Verify WC deletion
+        $wc_remaining = get_posts([
+            'post_type' => 'shop_order',
+            'posts_per_page' => -1,
+            'post_status' => 'any',
+            'fields' => 'ids'
+        ]);
+
+        $wc_remaining_count = count($wc_remaining);
+        echo "Verification: {$wc_remaining_count} WooCommerce orders remaining\n";
+
+        if ($wc_remaining_count === 0) {
+            echo "✓ SUCCESS: All WooCommerce orders deleted!\n\n";
+        } else {
+            echo "⚠ WARNING: {$wc_remaining_count} WooCommerce orders still exist!\n\n";
+        }
+    }
+} else {
+    echo "⚠ WooCommerce not active. Skipping WooCommerce order deletion.\n\n";
+}
+
+echo "========================================\n";
+echo "✅ ALL DONE!\n";
+echo "========================================\n";
