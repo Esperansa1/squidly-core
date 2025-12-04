@@ -515,20 +515,37 @@ class PublicCartRestController extends WP_REST_Controller
             if ($payment_method === 'woocommerce' || $payment_method === 'online') {
                 // Verify payment product exists before attempting to create WooCommerce order
                 $payment_product_id = get_option('squidly_wc_payment_product_id');
-                if (!$payment_product_id || !wc_get_product($payment_product_id)) {
+                error_log('🔍 Payment product check: ID=' . $payment_product_id);
+
+                if (!$payment_product_id) {
+                    error_log('❌ Payment product ID not found in options');
+                    throw new RuntimeException('WooCommerce payment system not configured. Please contact administrator.');
+                }
+
+                $payment_product = wc_get_product($payment_product_id);
+                error_log('🔍 Payment product lookup: ' . ($payment_product ? 'FOUND' : 'NOT FOUND'));
+
+                if (!$payment_product) {
+                    error_log('❌ Payment product not found in WooCommerce (ID: ' . $payment_product_id . ')');
                     throw new RuntimeException('WooCommerce payment system not configured. Please contact administrator.');
                 }
 
                 // Create WooCommerce order for payment
                 try {
+                    error_log('🛍️ Creating WooCommerce order...');
                     $wc_order_id = $this->create_woocommerce_order($order, $customer);
+                    error_log('✅ WooCommerce order created: ' . $wc_order_id);
+
                     $this->orderRepo->linkWooCommerceOrder($order_id, $wc_order_id);
 
                     $wc_order = wc_get_order($wc_order_id);
                     $payment_url = $wc_order->get_checkout_payment_url();
+                    error_log('✅ Payment URL: ' . $payment_url);
                 } catch (Exception $e) {
-                    error_log("Failed to create WooCommerce order: " . $e->getMessage());
-                    // Continue without payment URL - can be retried later
+                    error_log("❌ Failed to create WooCommerce order: " . $e->getMessage());
+                    error_log("❌ Stack trace: " . $e->getTraceAsString());
+                    // Re-throw to show error to user
+                    throw $e;
                 }
             }
 
@@ -573,8 +590,9 @@ class PublicCartRestController extends WP_REST_Controller
             throw new RuntimeException('WooCommerce is not active');
         }
 
+        // Create order as guest (customer_id = 0) since Squidly customer IDs don't map to WP users
         $wc_order = wc_create_order([
-            'customer_id' => $order->customer_id,
+            'customer_id' => 0,
         ]);
 
         // Set payment method to Cash on Delivery
@@ -656,8 +674,20 @@ class PublicCartRestController extends WP_REST_Controller
 
         error_log('🛍️ WC Order totals - Subtotal: ' . $wc_order->get_subtotal() . ', Total: ' . $wc_order->get_total());
         error_log('🛍️ WC Order status: ' . $wc_order->get_status());
+        error_log('🛍️ WC Order needs payment: ' . ($wc_order->needs_payment() ? 'YES' : 'NO'));
+        error_log('🛍️ WC Order payment method: ' . $wc_order->get_payment_method());
+
+        // Check if COD gateway is available
+        $payment_gateways = WC()->payment_gateways->get_available_payment_gateways();
+        error_log('🛍️ Available payment gateways: ' . implode(', ', array_keys($payment_gateways)));
 
         $wc_order->save();
+
+        // Verify order can be paid after save
+        $saved_order = wc_get_order($wc_order->get_id());
+        error_log('🛍️ After save - Order total: ' . $saved_order->get_total());
+        error_log('🛍️ After save - Needs payment: ' . ($saved_order->needs_payment() ? 'YES' : 'NO'));
+        error_log('🛍️ After save - Has status: ' . $saved_order->get_status());
 
         return $wc_order->get_id();
     }

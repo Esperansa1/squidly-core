@@ -209,6 +209,17 @@ register_activation_hook(__FILE__, function() {
     }
 });
 
+// One-time fix: Update existing payment product status to 'publish' (temporary)
+add_action('init', function() {
+    if (class_exists('WooCommerce') && class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {
+        // Check if we've already run this fix
+        if (!get_option('squidly_payment_product_status_fixed')) {
+            \Squidly\Domains\Payments\Activation\PaymentProductActivation::updatePaymentProductStatus();
+            update_option('squidly_payment_product_status_fixed', true);
+        }
+    }
+}, 20);
+
 register_deactivation_hook(__FILE__, function() {
     if (class_exists('WooCommerce') && class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {
         \Squidly\Domains\Payments\Activation\PaymentProductActivation::cleanupPaymentProduct();
