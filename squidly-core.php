@@ -188,6 +188,17 @@ AdminPageHandler::init();
 require_once __DIR__ . '/includes/admin/CustomerPageHandler.php';
 CustomerPageHandler::init();
 
+// TEMPORARY: Load delete orders admin page (for development only)
+if (file_exists(__DIR__ . '/tools/test-data/delete-orders-admin.php')) {
+    require_once __DIR__ . '/tools/test-data/delete-orders-admin.php';
+}
+
+// Load payment product filters to customize display
+require_once __DIR__ . '/includes/domains/payments/PaymentProductFilters.php';
+add_action('init', function() {
+    \Squidly\Domains\Payments\PaymentProductFilters::init();
+}, 15);
+
 // Payment system activation hooks
 register_activation_hook(__FILE__, function() {
     // Ensure WooCommerce is loaded before creating payment product
