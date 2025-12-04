@@ -67,7 +67,11 @@ class PublicCustomerRestController extends WP_REST_Controller
             $first_name = sanitize_text_field($data['first_name']);
             $last_name = sanitize_text_field($data['last_name']);
             $phone = sanitize_text_field($data['phone']);
-            $email = isset($data['email']) && !empty(trim($data['email'])) ? sanitize_email($data['email']) : null;
+
+            // Sanitize email: trim, remove trailing commas/semicolons, then validate
+            $email_raw = isset($data['email']) ? trim($data['email']) : '';
+            $email_raw = rtrim($email_raw, ',;'); // Remove trailing commas or semicolons
+            $email = !empty($email_raw) ? sanitize_email($email_raw) : null;
 
             // Normalize phone number for duplicate checking (0501234567 -> +972501234567)
             $normalized_phone = $this->normalize_phone($phone);
@@ -139,9 +143,11 @@ class PublicCustomerRestController extends WP_REST_Controller
             }
         }
 
-        // Validate email if provided
+        // Validate email if provided (trim and remove trailing commas first)
         if (isset($data['email']) && !empty($data['email'])) {
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $email_check = trim($data['email']);
+            $email_check = rtrim($email_check, ',;'); // Remove trailing commas/semicolons
+            if (!empty($email_check) && !filter_var($email_check, FILTER_VALIDATE_EMAIL)) {
                 throw new InvalidArgumentException('Invalid email format');
             }
         }
@@ -252,15 +258,25 @@ class PublicCustomerRestController extends WP_REST_Controller
                     if (is_null($param) || $param === '' || !isset($param)) {
                         return true;
                     }
+                    // Clean the email before validation
+                    $cleaned = trim($param);
+                    $cleaned = rtrim($cleaned, ',;'); // Remove trailing punctuation
+                    // If empty after cleaning, it's valid (optional field)
+                    if (empty($cleaned)) {
+                        return true;
+                    }
                     // If provided, must be valid email
-                    return filter_var($param, FILTER_VALIDATE_EMAIL) !== false;
+                    return filter_var($cleaned, FILTER_VALIDATE_EMAIL) !== false;
                 },
                 'sanitize_callback' => function($param) {
-                    // Return null for empty strings to avoid validation issues
+                    // Return null for empty values
                     if (empty($param)) {
                         return null;
                     }
-                    return sanitize_email($param);
+                    // Trim and remove trailing commas/semicolons before sanitizing
+                    $cleaned = trim($param);
+                    $cleaned = rtrim($cleaned, ',;');
+                    return !empty($cleaned) ? sanitize_email($cleaned) : null;
                 },
             ],
         ];
