@@ -244,15 +244,24 @@ class PublicCustomerRestController extends WP_REST_Controller
             ],
             'email' => [
                 'description'       => 'Customer email address (optional)',
-                'type'              => 'string',
+                'type'              => ['string', 'null'],  // Allow both string and null
                 'required'          => false,
-                'validate_callback' => function($param) {
-                    if (empty($param)) {
-                        return true; // Optional field
+                'default'           => null,  // Default to null if not provided
+                'validate_callback' => function($param, $request, $key) {
+                    // Allow null, empty string, or missing param (optional field)
+                    if (is_null($param) || $param === '' || !isset($param)) {
+                        return true;
                     }
+                    // If provided, must be valid email
                     return filter_var($param, FILTER_VALIDATE_EMAIL) !== false;
                 },
-                'sanitize_callback' => 'sanitize_email',
+                'sanitize_callback' => function($param) {
+                    // Return null for empty strings to avoid validation issues
+                    if (empty($param)) {
+                        return null;
+                    }
+                    return sanitize_email($param);
+                },
             ],
         ];
     }
