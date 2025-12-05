@@ -10,11 +10,14 @@ export default function HeroBanner() {
     <div
       style={{
         width: '100%',
-        height: '150px',
+        minHeight: '120px',
+        height: '15vh',
+        maxHeight: '180px',
         backgroundColor: '#1F2937',
         borderRadius: theme.borderRadius.xl,
         overflow: 'hidden',
         position: 'relative',
+        flexShrink: 0,
       }}
     >
       {/* Placeholder gradient until actual image is provided */}
