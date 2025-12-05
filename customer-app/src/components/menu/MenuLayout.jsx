@@ -27,10 +27,15 @@ export default function MenuLayout({ branchId, onCheckout }) {
   const loadMenuData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Loading menu data for branch:', branchId);
 
       // Fetch products for this branch
       const filters = branchId ? { branch_id: branchId } : {};
+      console.log('📦 Fetching products with filters:', filters);
+
       const productsData = await publicApi.getProducts(filters);
+      console.log('✅ Products loaded:', productsData);
+
       setProducts(productsData);
 
       // Extract unique categories from products
@@ -51,6 +56,8 @@ export default function MenuLayout({ branchId, onCheckout }) {
       });
 
       const cats = Array.from(categoryMap.values());
+      console.log('📂 Categories extracted:', cats);
+
       setCategories(cats);
       if (cats.length > 0) {
         setActiveCategory(cats[0].id);
@@ -58,7 +65,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
 
       setLoading(false);
     } catch (error) {
-      console.error('Failed to load menu data:', error);
+      console.error('❌ Failed to load menu data:', error);
       setLoading(false);
     }
   };
@@ -77,9 +84,17 @@ export default function MenuLayout({ branchId, onCheckout }) {
 
   // Filter products by category and search
   const filteredProducts = products.filter((product) => {
-    const matchesCategory = !activeCategory || product.category_id === activeCategory;
+    const productCategoryId = product.category_id || 'uncategorized';
+    const matchesCategory = !activeCategory || productCategoryId === activeCategory;
     const matchesSearch = !searchQuery || product.name.includes(searchQuery);
     return matchesCategory && matchesSearch;
+  });
+
+  console.log('🔍 Filtered products:', {
+    total: products.length,
+    filtered: filteredProducts.length,
+    activeCategory,
+    searchQuery,
   });
 
   // Handle add to cart
