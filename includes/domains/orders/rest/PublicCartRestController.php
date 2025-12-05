@@ -22,8 +22,8 @@ class PublicCartRestController extends WP_REST_Controller
     private OrderRepository $orderRepo;
     private CustomerRepository $customerRepo;
 
-    // Rate limiting
-    private const RATE_LIMIT_REQUESTS = 30;
+    // Rate limiting - Higher limits to support high-volume purchasing
+    private const RATE_LIMIT_REQUESTS = 200; // 200 requests per minute (reasonable for busy checkout)
     private const RATE_LIMIT_WINDOW = 60; // 1 minute
 
     public function __construct()

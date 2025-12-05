@@ -19,8 +19,8 @@ class PublicCustomerRestController extends WP_REST_Controller
 
     private CustomerRepository $customerRepo;
 
-    // Rate limiting (simple IP-based)
-    private const RATE_LIMIT_REQUESTS = 5;
+    // Rate limiting (simple IP-based) - Higher limits for busy checkout periods
+    private const RATE_LIMIT_REQUESTS = 50; // 50 guest customer creations per 5 minutes
     private const RATE_LIMIT_WINDOW = 300; // 5 minutes
 
     public function __construct()
