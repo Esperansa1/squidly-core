@@ -33,10 +33,6 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: theme.spacing.lg,
-          backgroundColor: theme.colors.cardBg,
-          borderRadius: theme.borderRadius.xl,
-          boxShadow: theme.shadows.card,
         }}
       >
         <h2
@@ -146,7 +142,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
               style={{
                 fontSize: '1rem',
                 fontWeight: '500',
-                color: theme.colors.text.secondary,
+                color: theme.colors.text.primary,
                 textAlign: 'center',
                 margin: 0,
               }}
@@ -200,7 +196,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
             display: 'flex',
             justifyContent: 'space-between',
             marginBottom: theme.spacing.sm,
-            color: theme.colors.text.secondary,
+            color: theme.colors.text.primary,
           }}
         >
           <span>דמי משלוח</span>
@@ -222,64 +218,55 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
         </div>
       </div>
 
-      {/* Order Now Button Container */}
-      <div
+      {/* Order Now Button */}
+      <button
+        onClick={onCheckout}
+        disabled={isEmpty}
         style={{
-          padding: theme.spacing.lg,
-          backgroundColor: theme.colors.cardBg,
-          borderRadius: theme.borderRadius.xl,
-          boxShadow: theme.shadows.card,
+          width: '100%',
+          padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+          backgroundColor: isEmpty ? '#EF444480' : theme.colors.primary, // 50% opacity red when disabled
+          color: theme.colors.text.white,
+          border: 'none',
+          borderRadius: theme.borderRadius.md,
+          fontSize: '1.125rem',
+          fontWeight: 'bold',
+          cursor: isEmpty ? 'not-allowed' : 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: theme.spacing.sm,
+          transition: 'background-color 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          if (!isEmpty) {
+            e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isEmpty) {
+            e.currentTarget.style.backgroundColor = theme.colors.primary;
+          }
         }}
       >
-        <button
-          onClick={onCheckout}
-          disabled={isEmpty}
-          style={{
-            width: '100%',
-            padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-            backgroundColor: isEmpty ? theme.colors.text.muted : theme.colors.primary,
-            color: theme.colors.text.white,
-            border: 'none',
-            borderRadius: theme.borderRadius.md,
-            fontSize: '1.125rem',
-            fontWeight: 'bold',
-            cursor: isEmpty ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: theme.spacing.sm,
-            transition: 'background-color 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            if (!isEmpty) {
-              e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isEmpty) {
-              e.currentTarget.style.backgroundColor = theme.colors.primary;
-            }
-          }}
+        <span>הזמן עכשיו</span>
+        {/* Mouse/Click Icon */}
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <span>הזמן עכשיו</span>
-          {/* Mouse/Click Icon */}
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M9 9V5a3 3 0 0 1 6 0v4" />
-            <path d="M12 13v8" />
-            <path d="M9 9h6l-2.5 8h-1L9 9z" />
-            <rect x="7" y="9" width="10" height="14" rx="2" />
-          </svg>
-        </button>
-      </div>
+          <path d="M9 9V5a3 3 0 0 1 6 0v4" />
+          <path d="M12 13v8" />
+          <path d="M9 9h6l-2.5 8h-1L9 9z" />
+          <rect x="7" y="9" width="10" height="14" rx="2" />
+        </svg>
+      </button>
     </div>
   );
 }
