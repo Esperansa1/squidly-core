@@ -141,6 +141,7 @@ require_once __DIR__ . '/includes/domains/payments/gateways/WooProvider.php';
 require_once __DIR__ . '/includes/domains/payments/rest/PaymentRestController.php';
 require_once __DIR__ . '/includes/domains/payments/admin/PaymentAdminActions.php';
 require_once __DIR__ . '/includes/domains/payments/hooks/PaymentStatusSync.php';
+require_once __DIR__ . '/includes/domains/payments/hooks/OrderItemDisplay.php';
 require_once __DIR__ . '/includes/domains/payments/activation/PaymentProductActivation.php';
 require_once __DIR__ . '/includes/domains/payments/bootstrap/PaymentBootstrap.php';
 
@@ -174,6 +175,13 @@ if (class_exists('Squidly\Domains\Payments\Bootstrap\PaymentBootstrap')) {
     \Squidly\Domains\Payments\Bootstrap\PaymentBootstrap::init();
 }
 
+// Initialize Order Item Display customization
+add_action('init', function() {
+    if (class_exists('Squidly\Domains\Payments\Hooks\OrderItemDisplay')) {
+        \Squidly\Domains\Payments\Hooks\OrderItemDisplay::init();
+    }
+}, 15);
+
 // Initialize Admin API
 AdminApiBootstrap::init();
 
@@ -193,11 +201,13 @@ if (file_exists(__DIR__ . '/tools/test-data/delete-orders-admin.php')) {
     require_once __DIR__ . '/tools/test-data/delete-orders-admin.php';
 }
 
-// Load payment product filters to customize display
+// DEPRECATED: Payment product filters no longer needed with fee-based orders
+/*
 require_once __DIR__ . '/includes/domains/payments/PaymentProductFilters.php';
 add_action('init', function() {
     \Squidly\Domains\Payments\PaymentProductFilters::init();
 }, 15);
+*/
 
 // Payment system activation hooks
 register_activation_hook(__FILE__, function() {
@@ -220,7 +230,9 @@ register_activation_hook(__FILE__, function() {
     }
 });
 
-// Ensure payment product exists (creates if missing or deleted)
+// DEPRECATED: Payment product no longer needed with fee-based orders
+// Keeping code commented for reference during migration period
+/*
 add_action('init', function() {
     if (class_exists('WooCommerce') && class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {
         $existing = get_option('squidly_wc_payment_product_id');
@@ -240,6 +252,7 @@ add_action('init', function() {
         }
     }
 }, 20);
+*/
 
 register_deactivation_hook(__FILE__, function() {
     if (class_exists('WooCommerce') && class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {
