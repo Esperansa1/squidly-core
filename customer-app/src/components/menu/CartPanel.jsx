@@ -15,7 +15,6 @@ export default function CartPanel({ cart, onCheckout }) {
   return (
     <div
       style={{
-        width: theme.layout.cartPanelWidth,
         backgroundColor: theme.colors.cardBg,
         borderRadius: theme.borderRadius.xl,
         padding: theme.spacing.lg,
@@ -23,9 +22,8 @@ export default function CartPanel({ cart, onCheckout }) {
         display: 'flex',
         flexDirection: 'column',
         gap: theme.spacing.lg,
-        height: 'fit-content',
-        position: 'sticky',
-        top: theme.spacing.lg,
+        height: '100%',
+        overflow: 'hidden',
       }}
     >
       {/* Empty Cart State */}

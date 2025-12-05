@@ -110,18 +110,18 @@ export default function MenuLayout({ branchId, onCheckout }) {
   return (
     <div
       style={{
-        minHeight: '100vh',
-        padding: theme.spacing.lg,
+        height: '100vh',
+        padding: theme.spacing.md,
         direction: 'rtl',
+        overflow: 'hidden',
       }}
     >
       <div
         style={{
-          maxWidth: theme.layout.maxContentWidth,
-          margin: '0 auto',
+          height: '100%',
           display: 'grid',
           gridTemplateColumns: `${theme.layout.sidebarWidth} 1fr ${theme.layout.cartPanelWidth}`,
-          gap: theme.spacing.lg,
+          gap: theme.spacing.md,
         }}
       >
         {/* Right Sidebar - Navigation */}
@@ -132,7 +132,15 @@ export default function MenuLayout({ branchId, onCheckout }) {
         />
 
         {/* Center - Main Content */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.lg }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: theme.spacing.md,
+            overflowY: 'auto',
+            height: '100%',
+          }}
+        >
           {/* Hero Banner */}
           <HeroBanner />
 

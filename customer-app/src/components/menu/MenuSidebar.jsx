@@ -9,7 +9,6 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
   return (
     <div
       style={{
-        width: theme.layout.sidebarWidth,
         backgroundColor: theme.colors.cardBg,
         borderRadius: theme.borderRadius.xl,
         padding: theme.spacing.lg,
@@ -17,9 +16,8 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
         display: 'flex',
         flexDirection: 'column',
         gap: theme.spacing.md,
-        height: 'fit-content',
-        position: 'sticky',
-        top: theme.spacing.lg,
+        height: '100%',
+        overflow: 'hidden',
       }}
     >
       {/* Logo */}

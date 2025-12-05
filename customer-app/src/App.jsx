@@ -193,15 +193,6 @@ function AppContent() {
           </div>
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t mt-12">
-        <div className="container mx-auto px-4 py-6">
-          <p className="text-center text-gray-500 text-sm">
-            © 2025 Squidly. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }
