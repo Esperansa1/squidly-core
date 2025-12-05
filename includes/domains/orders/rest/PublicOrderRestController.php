@@ -311,12 +311,34 @@ class PublicOrderRestController extends WP_REST_Controller
             ], 403);
         }
 
+        // Return complete order data for tracking UI
         return new WP_REST_Response([
-            'order_id'       => $order->id,
-            'status'         => $order->status,
-            'payment_status' => $order->payment_status,
-            'total_amount'   => $order->total_amount,
-            'order_date'     => $order->order_date,
+            'order' => [
+                'id'              => $order->id,
+                'status'          => $order->status,
+                'payment_status'  => $order->payment_status,
+                'payment_method'  => $order->payment_method,
+                'total_amount'    => $order->total_amount,
+                'subtotal'        => $order->subtotal,
+                'tax_amount'      => $order->tax_amount,
+                'delivery_fee'    => $order->delivery_fee,
+                'order_date'      => $order->order_date,
+                'delivery_type'   => $order->delivery_type ?? 'pickup',
+                'delivery_address' => $order->delivery_address ?? '',
+                'pickup_time'     => $order->pickup_time ?? '',
+                'special_instructions' => $order->special_instructions ?? '',
+                'estimated_time'  => $order->estimated_ready_time ?? null,
+                'items'           => array_map(function($item) {
+                    return [
+                        'product_id'   => $item->product_id,
+                        'product_name' => $item->product_name,
+                        'quantity'     => $item->quantity,
+                        'unit_price'   => $item->unit_price,
+                        'total_price'  => $item->total_price,
+                        'special_instructions' => $item->notes ?? '',
+                    ];
+                }, $order->order_items),
+            ],
         ], 200);
     }
 
