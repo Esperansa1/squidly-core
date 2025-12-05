@@ -20,13 +20,10 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
   return (
     <div
       style={{
-        backgroundColor: theme.colors.cardBg,
-        borderRadius: theme.borderRadius.xl,
-        padding: theme.spacing.lg,
-        boxShadow: theme.shadows.card,
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
+        gap: theme.spacing.md,
         overflow: 'hidden',
       }}
     >
@@ -36,9 +33,10 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: theme.spacing.lg,
-          paddingBottom: theme.spacing.md,
-          borderBottom: `1px solid ${theme.colors.border}`,
+          padding: theme.spacing.lg,
+          backgroundColor: theme.colors.cardBg,
+          borderRadius: theme.borderRadius.xl,
+          boxShadow: theme.shadows.card,
         }}
       >
         <h2
@@ -98,16 +96,15 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
         </button>
       </div>
 
-      {/* Cart Items Area - Scrollable with fixed max height */}
+      {/* Cart Items Area - Takes all available vertical space */}
       <div
         style={{
-          flex: '1 1 auto',
-          maxHeight: '300px',
+          flex: '1 1 0',
           overflowY: 'auto',
-          marginBottom: theme.spacing.lg,
-          padding: theme.spacing.sm,
-          backgroundColor: theme.colors.background,
-          borderRadius: theme.borderRadius.lg,
+          padding: theme.spacing.lg,
+          backgroundColor: theme.colors.cardBg,
+          borderRadius: theme.borderRadius.xl,
+          boxShadow: theme.shadows.card,
         }}
       >
         {isEmpty ? (
@@ -118,15 +115,14 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: theme.spacing.xl,
-              minHeight: '200px',
+              height: '100%',
             }}
           >
             <div
               style={{
                 width: '80px',
                 height: '80px',
-                backgroundColor: theme.colors.cardBg,
+                backgroundColor: theme.colors.background,
                 borderRadius: theme.borderRadius.full,
                 display: 'flex',
                 alignItems: 'center',
@@ -165,8 +161,8 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
               <div
                 key={index}
                 style={{
-                  padding: theme.spacing.sm,
-                  backgroundColor: theme.colors.cardBg,
+                  padding: theme.spacing.md,
+                  backgroundColor: theme.colors.background,
                   borderRadius: theme.borderRadius.md,
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -193,10 +189,10 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
       {/* Order Details - Delivery + Total */}
       <div
         style={{
-          padding: theme.spacing.md,
-          backgroundColor: theme.colors.background,
-          borderRadius: theme.borderRadius.lg,
-          marginBottom: theme.spacing.lg,
+          padding: theme.spacing.lg,
+          backgroundColor: theme.colors.cardBg,
+          borderRadius: theme.borderRadius.xl,
+          boxShadow: theme.shadows.card,
         }}
       >
         <div
@@ -226,55 +222,64 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
         </div>
       </div>
 
-      {/* Order Now Button */}
-      <button
-        onClick={onCheckout}
-        disabled={isEmpty}
+      {/* Order Now Button Container */}
+      <div
         style={{
-          width: '100%',
-          padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-          backgroundColor: isEmpty ? theme.colors.text.muted : theme.colors.primary,
-          color: theme.colors.text.white,
-          border: 'none',
-          borderRadius: theme.borderRadius.md,
-          fontSize: '1.125rem',
-          fontWeight: 'bold',
-          cursor: isEmpty ? 'not-allowed' : 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: theme.spacing.sm,
-          transition: 'background-color 0.2s ease',
-        }}
-        onMouseEnter={(e) => {
-          if (!isEmpty) {
-            e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isEmpty) {
-            e.currentTarget.style.backgroundColor = theme.colors.primary;
-          }
+          padding: theme.spacing.lg,
+          backgroundColor: theme.colors.cardBg,
+          borderRadius: theme.borderRadius.xl,
+          boxShadow: theme.shadows.card,
         }}
       >
-        <span>הזמן עכשיו</span>
-        {/* Mouse/Click Icon */}
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        <button
+          onClick={onCheckout}
+          disabled={isEmpty}
+          style={{
+            width: '100%',
+            padding: `${theme.spacing.md} ${theme.spacing.lg}`,
+            backgroundColor: isEmpty ? theme.colors.text.muted : theme.colors.primary,
+            color: theme.colors.text.white,
+            border: 'none',
+            borderRadius: theme.borderRadius.md,
+            fontSize: '1.125rem',
+            fontWeight: 'bold',
+            cursor: isEmpty ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: theme.spacing.sm,
+            transition: 'background-color 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (!isEmpty) {
+              e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isEmpty) {
+              e.currentTarget.style.backgroundColor = theme.colors.primary;
+            }
+          }}
         >
-          <path d="M9 9V5a3 3 0 0 1 6 0v4" />
-          <path d="M12 13v8" />
-          <path d="M9 9h6l-2.5 8h-1L9 9z" />
-          <rect x="7" y="9" width="10" height="14" rx="2" />
-        </svg>
-      </button>
+          <span>הזמן עכשיו</span>
+          {/* Mouse/Click Icon */}
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 9V5a3 3 0 0 1 6 0v4" />
+            <path d="M12 13v8" />
+            <path d="M9 9h6l-2.5 8h-1L9 9z" />
+            <rect x="7" y="9" width="10" height="14" rx="2" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
