@@ -160,6 +160,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
             gap: theme.spacing.md,
             overflowY: 'auto',
             height: '100%',
+            paddingBottom: theme.spacing.md,
           }}
         >
           {/* Hero Banner */}
