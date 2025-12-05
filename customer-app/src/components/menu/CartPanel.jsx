@@ -33,6 +33,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          padding: theme.spacing.md,
         }}
       >
         <h2
@@ -52,7 +53,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
             display: 'flex',
             alignItems: 'center',
             gap: theme.spacing.xs,
-            padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+            padding: `${theme.spacing.sm} ${theme.spacing.md}`,
             backgroundColor: isEmpty ? theme.colors.background : '#9CA3AF',
             color: isEmpty ? theme.colors.text.muted : theme.colors.text.white,
             border: 'none',
