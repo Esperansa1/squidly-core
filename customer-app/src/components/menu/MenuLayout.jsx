@@ -157,22 +157,24 @@ export default function MenuLayout({ branchId, onCheckout }) {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: theme.spacing.md,
-            overflowY: 'auto',
             height: '100%',
-            paddingBottom: theme.spacing.md,
+            overflow: 'hidden',
           }}
         >
-          {/* Hero Banner */}
-          <HeroBanner />
+          {/* Hero Banner - Static */}
+          <div style={{ flexShrink: 0 }}>
+            <HeroBanner />
+          </div>
 
-          {/* Our Menu Header with Search and Filter */}
+          {/* Our Menu Header with Search and Filter - Static */}
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               marginTop: theme.spacing.sm,
+              marginBottom: theme.spacing.md,
+              flexShrink: 0,
             }}
           >
             {/* Our Menu Label - Right Side */}
@@ -249,12 +251,20 @@ export default function MenuLayout({ branchId, onCheckout }) {
             </div>
           </div>
 
-          {/* Product Grid */}
-          <ProductGrid
-            products={filteredProducts}
-            onAddToCart={handleAddToCart}
-            loading={loading}
-          />
+          {/* Product Grid - Scrollable */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              paddingBottom: theme.spacing.md,
+            }}
+          >
+            <ProductGrid
+              products={filteredProducts}
+              onAddToCart={handleAddToCart}
+              loading={loading}
+            />
+          </div>
         </div>
 
         {/* Left Sidebar - Cart Panel */}
