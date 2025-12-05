@@ -126,7 +126,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
           height: '100%',
           display: 'grid',
           gridTemplateColumns: `${theme.layout.sidebarWidth} 1fr ${theme.layout.cartPanelWidth}`,
-          gap: theme.spacing.md,
+          gap: '20px',
         }}
       >
         {/* Right Sidebar - Navigation */}
