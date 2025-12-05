@@ -149,44 +149,65 @@ export default function MenuLayout({ branchId, onCheckout }) {
           {/* Hero Banner */}
           <HeroBanner />
 
-          {/* Search and Filter Controls */}
+          {/* Our Menu Header with Search and Filter */}
           <div
             style={{
               display: 'flex',
-              gap: theme.spacing.sm,
+              justifyContent: 'space-between',
               alignItems: 'center',
+              marginTop: theme.spacing.sm,
             }}
           >
-            <button
+            {/* Our Menu Label - Right Side */}
+            <h2
               style={{
-                width: '40px',
-                height: '40px',
-                backgroundColor: theme.colors.cardBg,
-                border: 'none',
-                borderRadius: theme.borderRadius.md,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                boxShadow: theme.shadows.sm,
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                color: theme.colors.text.primary,
+                margin: 0,
               }}
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={theme.colors.text.secondary}
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-            </button>
-            <button
+              התפריט שלנו
+            </h2>
+
+            {/* Search and Filter Buttons - Left Side */}
+            <div
               style={{
-                width: '40px',
-                height: '40px',
+                display: 'flex',
+                gap: theme.spacing.sm,
+                alignItems: 'center',
+              }}
+            >
+              <button
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: theme.colors.cardBg,
+                  border: 'none',
+                  borderRadius: theme.borderRadius.md,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: theme.shadows.sm,
+                }}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={theme.colors.text.secondary}
+                  strokeWidth="2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </button>
+              <button
+                style={{
+                  width: '40px',
+                  height: '40px',
                 backgroundColor: theme.colors.cardBg,
                 border: 'none',
                 borderRadius: theme.borderRadius.md,
@@ -208,19 +229,8 @@ export default function MenuLayout({ branchId, onCheckout }) {
                 <path d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
               </svg>
             </button>
+            </div>
           </div>
-
-          {/* Menu Heading */}
-          <h1
-            style={{
-              fontSize: '2rem',
-              fontWeight: 'bold',
-              color: theme.colors.text.primary,
-              margin: 0,
-            }}
-          >
-            המפריט שלנו
-          </h1>
 
           {/* Product Grid */}
           <ProductGrid
