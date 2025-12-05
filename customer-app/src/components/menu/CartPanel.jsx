@@ -2,15 +2,20 @@ import React from 'react';
 import theme from '../../config/theme';
 
 /**
- * CartPanel - Fixed left sidebar showing cart contents and checkout
- * Displays cart items, price breakdown, and checkout button
+ * CartPanel - Order summary section (leftmost panel)
+ * Shows order summary header, cart items, price details, and order button
  */
-export default function CartPanel({ cart, onCheckout }) {
+export default function CartPanel({ cart, onCheckout, onClearCart }) {
   const isEmpty = !cart || !cart.items || cart.items.length === 0;
   const subtotal = cart?.subtotal || 0;
   const deliveryFee = cart?.deliveryFee || 25.0;
-  const tax = cart?.tax || 0;
-  const total = subtotal + deliveryFee + tax;
+  const total = subtotal + deliveryFee;
+
+  const handleClearCart = () => {
+    if (onClearCart && !isEmpty) {
+      onClearCart();
+    }
+  };
 
   return (
     <div
@@ -21,34 +26,115 @@ export default function CartPanel({ cart, onCheckout }) {
         boxShadow: theme.shadows.card,
         display: 'flex',
         flexDirection: 'column',
-        gap: theme.spacing.lg,
         height: '100%',
         overflow: 'hidden',
       }}
     >
-      {/* Empty Cart State */}
-      {isEmpty && (
-        <>
+      {/* Header: סיכום ההזמנה + Cancel Button */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: theme.spacing.lg,
+          paddingBottom: theme.spacing.md,
+          borderBottom: `1px solid ${theme.colors.border}`,
+        }}
+      >
+        <h2
+          style={{
+            fontSize: '1.25rem',
+            fontWeight: 'bold',
+            color: theme.colors.text.primary,
+            margin: 0,
+          }}
+        >
+          סיכום ההזמנה
+        </h2>
+        <button
+          onClick={handleClearCart}
+          disabled={isEmpty}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: theme.spacing.xs,
+            padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+            backgroundColor: isEmpty ? theme.colors.background : '#9CA3AF',
+            color: isEmpty ? theme.colors.text.muted : theme.colors.text.white,
+            border: 'none',
+            borderRadius: theme.borderRadius.md,
+            fontSize: '0.875rem',
+            cursor: isEmpty ? 'not-allowed' : 'pointer',
+            transition: 'background-color 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (!isEmpty) {
+              e.currentTarget.style.backgroundColor = '#6B7280';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isEmpty) {
+              e.currentTarget.style.backgroundColor = '#9CA3AF';
+            }
+          }}
+        >
+          {/* Trash Icon */}
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <line x1="10" y1="11" x2="10" y2="17" />
+            <line x1="14" y1="11" x2="14" y2="17" />
+          </svg>
+          <span>ביטול הזמנה</span>
+        </button>
+      </div>
+
+      {/* Cart Items Area - Scrollable with fixed max height */}
+      <div
+        style={{
+          flex: '1 1 auto',
+          maxHeight: '300px',
+          overflowY: 'auto',
+          marginBottom: theme.spacing.lg,
+          padding: theme.spacing.sm,
+          backgroundColor: theme.colors.background,
+          borderRadius: theme.borderRadius.lg,
+        }}
+      >
+        {isEmpty ? (
+          // Empty cart placeholder
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
+              justifyContent: 'center',
               padding: theme.spacing.xl,
+              minHeight: '200px',
             }}
           >
             <div
               style={{
                 width: '80px',
                 height: '80px',
-                backgroundColor: theme.colors.background,
-                borderRadius: theme.borderRadius.md,
+                backgroundColor: theme.colors.cardBg,
+                borderRadius: theme.borderRadius.full,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: theme.spacing.md,
               }}
             >
+              {/* Placeholder for logo - will be replaced */}
               <svg
                 width="40"
                 height="40"
@@ -64,103 +150,65 @@ export default function CartPanel({ cart, onCheckout }) {
               style={{
                 fontSize: '1rem',
                 fontWeight: '500',
-                color: theme.colors.text.primary,
+                color: theme.colors.text.secondary,
                 textAlign: 'center',
+                margin: 0,
               }}
             >
-              העגלה שלכם ריקה
+              העגלה שלך ריקה
             </p>
           </div>
-
-          {/* Coupon Section */}
-          <div
-            style={{
-              borderTop: `1px solid ${theme.colors.border}`,
-              paddingTop: theme.spacing.md,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: theme.spacing.sm,
-                marginBottom: theme.spacing.sm,
-              }}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={theme.colors.text.secondary}
-                strokeWidth="2"
-              >
-                <path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-              </svg>
-              <span
-                style={{
-                  fontSize: '0.875rem',
-                  color: theme.colors.text.secondary,
-                  fontWeight: '500',
-                }}
-              >
-                יש לכם קופון
-              </span>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Cart Items - Show when not empty */}
-      {!isEmpty && (
-        <div style={{ flex: 1, overflowY: 'auto', maxHeight: '400px' }}>
-          {cart.items.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                padding: `${theme.spacing.sm} 0`,
-                borderBottom: `1px solid ${theme.colors.border}`,
-              }}
-            >
+        ) : (
+          // Cart items list
+          <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
+            {cart.items.map((item, index) => (
               <div
+                key={index}
                 style={{
+                  padding: theme.spacing.sm,
+                  backgroundColor: theme.colors.cardBg,
+                  borderRadius: theme.borderRadius.md,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                 }}
               >
-                <span style={{ fontWeight: '500' }}>{item.name}</span>
-                <span>₪{item.price.toFixed(2)}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: '500', color: theme.colors.text.primary }}>
+                    {item.name}
+                  </div>
+                  <div style={{ fontSize: '0.875rem', color: theme.colors.text.secondary }}>
+                    כמות: {item.quantity}
+                  </div>
+                </div>
+                <div style={{ fontWeight: 'bold', color: theme.colors.text.primary }}>
+                  ₪{(item.price * item.quantity).toFixed(2)}
+                </div>
               </div>
-              <div style={{ fontSize: '0.875rem', color: theme.colors.text.muted }}>
-                כמות: {item.quantity}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* Price Breakdown */}
+      {/* Order Details - Delivery + Total */}
       <div
         style={{
-          borderTop: `1px solid ${theme.colors.border}`,
-          paddingTop: theme.spacing.md,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: theme.spacing.sm,
+          padding: theme.spacing.md,
+          backgroundColor: theme.colors.background,
+          borderRadius: theme.borderRadius.lg,
+          marginBottom: theme.spacing.lg,
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: theme.colors.text.secondary }}>דמי משלוח</span>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: theme.spacing.sm,
+            color: theme.colors.text.secondary,
+          }}
+        >
+          <span>דמי משלוח</span>
           <span>₪{deliveryFee.toFixed(2)}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: theme.colors.text.secondary }}>סכום כולל</span>
-          <span>₪{subtotal.toFixed(2)}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: theme.colors.text.secondary }}>מע״מ</span>
-          <span>₪{tax.toFixed(2)}</span>
         </div>
         <div
           style={{
@@ -170,6 +218,7 @@ export default function CartPanel({ cart, onCheckout }) {
             borderTop: `1px solid ${theme.colors.border}`,
             fontSize: '1.125rem',
             fontWeight: 'bold',
+            color: theme.colors.text.primary,
           }}
         >
           <span>סך הכל</span>
@@ -177,7 +226,7 @@ export default function CartPanel({ cart, onCheckout }) {
         </div>
       </div>
 
-      {/* Checkout Button */}
+      {/* Order Now Button */}
       <button
         onClick={onCheckout}
         disabled={isEmpty}
@@ -188,7 +237,7 @@ export default function CartPanel({ cart, onCheckout }) {
           color: theme.colors.text.white,
           border: 'none',
           borderRadius: theme.borderRadius.md,
-          fontSize: '1rem',
+          fontSize: '1.125rem',
           fontWeight: 'bold',
           cursor: isEmpty ? 'not-allowed' : 'pointer',
           display: 'flex',
@@ -208,7 +257,8 @@ export default function CartPanel({ cart, onCheckout }) {
           }
         }}
       >
-        <span>המשך עכשיו</span>
+        <span>הזמן עכשיו</span>
+        {/* Mouse/Click Icon */}
         <svg
           width="20"
           height="20"
@@ -216,9 +266,13 @@ export default function CartPanel({ cart, onCheckout }) {
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          style={{ transform: 'scaleX(-1)' }}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <path d="M9 5l7 7-7 7" />
+          <path d="M9 9V5a3 3 0 0 1 6 0v4" />
+          <path d="M12 13v8" />
+          <path d="M9 9h6l-2.5 8h-1L9 9z" />
+          <rect x="7" y="9" width="10" height="14" rx="2" />
         </svg>
       </button>
     </div>

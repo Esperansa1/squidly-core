@@ -107,6 +107,11 @@ export default function MenuLayout({ branchId, onCheckout }) {
     });
   };
 
+  // Handle clear cart
+  const handleClearCart = () => {
+    setCart({ items: [], subtotal: 0, deliveryFee: 25.0, tax: 0 });
+  };
+
   return (
     <div
       style={{
@@ -226,7 +231,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
         </div>
 
         {/* Left Sidebar - Cart Panel */}
-        <CartPanel cart={cart} onCheckout={onCheckout} />
+        <CartPanel cart={cart} onCheckout={onCheckout} onClearCart={handleClearCart} />
       </div>
     </div>
   );
