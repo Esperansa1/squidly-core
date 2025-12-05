@@ -111,7 +111,6 @@ export default function MenuLayout({ branchId, onCheckout }) {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: theme.colors.background,
         padding: theme.spacing.lg,
         direction: 'rtl',
       }}
