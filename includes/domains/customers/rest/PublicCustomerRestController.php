@@ -79,6 +79,26 @@ class PublicCustomerRestController extends WP_REST_Controller
             // Check for existing guest with same phone
             $existing_customer = $this->customerRepo->findByPhone($normalized_phone);
             if ($existing_customer && $existing_customer->is_guest) {
+                // Update customer info if it has changed
+                $updates = [];
+
+                if ($email && $email !== $existing_customer->email) {
+                    $updates['email'] = $email;
+                }
+
+                if ($first_name !== $existing_customer->first_name) {
+                    $updates['first_name'] = $first_name;
+                }
+
+                if ($last_name !== $existing_customer->last_name) {
+                    $updates['last_name'] = $last_name;
+                }
+
+                // Apply updates if any
+                if (!empty($updates)) {
+                    $this->customerRepo->update($existing_customer->id, $updates);
+                }
+
                 // Return existing guest customer ID
                 return new WP_REST_Response([
                     'customer_id' => $existing_customer->id,
