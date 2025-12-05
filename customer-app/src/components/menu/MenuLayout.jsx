@@ -29,7 +29,8 @@ export default function MenuLayout({ branchId, onCheckout }) {
       setLoading(true);
 
       // Fetch products for this branch
-      const productsData = await publicApi.getProducts(branchId);
+      const filters = branchId ? { branch_id: branchId } : {};
+      const productsData = await publicApi.getProducts(filters);
       setProducts(productsData);
 
       // Extract unique categories from products
