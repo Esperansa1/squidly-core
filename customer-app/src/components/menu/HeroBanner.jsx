@@ -10,7 +10,7 @@ export default function HeroBanner() {
     <div
       style={{
         width: '100%',
-        height: '280px',
+        height: '150px',
         backgroundColor: '#1F2937',
         borderRadius: theme.borderRadius.xl,
         overflow: 'hidden',
