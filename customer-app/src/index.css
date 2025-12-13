@@ -5,8 +5,7 @@
 /* Custom LiaDiplomat font */
 @font-face {
   font-family: 'LiaDiplomat';
-  src: url('../assets/fonts/LiaDiplomat-Regular.woff2') format('woff2'),
-       url('../assets/fonts/LiaDiplomat-Regular.woff') format('woff');
+  src: url('./assets/fonts/LiaDiplomat-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -14,8 +13,23 @@
 
 @font-face {
   font-family: 'LiaDiplomat';
-  src: url('../assets/fonts/LiaDiplomat-Bold.woff2') format('woff2'),
-       url('../assets/fonts/LiaDiplomat-Bold.woff') format('woff');
+  src: url('./assets/fonts/LiaDiplomat-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'LiaDiplomat';
+  src: url('./assets/fonts/LiaDiplomat-SemiBold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'LiaDiplomat';
+  src: url('./assets/fonts/LiaDiplomat-ExtraBold.woff2') format('woff2');
   font-weight: 800;
   font-style: normal;
   font-display: swap;
@@ -60,6 +74,17 @@ code {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
+}
+
+/* Hide scrollbar for specific elements */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Pulse animation for skeleton loaders */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* Mobile-first touch-friendly interactions */

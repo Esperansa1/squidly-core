@@ -1,22 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import publicApi from '../../services/publicApi';
-import { t } from '../../i18n/translations';
+import theme from '../../config/theme';
+import { getCurrentLanguage } from '../../i18n/translations';
 
 /**
- * ProductCustomizationModal - Wolt-style product customization
- * Allows selecting items from product groups before adding to cart
- * Enforces min/max selection constraints
+ * ProductCustomizationModal - Phone-shaped modal for product customization
+ * Layout: Product image at top, name + quantity selector, description, groups, add button
+ * Supports RTL/LTR based on language detection
  */
 export default function ProductCustomizationModal({ product, isOpen, onClose, onConfirm }) {
   const [productData, setProductData] = useState(null);
   const [selections, setSelections] = useState({});
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState({});
+  const [direction, setDirection] = useState('rtl');
+
+  // Detect direction when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const lang = getCurrentLanguage();
+      const newDirection = (lang === 'he' || lang === 'ar') ? 'rtl' : 'ltr';
+      setDirection(newDirection);
+    }
+  }, [isOpen]);
 
   // Fetch product with groups when modal opens
   useEffect(() => {
     if (isOpen && product) {
       fetchProductWithGroups();
+      setQuantity(1);
     }
   }, [isOpen, product]);
 
@@ -28,13 +41,10 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       // Initialize empty selections
       const initialSelections = {};
       data.groups_product_data?.forEach(group => {
-        console.log('🔍 Initializing group:', group.group_id, group.group_name);
         initialSelections[group.group_id] = [];
       });
       setSelections(initialSelections);
       setValidationErrors({});
-      console.log('✅ Product data loaded:', data);
-      console.log('🔍 Initial selections object:', initialSelections);
     } catch (error) {
       console.error('❌ Failed to load product groups:', error);
     } finally {
@@ -48,21 +58,16 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
     const max = group.max_selections || 0;
 
     if (min === 0 && max === 0) {
-      return 'אופציונלי'; // Optional
+      return 'בחר את התוספות שתרצה לצד המנה.';
     } else if (min === 0 && max > 0) {
-      return `בחר עד ${max} ${max === 1 ? 'פריט' : 'פריטים'}`; // Choose up to X items
+      return `בחר עד ${max} ${max === 1 ? 'פריט' : 'פריטים'}`;
     } else if (min > 0 && max === 0) {
-      return `בחר לפחות ${min} ${min === 1 ? 'פריט' : 'פריטים'}`; // Choose at least X items
+      return `בחר לפחות ${min} ${min === 1 ? 'פריט' : 'פריטים'}`;
     } else if (min === max) {
-      return `בחר בדיוק ${min} ${min === 1 ? 'פריט' : 'פריטים'} *`; // Choose exactly X items *
+      return `בחר בדיוק ${min} ${min === 1 ? 'פריט' : 'פריטים'}`;
     } else {
-      return `בחר בין ${min}-${max} פריטים *`; // Choose between X-Y items *
+      return `בחר בין ${min}-${max} פריטים`;
     }
-  };
-
-  // Check if a group is required
-  const isGroupRequired = (group) => {
-    return (group.min_selections || 0) > 0;
   };
 
   // Toggle item selection in a group (for checkboxes)
@@ -72,20 +77,15 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       const isSelected = groupSelections.some(s => s.id === item.id);
 
       if (isSelected) {
-        // Remove item
         return {
           ...prev,
           [groupId]: groupSelections.filter(s => s.id !== item.id)
         };
       } else {
-        // Check max constraint before adding
         const maxSelections = group.max_selections || 0;
         if (maxSelections > 0 && groupSelections.length >= maxSelections) {
-          // Already at max - don't add
           return prev;
         }
-
-        // Add item
         return {
           ...prev,
           [groupId]: [...groupSelections, item]
@@ -93,7 +93,6 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       }
     });
 
-    // Clear validation error for this group
     setValidationErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[groupId];
@@ -108,7 +107,6 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       [groupId]: [item]
     }));
 
-    // Clear validation error for this group
     setValidationErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[groupId];
@@ -116,79 +114,54 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
     });
   };
 
-  // Validate all selections against constraints
+  // Validate all selections
   const validateSelections = () => {
     const errors = {};
-
     productData?.groups_product_data?.forEach(group => {
       const selectedCount = (selections[group.group_id] || []).length;
       const min = group.min_selections || 0;
       const max = group.max_selections || 0;
 
-      // Check minimum constraint
       if (selectedCount < min) {
         errors[group.group_id] = `יש לבחור לפחות ${min} ${min === 1 ? 'פריט' : 'פריטים'}`;
       }
-
-      // Check maximum constraint
       if (max > 0 && selectedCount > max) {
         errors[group.group_id] = `ניתן לבחור עד ${max} ${max === 1 ? 'פריט' : 'פריטים'}`;
       }
     });
-
     return errors;
   };
 
-  // Check if can add to cart
-  const canAddToCart = () => {
-    const errors = validateSelections();
-    return Object.keys(errors).length === 0;
-  };
-
-  // Calculate total price including selections
+  // Calculate total price
   const calculateTotalPrice = () => {
     if (!productData) return 0;
-
     const basePrice = productData.discounted_price || productData.price;
     const addonsPrice = Object.values(selections)
       .flat()
       .reduce((sum, item) => sum + (item.price || 0), 0);
-
-    return basePrice + addonsPrice;
+    return (basePrice + addonsPrice) * quantity;
   };
 
-  // Handle confirm and add to cart
+  // Handle confirm
   const handleConfirm = () => {
     const errors = validateSelections();
-
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
 
-    // Filter out empty groups (groups with no selections)
-    // IMPORTANT: Only send groups with valid IDs (non-zero integers) and items
-    // CRITICAL: Keep keys as STRINGS to prevent JSON.stringify from converting to array
     const customizationsToSend = {};
     Object.keys(selections).forEach(groupId => {
       const numericGroupId = parseInt(groupId);
-      // Only include if:
-      // 1. Group ID is a valid number
-      // 2. Group ID is greater than 0
-      // 3. Group has at least one selected item
       if (!isNaN(numericGroupId) && numericGroupId > 0 && selections[groupId] && selections[groupId].length > 0) {
-        // IMPORTANT: Use groupId (string) as key, NOT numericGroupId (integer)
-        // Using integer keys causes JSON.stringify to convert object to array
         customizationsToSend[groupId] = selections[groupId];
       }
     });
 
-    console.log('🔍 All selections:', selections);
-    console.log('🔍 Filtered customizations to send:', customizationsToSend);
-
     const customizedProduct = {
       ...product,
       customizations: customizationsToSend,
+      quantity,
       final_price: calculateTotalPrice()
     };
     onConfirm(customizedProduct);
@@ -197,154 +170,489 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end md:items-center justify-center">
-      <div className="bg-white w-full md:w-2/3 lg:w-1/2 max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">{product?.name}</h2>
-          <button
-            onClick={onClose}
-            className="text-2xl px-3 hover:bg-gray-100"
-          >
-            ×
-          </button>
-        </div>
+  const isMinusDisabled = quantity <= 1;
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {loading ? (
-            <div className="text-center py-12">{t('loading')}</div>
-          ) : (
-            <div>
-              {/* Base Product Info */}
-              <div className="mb-6">
-                <p className="text-gray-600">{productData?.description}</p>
-                <p className="text-lg font-bold mt-2">
-                  ₪{(productData?.discounted_price || productData?.price).toFixed(2)}
-                </p>
+  return (
+    // Dark overlay background
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: theme.spacing.md,
+      }}
+      onClick={onClose}
+    >
+      {/* Modal container - phone-shaped */}
+      <div
+        style={{
+          backgroundColor: theme.colors.cardBg,
+          borderRadius: theme.borderRadius.xl,
+          maxWidth: '420px',
+          width: '100%',
+          maxHeight: window.innerHeight < 700 ? '95vh' : '90vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
+          direction: direction,
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {loading ? (
+          // Skeleton loader
+          <div style={{ padding: theme.spacing.lg }}>
+            {/* Image skeleton */}
+            <div style={{
+              width: '100%',
+              height: '200px',
+              backgroundColor: theme.colors.background,
+              borderRadius: theme.borderRadius.lg,
+              marginBottom: theme.spacing.lg,
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }} />
+
+            {/* Title + Quantity row skeleton */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: theme.spacing.md,
+            }}>
+              <div style={{
+                width: '60%',
+                height: '24px',
+                backgroundColor: theme.colors.background,
+                borderRadius: theme.borderRadius.md,
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }} />
+              <div style={{
+                width: '100px',
+                height: '32px',
+                backgroundColor: theme.colors.background,
+                borderRadius: theme.borderRadius.full,
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }} />
+            </div>
+
+            {/* Description skeleton */}
+            <div style={{
+              width: '90%',
+              height: '16px',
+              backgroundColor: theme.colors.background,
+              borderRadius: theme.borderRadius.md,
+              marginBottom: theme.spacing.md,
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }} />
+
+            {/* Group section skeleton */}
+            <div style={{
+              backgroundColor: theme.colors.background,
+              borderRadius: theme.borderRadius.lg,
+              padding: theme.spacing.md,
+              marginBottom: theme.spacing.md,
+            }}>
+              <div style={{
+                width: '40%',
+                height: '18px',
+                backgroundColor: theme.colors.cardBg,
+                borderRadius: theme.borderRadius.md,
+                marginBottom: theme.spacing.sm,
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }} />
+              <div style={{
+                width: '70%',
+                height: '14px',
+                backgroundColor: theme.colors.cardBg,
+                borderRadius: theme.borderRadius.md,
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }} />
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Product Image at top */}
+            {productData?.image_url && (
+              <div
+                style={{
+                  width: '100%',
+                  height: '200px',
+                  maxHeight: '30vh',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                }}
+              >
+                <img
+                  src={productData.image_url}
+                  alt={productData.name}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Scrollable content area */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: `${theme.spacing.lg} ${theme.spacing.lg} 0 ${theme.spacing.lg}`,
+              }}
+            >
+              {/* Product name + quantity selector */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: theme.spacing.md,
+                }}
+              >
+                <h2
+                  style={{
+                    fontSize: '1.5rem',
+                    fontWeight: '700',
+                    color: theme.colors.text.primary,
+                    margin: 0,
+                    flex: 1,
+                  }}
+                >
+                  {productData?.name}
+                </h2>
+
+                {/* Quantity selector */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.sm,
+                  }}
+                >
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={isMinusDisabled}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: theme.borderRadius.full,
+                      backgroundColor: isMinusDisabled ? theme.colors.background : theme.colors.primary,
+                      color: isMinusDisabled ? theme.colors.text.muted : theme.colors.text.white,
+                      border: 'none',
+                      cursor: isMinusDisabled ? 'not-allowed' : 'pointer',
+                      opacity: isMinusDisabled ? 0.5 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.25rem',
+                      fontWeight: 'bold',
+                      lineHeight: 1,
+                      padding: 0,
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isMinusDisabled) {
+                        e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isMinusDisabled) {
+                        e.currentTarget.style.backgroundColor = theme.colors.primary;
+                      }
+                    }}
+                  >
+                    −
+                  </button>
+                  <span
+                    style={{
+                      fontSize: '1.125rem',
+                      fontWeight: '500',
+                      minWidth: '30px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: theme.borderRadius.full,
+                      backgroundColor: theme.colors.primary,
+                      color: theme.colors.text.white,
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.25rem',
+                      fontWeight: 'bold',
+                      lineHeight: 1,
+                      padding: 0,
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.primary;
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
 
+              {/* Product description */}
+              <p
+                style={{
+                  fontSize: '0.9375rem',
+                  color: theme.colors.text.primary,
+                  opacity: 0.8,
+                  lineHeight: '1.5',
+                  marginBottom: theme.spacing.md,
+                }}
+              >
+                {productData?.description || 'תיאור המוצר יופיע כאן'}
+              </p>
+
               {/* Product Groups */}
-              {productData?.groups_product_data?.length > 0 ? (
-                productData.groups_product_data.map(group => {
-                  const isSingleChoice = group.max_selections === 1;
-                  const selectedCount = (selections[group.group_id] || []).length;
-                  const maxSelections = group.max_selections || 0;
-                  const hasError = validationErrors[group.group_id];
+              {productData?.groups_product_data?.map((group) => {
+                const isSingleChoice = group.max_selections === 1;
+                const hasError = validationErrors[group.group_id];
 
-                  return (
-                    <div key={group.group_id} className="mb-6 border-t pt-4">
-                      {/* Group Header */}
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-bold text-lg">
-                            {group.group_name}
-                            {isGroupRequired(group) && <span className="text-red-600 mr-1">*</span>}
-                          </h3>
-                          {group.description && (
-                            <p className="text-sm text-gray-600 mt-1">{group.description}</p>
-                          )}
-                          <p className="text-sm text-blue-600 mt-1">
-                            {getConstraintLabel(group)}
-                          </p>
-                        </div>
-                        {maxSelections > 0 && !isSingleChoice && (
-                          <span className={`text-sm font-medium ${
-                            selectedCount >= maxSelections ? 'text-red-600' : 'text-gray-600'
-                          }`}>
-                            {selectedCount}/{maxSelections}
-                          </span>
-                        )}
+                return (
+                  <div
+                    key={group.group_id}
+                    style={{
+                      backgroundColor: '#FAFAFA',
+                      borderRadius: theme.borderRadius.lg,
+                      padding: theme.spacing.md,
+                      marginBottom: theme.spacing.md,
+                      boxShadow: theme.shadows.sm,
+                    }}
+                  >
+                    {/* Group name */}
+                    <h3
+                      style={{
+                        fontSize: '1.125rem',
+                        fontWeight: '600',
+                        color: theme.colors.text.primary,
+                        margin: 0,
+                        marginBottom: theme.spacing.xs,
+                      }}
+                    >
+                      {group.group_name}:
+                    </h3>
+
+                    {/* Group description + constraint */}
+                    <p
+                      style={{
+                        fontSize: '0.875rem',
+                        color: theme.colors.text.secondary,
+                        lineHeight: '1.4',
+                        margin: 0,
+                        marginBottom: theme.spacing.sm,
+                      }}
+                    >
+                      {getConstraintLabel(group)}
+                    </p>
+
+                    {/* Validation error */}
+                    {hasError && (
+                      <div
+                        style={{
+                          padding: theme.spacing.sm,
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          border: `1px solid rgba(239, 68, 68, 0.3)`,
+                          borderRadius: theme.borderRadius.md,
+                          color: theme.colors.error,
+                          fontSize: '0.875rem',
+                          marginBottom: theme.spacing.md,
+                          boxShadow: '0 2px 4px rgba(220, 38, 38, 0.1)',
+                        }}
+                      >
+                        {hasError}
                       </div>
+                    )}
 
-                      {/* Validation Error */}
-                      {hasError && (
-                        <div className="mb-3 p-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded">
-                          {hasError}
-                        </div>
-                      )}
+                    {/* Group items */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
+                      {group.items.map((item) => {
+                        const isSelected = selections[group.group_id]?.some((s) => s.id === item.id);
 
-                      {/* Group Items */}
-                      <div className="space-y-2">
-                        {group.items.map(item => {
-                          const isSelected = selections[group.group_id]?.some(s => s.id === item.id);
-                          const isAtMax = maxSelections > 0 && selectedCount >= maxSelections && !isSelected;
-
-                          return (
-                            <label
-                              key={item.id}
-                              className={`flex items-center justify-between p-3 border cursor-pointer transition-colors ${
-                                isSelected
-                                  ? 'border-blue-600 bg-blue-50'
-                                  : isAtMax
-                                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
-                                    : 'border-gray-200 hover:bg-gray-50'
-                              }`}
+                        return (
+                          <label
+                            key={item.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              cursor: 'pointer',
+                              gap: theme.spacing.sm,
+                            }}
+                            onMouseEnter={(e) => {
+                              const checkbox = e.currentTarget.querySelector('div');
+                              if (!isSelected && checkbox) {
+                                checkbox.style.borderColor = theme.colors.text.secondary;
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              const checkbox = e.currentTarget.querySelector('div');
+                              if (!isSelected && checkbox) {
+                                checkbox.style.borderColor = theme.colors.border;
+                              }
+                            }}
+                          >
+                            {/* Item name - Far right in RTL */}
+                            <span
+                              style={{
+                                fontSize: '0.9375rem',
+                                color: theme.colors.text.primary,
+                                textAlign: direction === 'rtl' ? 'right' : 'left',
+                              }}
                             >
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type={isSingleChoice ? 'radio' : 'checkbox'}
-                                  name={isSingleChoice ? `group_${group.group_id}` : undefined}
-                                  checked={isSelected}
-                                  onChange={() => {
-                                    if (isAtMax) return; // Prevent selection if at max
-                                    if (isSingleChoice) {
-                                      selectSingleItem(group.group_id, item);
-                                    } else {
-                                      toggleItem(group.group_id, item, group);
-                                    }
-                                  }}
-                                  disabled={isAtMax}
-                                  className="w-5 h-5"
-                                />
-                                <span className="font-medium">{item.name}</span>
-                              </div>
+                              {item.name}
+                            </span>
+
+                            {/* Hidden input for functionality */}
+                            <input
+                              type={isSingleChoice ? 'radio' : 'checkbox'}
+                              name={isSingleChoice ? `group_${group.group_id}` : undefined}
+                              checked={isSelected}
+                              onChange={() => {
+                                if (isSingleChoice) {
+                                  selectSingleItem(group.group_id, item);
+                                } else {
+                                  toggleItem(group.group_id, item, group);
+                                }
+                              }}
+                              style={{ display: 'none' }}
+                            />
+
+                            {/* Button and Price container - Far left in RTL */}
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: theme.spacing.sm,
+                              }}
+                            >
+                              {/* Price - Next to button if exists */}
                               {item.price > 0 && (
-                                <span className="text-gray-600">+₪{item.price.toFixed(2)}</span>
+                                <span
+                                  style={{
+                                    fontSize: '0.875rem',
+                                    color: theme.colors.text.secondary,
+                                  }}
+                                >
+                                  {item.price.toFixed(2)} ₪
+                                </span>
                               )}
-                            </label>
-                          );
-                        })}
-                      </div>
+
+                              {/* Radio or Checkbox */}
+                              <div
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  borderRadius: isSingleChoice ? '50%' : '4px',
+                                  border: `2px solid ${isSelected ? theme.colors.primary : theme.colors.border}`,
+                                  backgroundColor: isSelected ? theme.colors.primary : theme.colors.cardBg,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0,
+                                  transition: 'all 0.2s ease',
+                                  transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                                }}
+                              >
+                                {isSelected && (
+                                  isSingleChoice ? (
+                                    <div
+                                      style={{
+                                        width: '10px',
+                                        height: '10px',
+                                        borderRadius: '50%',
+                                        backgroundColor: theme.colors.cardBg,
+                                      }}
+                                    />
+                                  ) : (
+                                    <svg
+                                      width="14"
+                                      height="14"
+                                      viewBox="0 0 14 14"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M11.6666 3.5L5.24992 9.91667L2.33325 7"
+                                        stroke="white"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })}
                     </div>
-                  );
-                })
-              ) : (
-                <p className="text-gray-500 text-center py-6">
-                  No customization options available
-                </p>
-              )}
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </div>
 
-        {/* Footer */}
-        <div className="border-t p-4">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-lg font-bold">Total:</span>
-            <span className="text-2xl font-bold">₪{calculateTotalPrice().toFixed(2)}</span>
-          </div>
-
-          {/* Overall validation message */}
-          {!canAddToCart() && Object.keys(validationErrors).length === 0 && (
-            <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded text-center">
-              אנא השלם את כל הבחירות הנדרשות
+            {/* Add to cart button at bottom */}
+            <div
+              style={{
+                padding: theme.spacing.lg,
+                borderTop: `1px solid ${theme.colors.border}`,
+                flexShrink: 0,
+              }}
+            >
+              <button
+                onClick={handleConfirm}
+                style={{
+                  width: '100%',
+                  padding: theme.spacing.md,
+                  backgroundColor: theme.colors.primary,
+                  color: theme.colors.text.white,
+                  border: 'none',
+                  borderRadius: theme.borderRadius.lg,
+                  fontSize: '1.125rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: theme.shadows.md,
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
+                  e.currentTarget.style.boxShadow = theme.shadows.lg;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = theme.colors.primary;
+                  e.currentTarget.style.boxShadow = theme.shadows.md;
+                }}
+              >
+                <span>הוסף עכשיו</span>
+                <span>{calculateTotalPrice().toFixed(2)} ₪</span>
+              </button>
             </div>
-          )}
-
-          <button
-            onClick={handleConfirm}
-            disabled={loading || !canAddToCart()}
-            className={`w-full py-3 font-bold transition-colors ${
-              loading || !canAddToCart()
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-          >
-            {t('addToCart')}
-          </button>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
