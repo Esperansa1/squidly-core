@@ -4,6 +4,7 @@ import MenuSidebar from './MenuSidebar';
 import HeroBanner from './HeroBanner';
 import ProductGrid from './ProductGrid';
 import CartPanel from './CartPanel';
+import ProductCustomizationModal from '../products/ProductCustomizationModal';
 import publicApi from '../../services/publicApi';
 
 /**
@@ -18,6 +19,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState({ items: [], subtotal: 0, deliveryFee: 25.0, tax: 0 });
   const [searchQuery, setSearchQuery] = useState('');
+  const [customizingProduct, setCustomizingProduct] = useState(null);
 
   // Load products and categories
   useEffect(() => {
@@ -99,16 +101,38 @@ export default function MenuLayout({ branchId, onCheckout }) {
 
   // Handle add to cart
   const handleAddToCart = (product) => {
+    // Check if product has customization groups
+    if (product.product_group_ids && product.product_group_ids.length > 0) {
+      // Show customization modal
+      setCustomizingProduct(product);
+    } else {
+      // Add directly to cart (no customization)
+      addProductToCart(product, 1, null, '');
+    }
+  };
+
+  // Add product to cart with customizations
+  const addProductToCart = (product, quantity = 1, customizations = null, specialInstructions = '') => {
     setCart((prevCart) => {
       const existingItem = prevCart.items.find((item) => item.id === product.id);
 
       let newItems;
-      if (existingItem) {
+      if (existingItem && !customizations) {
+        // Increment quantity for existing item without customizations
         newItems = prevCart.items.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       } else {
-        newItems = [...prevCart.items, { ...product, quantity: 1 }];
+        // Add new item (with or without customizations)
+        newItems = [
+          ...prevCart.items,
+          {
+            ...product,
+            quantity,
+            customizations,
+            specialInstructions,
+          },
+        ];
       }
 
       const subtotal = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -121,6 +145,17 @@ export default function MenuLayout({ branchId, onCheckout }) {
         tax,
       };
     });
+  };
+
+  // Handle customization confirmation
+  const handleCustomizationConfirm = (customizedProduct) => {
+    addProductToCart(
+      customizedProduct,
+      1,
+      customizedProduct.customizations,
+      customizedProduct.specialInstructions || ''
+    );
+    setCustomizingProduct(null);
   };
 
   // Handle clear cart
@@ -270,6 +305,14 @@ export default function MenuLayout({ branchId, onCheckout }) {
         {/* Left Sidebar - Cart Panel */}
         <CartPanel cart={cart} onCheckout={onCheckout} onClearCart={handleClearCart} />
       </div>
+
+      {/* Product Customization Modal */}
+      <ProductCustomizationModal
+        product={customizingProduct}
+        isOpen={!!customizingProduct}
+        onClose={() => setCustomizingProduct(null)}
+        onConfirm={handleCustomizationConfirm}
+      />
     </div>
   );
 }
