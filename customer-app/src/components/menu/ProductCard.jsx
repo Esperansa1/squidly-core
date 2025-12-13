@@ -3,7 +3,7 @@ import theme from '../../config/theme';
 
 /**
  * ProductCard - Full-width horizontal product card
- * Layout: [+ Button (left)] [Text Content (middle)] [Product Image (right)]
+ * Layout: [Product Image (left)] [Text Content (middle)] [+ Button (right)]
  */
 export default function ProductCard({ product, onAddToCart }) {
   const hasDiscount = product.discounted_price && product.discounted_price < product.price;
@@ -37,34 +37,43 @@ export default function ProductCard({ product, onAddToCart }) {
         e.currentTarget.style.boxShadow = theme.shadows.card;
       }}
     >
-      {/* Left: Add (+) Button */}
-      <button
-        onClick={() => onAddToCart(product)}
+      {/* Left: Product Image */}
+      <div
         style={{
-          width: '48px',
-          height: '48px',
-          borderRadius: theme.borderRadius.full,
-          backgroundColor: '#FEF3C7', // Light yellow
-          border: 'none',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '1.5rem',
-          fontWeight: 'bold',
-          color: '#F59E0B', // Dark yellow/orange
+          width: '100px',
+          height: '100px',
           flexShrink: 0,
-          transition: 'background-color 0.2s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#FDE68A';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#FEF3C7';
+          borderRadius: theme.borderRadius.lg,
+          overflow: 'hidden',
+          backgroundColor: theme.colors.background,
         }}
       >
-        +
-      </button>
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: theme.colors.text.muted,
+              fontSize: '3rem',
+            }}
+          >
+            🍽️
+          </div>
+        )}
+      </div>
 
       {/* Middle: Text Content (grows to fill space) */}
       <div
@@ -153,43 +162,34 @@ export default function ProductCard({ product, onAddToCart }) {
         </div>
       </div>
 
-      {/* Right: Product Image */}
-      <div
+      {/* Right: Add (+) Button */}
+      <button
+        onClick={() => onAddToCart(product)}
         style={{
-          width: '100px',
-          height: '100px',
+          width: '48px',
+          height: '48px',
+          borderRadius: theme.borderRadius.full,
+          backgroundColor: '#FEF3C7', // Light yellow
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.5rem',
+          fontWeight: 'bold',
+          color: '#F59E0B', // Dark yellow/orange
           flexShrink: 0,
-          borderRadius: theme.borderRadius.lg,
-          overflow: 'hidden',
-          backgroundColor: theme.colors.background,
+          transition: 'background-color 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#FDE68A';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = '#FEF3C7';
         }}
       >
-        {product.image_url ? (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: theme.colors.text.muted,
-              fontSize: '3rem',
-            }}
-          >
-            🍽️
-          </div>
-        )}
-      </div>
+        +
+      </button>
     </div>
   );
 }
