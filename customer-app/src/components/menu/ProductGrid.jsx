@@ -52,9 +52,9 @@ export default function ProductGrid({ products, onAddToCart, loading = false }) 
   return (
     <div
       style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: theme.spacing.lg,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: theme.spacing.md,
       }}
     >
       {products.map((product) => (

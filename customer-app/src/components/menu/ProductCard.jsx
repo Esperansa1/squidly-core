@@ -1,41 +1,163 @@
 import React from 'react';
 import theme from '../../config/theme';
-import AddToCartButton from '../ui/AddToCartButton';
 
 /**
- * ProductCard - Individual product display card
- * RTL layout with image on right, details on left, + button at bottom
+ * ProductCard - Full-width horizontal product card
+ * Layout: [+ Button (left)] [Text Content (middle)] [Product Image (right)]
  */
 export default function ProductCard({ product, onAddToCart }) {
-  const hasDiscount = product.regular_price && product.regular_price > product.price;
+  const hasDiscount = product.discounted_price && product.discounted_price < product.price;
+  const displayPrice = hasDiscount ? product.discounted_price : product.price;
+  const originalPrice = product.price;
+
+  // Example badges - replace with actual product properties
+  const badges = [];
+  if (hasDiscount) badges.push({ text: 'מבצע חם', color: '#DC2626' });
+  // Add more badges based on product properties if available
 
   return (
     <div
       style={{
         backgroundColor: theme.colors.cardBg,
-        borderRadius: theme.borderRadius.lg,
-        padding: theme.spacing.md,
+        borderRadius: theme.borderRadius.xl,
+        padding: theme.spacing.lg,
         boxShadow: theme.shadows.card,
         display: 'flex',
-        flexDirection: 'row-reverse', // RTL: image on right
-        gap: theme.spacing.md,
-        height: '100%',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: theme.spacing.lg,
+        transition: 'box-shadow 0.2s ease',
+        width: '100%',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = theme.shadows.md;
+        e.currentTarget.style.boxShadow = theme.shadows.lg;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
         e.currentTarget.style.boxShadow = theme.shadows.card;
       }}
     >
-      {/* Product Image - Right side */}
+      {/* Left: Add (+) Button */}
+      <button
+        onClick={() => onAddToCart(product)}
+        style={{
+          width: '48px',
+          height: '48px',
+          borderRadius: theme.borderRadius.full,
+          backgroundColor: '#FEF3C7', // Light yellow
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.5rem',
+          fontWeight: 'bold',
+          color: '#F59E0B', // Dark yellow/orange
+          flexShrink: 0,
+          transition: 'background-color 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#FDE68A';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = '#FEF3C7';
+        }}
+      >
+        +
+      </button>
+
+      {/* Middle: Text Content (grows to fill space) */}
       <div
         style={{
-          width: '120px',
-          height: '120px',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: theme.spacing.xs,
+          minWidth: 0, // Allow text truncation
+        }}
+      >
+        {/* Badges (if any) */}
+        {badges.length > 0 && (
+          <div style={{ display: 'flex', gap: theme.spacing.xs, marginBottom: theme.spacing.xs }}>
+            {badges.map((badge, index) => (
+              <span
+                key={index}
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  color: 'white',
+                  backgroundColor: badge.color,
+                  padding: '2px 8px',
+                  borderRadius: theme.borderRadius.full,
+                }}
+              >
+                {badge.text}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Title */}
+        <h3
+          style={{
+            fontSize: '1.125rem',
+            fontWeight: 'bold',
+            color: theme.colors.text.primary,
+            margin: 0,
+            lineHeight: '1.4',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {product.name}
+        </h3>
+
+        {/* Description */}
+        <p
+          style={{
+            fontSize: '0.875rem',
+            color: theme.colors.text.secondary,
+            margin: 0,
+            lineHeight: '1.5',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {product.description || 'פלאפל טרי, חם וקריספי עם כל התוספות.'}
+        </p>
+
+        {/* Price Row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+          <span
+            style={{
+              fontSize: '1.125rem',
+              fontWeight: 'bold',
+              color: theme.colors.text.primary,
+            }}
+          >
+            ₪{displayPrice.toFixed(2)}
+          </span>
+          {hasDiscount && (
+            <span
+              style={{
+                fontSize: '0.875rem',
+                color: theme.colors.text.muted,
+                textDecoration: 'line-through',
+              }}
+            >
+              ₪{originalPrice.toFixed(2)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Right: Product Image */}
+      <div
+        style={{
+          width: '100px',
+          height: '100px',
           flexShrink: 0,
           borderRadius: theme.borderRadius.lg,
           overflow: 'hidden',
@@ -67,85 +189,6 @@ export default function ProductCard({ product, onAddToCart }) {
             🍽️
           </div>
         )}
-      </div>
-
-      {/* Product Details - Left side */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          minWidth: 0, // Allow text truncation
-        }}
-      >
-        {/* Top section: Name and Description */}
-        <div>
-          <h3
-            style={{
-              fontSize: '1.125rem',
-              fontWeight: 'bold',
-              color: theme.colors.text.primary,
-              margin: 0,
-              marginBottom: theme.spacing.xs,
-              lineHeight: '1.4',
-            }}
-          >
-            {product.name}
-          </h3>
-          <p
-            style={{
-              fontSize: '0.875rem',
-              color: theme.colors.text.secondary,
-              margin: 0,
-              lineHeight: '1.5',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-            }}
-          >
-            {product.description || 'אין תיאור זמין'}
-          </p>
-        </div>
-
-        {/* Bottom section: Price and Add Button */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginTop: theme.spacing.sm,
-          }}
-        >
-          {/* Price */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
-            <span
-              style={{
-                fontSize: '1.125rem',
-                fontWeight: 'bold',
-                color: theme.colors.text.primary,
-              }}
-            >
-              ₪{product.price.toFixed(2)}
-            </span>
-            {hasDiscount && (
-              <span
-                style={{
-                  fontSize: '0.875rem',
-                  color: theme.colors.text.muted,
-                  textDecoration: 'line-through',
-                }}
-              >
-                ₪{product.regular_price.toFixed(2)}
-              </span>
-            )}
-          </div>
-
-          {/* Add to Cart Button */}
-          <AddToCartButton onClick={() => onAddToCart(product)} />
-        </div>
       </div>
     </div>
   );
