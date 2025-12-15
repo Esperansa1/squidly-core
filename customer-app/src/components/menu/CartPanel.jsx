@@ -55,7 +55,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
             gap: theme.spacing.xs,
             padding: `${theme.spacing.sm} ${theme.spacing.md}`,
             backgroundColor: isEmpty ? theme.colors.background : '#9CA3AF',
-            color: isEmpty ? theme.colors.text.muted : theme.colors.text.white,
+            color: isEmpty ? theme.colors.text.muted : '#000000',
             border: 'none',
             borderRadius: theme.borderRadius.md,
             fontSize: '0.875rem',

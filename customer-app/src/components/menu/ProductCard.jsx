@@ -10,10 +10,11 @@ export default function ProductCard({ product, onAddToCart }) {
   const displayPrice = hasDiscount ? product.discounted_price : product.price;
   const originalPrice = product.price;
 
-  // Example badges - replace with actual product properties
-  const badges = [];
-  if (hasDiscount) badges.push({ text: 'מבצע חם', color: '#DC2626' });
-  // Add more badges based on product properties if available
+  // Get badges from product tags
+  const badges = (product.tags || []).map((tag) => ({
+    text: tag,
+    color: theme.colors.primary, // Red color for all tags
+  }))
 
   return (
     <div
@@ -168,7 +169,7 @@ export default function ProductCard({ product, onAddToCart }) {
         style={{
           width: '48px',
           height: '48px',
-          borderRadius: theme.borderRadius.full,
+          borderRadius: theme.borderRadius.lg,
           backgroundColor: '#FEF3C7', // Light yellow
           border: 'none',
           cursor: 'pointer',
