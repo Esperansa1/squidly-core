@@ -42,18 +42,17 @@ export default function MenuLayout({ branchId, onCheckout }) {
       setProducts(productsData);
 
       // Extract unique categories from products
-      const uniqueCategories = [];
       const categoryMap = new Map();
 
       productsData.forEach((product) => {
-        const categoryId = product.category_id || 'uncategorized';
-        const categoryName = product.category_name || 'ללא קטגוריה';
+        // Use the category field from the Product model
+        const category = product.category || 'ללא קטגוריה';
 
-        if (!categoryMap.has(categoryId)) {
-          categoryMap.set(categoryId, {
-            id: categoryId,
-            name: categoryName,
-            icon: getCategoryIcon(categoryName),
+        if (!categoryMap.has(category)) {
+          categoryMap.set(category, {
+            id: category, // Use category string as both id and name
+            name: category,
+            icon: getCategoryIcon(category),
           });
         }
       });
@@ -87,8 +86,8 @@ export default function MenuLayout({ branchId, onCheckout }) {
 
   // Filter products by category and search
   const filteredProducts = products.filter((product) => {
-    const productCategoryId = product.category_id || 'uncategorized';
-    const matchesCategory = !activeCategory || productCategoryId === activeCategory;
+    const productCategory = product.category || 'ללא קטגוריה';
+    const matchesCategory = !activeCategory || productCategory === activeCategory;
     const matchesSearch = !searchQuery || product.name.includes(searchQuery);
     return matchesCategory && matchesSearch;
   });
