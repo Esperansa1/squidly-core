@@ -23,6 +23,7 @@ class CustomerPageHandler
         $existing_page = get_page_by_path('orders');
 
         if (!$existing_page) {
+            // Create new page
             wp_insert_post([
                 'post_title' => 'Orders',
                 'post_name' => 'orders',
@@ -34,6 +35,26 @@ class CustomerPageHandler
                     '_squidly_customer_page' => true
                 ]
             ]);
+        } else {
+            // Ensure existing page is always published and publicly accessible
+            $updates = [];
+
+            if ($existing_page->post_status !== 'publish') {
+                $updates['post_status'] = 'publish';
+            }
+
+            // Remove password protection if any
+            if (!empty($existing_page->post_password)) {
+                $updates['post_password'] = '';
+            }
+
+            if (!empty($updates)) {
+                $updates['ID'] = $existing_page->ID;
+                wp_update_post($updates);
+            }
+
+            // Update meta to mark as customer page
+            update_post_meta($existing_page->ID, '_squidly_customer_page', true);
         }
     }
 
