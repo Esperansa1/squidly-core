@@ -11,7 +11,36 @@ class CustomerPageHandler
     public static function init(): void
     {
         add_action('init', [self::class, 'create_customer_page']);
+        add_action('template_redirect', [self::class, 'ensure_public_access'], 1); // Early priority
         add_filter('page_template', [self::class, 'customer_page_template']);
+    }
+
+    /**
+     * Ensure the orders page is always publicly accessible (no login required)
+     */
+    public static function ensure_public_access(): void
+    {
+        // Check if we're on the orders page
+        if (!is_page('orders')) {
+            return;
+        }
+
+        // Get the page to verify its status
+        $page = get_page_by_path('orders');
+
+        if ($page) {
+            // Force update to published if not already
+            if ($page->post_status !== 'publish') {
+                wp_update_post([
+                    'ID' => $page->ID,
+                    'post_status' => 'publish',
+                    'post_password' => '',
+                ]);
+            }
+        }
+
+        // No authentication checks - just let the page load
+        // This runs early (priority 1) to prevent other plugins from redirecting
     }
 
     /**
