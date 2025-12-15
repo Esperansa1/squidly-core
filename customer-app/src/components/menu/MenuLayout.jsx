@@ -20,6 +20,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
   const [cart, setCart] = useState({ items: [], subtotal: 0, deliveryFee: 25.0, tax: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [customizingProduct, setCustomizingProduct] = useState(null);
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   // Load products and categories
   useEffect(() => {
@@ -176,8 +177,9 @@ export default function MenuLayout({ branchId, onCheckout }) {
         style={{
           height: '100%',
           display: 'grid',
-          gridTemplateColumns: `${theme.layout.sidebarWidth} 1fr ${theme.layout.cartPanelWidth}`,
+          gridTemplateColumns: `${sidebarExpanded ? '280px' : '70px'} 1fr ${theme.layout.cartPanelWidth}`,
           gap: '20px',
+          transition: 'grid-template-columns 0.3s ease-out',
         }}
       >
         {/* Right Sidebar - Navigation */}
@@ -185,6 +187,8 @@ export default function MenuLayout({ branchId, onCheckout }) {
           activeCategory={activeCategory}
           onCategoryChange={setActiveCategory}
           categories={categories}
+          isExpanded={sidebarExpanded}
+          onToggle={setSidebarExpanded}
         />
 
         {/* Center - Main Content */}
@@ -197,7 +201,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
           }}
         >
           {/* Hero Banner - Static */}
-          <div style={{ flexShrink: 0 }}>
+          <div style={{ flexShrink: 0, marginBottom: theme.spacing.md }}>
             <HeroBanner />
           </div>
 
@@ -207,7 +211,6 @@ export default function MenuLayout({ branchId, onCheckout }) {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginTop: theme.spacing.sm,
               marginBottom: theme.spacing.md,
               flexShrink: 0,
             }}
@@ -292,7 +295,10 @@ export default function MenuLayout({ branchId, onCheckout }) {
               flex: 1,
               overflowY: 'auto',
               paddingBottom: theme.spacing.md,
+              scrollbarWidth: 'none', // Firefox
+              msOverflowStyle: 'none', // IE and Edge
             }}
+            className="hide-scrollbar"
           >
             <ProductGrid
               products={filteredProducts}
