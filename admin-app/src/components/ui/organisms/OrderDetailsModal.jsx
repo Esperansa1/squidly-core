@@ -127,6 +127,45 @@ const OrderDetailsModal = ({ isOpen, onClose, order, customer }) => {
     return translations[status] || status;
   };
 
+  /**
+   * Extract modification names from various formats:
+   * - Object format (from cart): { groupId: [{ id, name, price }, ...], ... }
+   * - Array of objects: [{ name, price }, ...]
+   * - Array of strings (legacy): ["Extra Cheese", "Mushrooms"]
+   * Returns array of modification name strings
+   */
+  const getModificationNames = (modifications) => {
+    if (!modifications) return [];
+
+    // If it's an array
+    if (Array.isArray(modifications)) {
+      if (modifications.length === 0) return [];
+      // Check if array of strings or array of objects
+      if (typeof modifications[0] === 'string') {
+        return modifications; // Already array of strings
+      }
+      // Array of objects with name property
+      return modifications.map(mod => mod.name).filter(Boolean);
+    }
+
+    // If it's an object with group IDs as keys
+    if (typeof modifications === 'object') {
+      const names = [];
+      Object.values(modifications).forEach(groupItems => {
+        if (Array.isArray(groupItems)) {
+          groupItems.forEach(item => {
+            if (item.name) {
+              names.push(item.name);
+            }
+          });
+        }
+      });
+      return names;
+    }
+
+    return [];
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`הזמנה #${order.id}`} size="lg">
       <div className="space-y-6">
@@ -178,35 +217,35 @@ const OrderDetailsModal = ({ isOpen, onClose, order, customer }) => {
         <div className="border-t pt-4">
           <h4 className="font-semibold text-gray-900 mb-3">פריטים בהזמנה</h4>
           <div className="space-y-3">
-            {order.order_items && order.order_items.map((item, index) => (
-              <div key={index} className="flex justify-between items-start bg-gray-50 p-3 rounded-lg">
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">{item.product_name}</div>
-                  {item.modifications && Object.keys(item.modifications).length > 0 && (
-                    <div className="text-sm text-gray-600 mt-1">
-                      {Object.entries(item.modifications).map(([key, value]) => (
-                        <div key={key}>
-                          {Array.isArray(value) ? value.join(', ') : value}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {item.notes && (
-                    <div className="text-sm text-gray-500 mt-1 italic">
-                      הערה: {item.notes}
-                    </div>
-                  )}
-                </div>
-                <div className="text-left mr-4">
-                  <div className="text-gray-600">
-                    {item.quantity} × {formatCurrency(item.unit_price)}
+            {order.order_items && order.order_items.map((item, index) => {
+              const modificationNames = getModificationNames(item.modifications);
+
+              return (
+                <div key={index} className="flex justify-between items-start bg-gray-50 p-3 rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900">{item.product_name}</div>
+                    {modificationNames.length > 0 && (
+                      <div className="text-sm text-gray-600 mt-1">
+                        {modificationNames.join(', ')}
+                      </div>
+                    )}
+                    {item.notes && (
+                      <div className="text-sm text-amber-600 mt-1 italic">
+                        הערה: {item.notes}
+                      </div>
+                    )}
                   </div>
-                  <div className="font-semibold text-gray-900">
-                    {formatCurrency(item.total_price || item.quantity * item.unit_price)}
+                  <div className="text-left mr-4">
+                    <div className="text-gray-600">
+                      {item.quantity} × {formatCurrency(item.unit_price)}
+                    </div>
+                    <div className="font-semibold text-gray-900">
+                      {formatCurrency(item.total_price || item.quantity * item.unit_price)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
