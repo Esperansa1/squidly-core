@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import theme from '../../config/theme';
 import MenuSidebar from './MenuSidebar';
 import HeroBanner from './HeroBanner';
@@ -11,6 +11,7 @@ import MobileUserHeader from './MobileUserHeader';
 import MobileCheckoutBar from './MobileCheckoutBar';
 import MobileCartSheet from './MobileCartSheet';
 import CategoryBadgeButtons from './CategoryBadgeButtons';
+import { useCart } from '../../contexts/CartContext';
 
 /**
  * MenuLayout - Responsive layout for menu page
@@ -24,11 +25,41 @@ export default function MenuLayout({ branchId, onCheckout }) {
   const isTablet = useIsTablet();
   const isDesktop = useIsDesktop();
 
+  // CartContext integration - sync with backend cart
+  const {
+    cart: contextCart,
+    addToCart: contextAddToCart,
+    clearCart: contextClearCart,
+    removeFromCart: contextRemoveFromCart,
+    getTotal,
+    loading: cartLoading
+  } = useCart();
+
+  // Transform context cart to display format for UI components
+  const cart = useMemo(() => {
+    const items = (contextCart?.items || []).map(item => ({
+      id: item.id,
+      product_id: item.product_id,
+      name: item.product_name || item.name,
+      price: item.final_price || item.unit_price || 0,
+      quantity: item.quantity || 1,
+      image_url: item.image_url || item.product_image,
+      customizations: item.customizations,
+      specialInstructions: item.special_instructions || item.notes || '',
+      _original: item, // Keep reference for editing/deleting
+    }));
+
+    const subtotal = getTotal();
+    const tax = subtotal * 0.17;
+    const deliveryFee = 25.0;
+
+    return { items, subtotal, tax, deliveryFee };
+  }, [contextCart, getTotal]);
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [cart, setCart] = useState({ items: [], subtotal: 0, deliveryFee: 25.0, tax: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [customizingProduct, setCustomizingProduct] = useState(null);
   const [editingCartItem, setEditingCartItem] = useState(null); // Track item being edited
@@ -157,72 +188,65 @@ export default function MenuLayout({ branchId, onCheckout }) {
     }
   };
 
-  // Add product to cart with customizations
-  const addProductToCart = (product, quantity = 1, customizations = null, specialInstructions = '') => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.items.find((item) => item.id === product.id);
+  // Add product to cart with customizations - uses CartContext for backend sync
+  const addProductToCart = async (product, quantity = 1, customizations = null, specialInstructions = '') => {
+    try {
+      // Backend expects customizations in object format: { groupId: [{ id, name, price }, ...], ... }
+      // This is the SAME format the ProductCustomizationModal sends
+      // Pass through as-is, but ensure it's a valid object (not array, not null)
+      let customizationsToSend = {};
 
-      let newItems;
-      if (existingItem && !customizations) {
-        // Increment quantity for existing item without customizations
-        newItems = prevCart.items.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
-        );
-      } else {
-        // Add new item (with or without customizations)
-        newItems = [
-          ...prevCart.items,
-          {
-            ...product,
-            quantity,
-            customizations,
-            specialInstructions,
-          },
-        ];
+      if (customizations && typeof customizations === 'object' && !Array.isArray(customizations)) {
+        // Filter to only include groups with valid IDs and items
+        Object.entries(customizations).forEach(([groupId, groupItems]) => {
+          const numericGroupId = parseInt(groupId, 10);
+          if (Array.isArray(groupItems) && groupItems.length > 0 && numericGroupId > 0) {
+            customizationsToSend[groupId] = groupItems;
+          }
+        });
       }
 
-      const subtotal = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      const tax = subtotal * 0.17; // 17% VAT
+      console.log('🛒 Adding to cart:', {
+        product_id: product.id,
+        quantity,
+        customizations: customizationsToSend,
+        branchId
+      });
 
-      return {
-        ...prevCart,
-        items: newItems,
-        subtotal,
-        tax,
-      };
-    });
+      await contextAddToCart(
+        product,
+        quantity,
+        customizationsToSend,
+        specialInstructions,
+        branchId
+      );
+    } catch (error) {
+      console.error('Failed to add product to cart:', error);
+      // Could show a toast/notification here
+    }
   };
 
   // Handle customization confirmation
-  const handleCustomizationConfirm = (customizedProduct) => {
+  const handleCustomizationConfirm = async (customizedProduct) => {
     if (editingCartItem) {
-      // Editing mode: Update existing cart item
-      setCart((prevCart) => {
-        const newItems = prevCart.items.map((item) =>
-          item === editingCartItem
-            ? {
-                ...customizedProduct,
-                quantity: customizedProduct.quantity,
-                customizations: customizedProduct.customizations,
-                specialInstructions: customizedProduct.specialInstructions || '',
-              }
-            : item
+      // Editing mode: Remove old item and add new one
+      // (Backend doesn't support in-place edit with customization changes)
+      try {
+        const originalItemId = editingCartItem._original?.id || editingCartItem.id;
+        await contextRemoveFromCart(originalItemId);
+        await addProductToCart(
+          customizedProduct,
+          customizedProduct.quantity || 1,
+          customizedProduct.customizations,
+          customizedProduct.specialInstructions || ''
         );
-
-        const subtotal = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const tax = subtotal * 0.17; // 17% VAT
-
-        return {
-          ...prevCart,
-          items: newItems,
-          subtotal,
-          tax,
-        };
-      });
+      } catch (error) {
+        console.error('Failed to update cart item:', error);
+      }
       setEditingCartItem(null);
     } else {
       // Add new item to cart
-      addProductToCart(
+      await addProductToCart(
         customizedProduct,
         customizedProduct.quantity || 1,
         customizedProduct.customizations,
@@ -232,9 +256,13 @@ export default function MenuLayout({ branchId, onCheckout }) {
     setCustomizingProduct(null);
   };
 
-  // Handle clear cart
-  const handleClearCart = () => {
-    setCart({ items: [], subtotal: 0, deliveryFee: 25.0, tax: 0 });
+  // Handle clear cart - uses CartContext for backend sync
+  const handleClearCart = async () => {
+    try {
+      await contextClearCart();
+    } catch (error) {
+      console.error('Failed to clear cart:', error);
+    }
   };
 
   // Handle editing a cart item - open customization modal with existing data
@@ -243,20 +271,15 @@ export default function MenuLayout({ branchId, onCheckout }) {
     setCustomizingProduct(cartItem); // Opens modal with this product
   };
 
-  // Handle deleting individual cart item
-  const handleDeleteItem = (itemToDelete) => {
-    setCart((prevCart) => {
-      const newItems = prevCart.items.filter((item) => item !== itemToDelete);
-      const subtotal = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      const tax = subtotal * 0.17; // 17% VAT
-
-      return {
-        ...prevCart,
-        items: newItems,
-        subtotal,
-        tax,
-      };
-    });
+  // Handle deleting individual cart item - uses CartContext for backend sync
+  const handleDeleteItem = async (itemToDelete) => {
+    try {
+      // Get the backend item ID from _original reference or directly from item
+      const itemId = itemToDelete._original?.id || itemToDelete.id;
+      await contextRemoveFromCart(itemId);
+    } catch (error) {
+      console.error('Failed to delete cart item:', error);
+    }
   };
 
   // Handle search with suggestions

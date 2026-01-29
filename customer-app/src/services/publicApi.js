@@ -171,12 +171,12 @@ class PublicApiService {
    * @param {number} branchId - Branch ID
    * @param {number} productId - Product ID
    * @param {number} quantity - Quantity (default 1)
-   * @param {Array} customizations - Customization array
+   * @param {Object} customizations - Customization object { groupId: [{ id, name, price }, ...], ... }
    * @param {string} notes - Optional notes
    * @param {number} customerId - Optional customer ID
    * @returns {Object} { cart, message } - Cart object with token
    */
-  async createCartSession(branchId, productId, quantity = 1, customizations = [], notes = '', customerId = null) {
+  async createCartSession(branchId, productId, quantity = 1, customizations = {}, notes = '', customerId = null) {
     const body = {
       branch_id: branchId,
       product_id: productId,
@@ -201,11 +201,11 @@ class PublicApiService {
    * @param {number} productId - Product ID
    * @param {number} quantity - Quantity
    * @param {number} branchId - Branch ID (required)
-   * @param {Array} customizations - Customization array
+   * @param {Object} customizations - Customization object { groupId: [{ id, name, price }, ...], ... }
    * @param {string} notes - Optional notes
    * @returns {Object} { cart, message }
    */
-  async addToCart(cartToken, productId, quantity, branchId, customizations = [], notes = '') {
+  async addToCart(cartToken, productId, quantity, branchId, customizations = {}, notes = '') {
     const body = {
       token: cartToken,
       branch_id: branchId,

@@ -80,13 +80,19 @@ export function CartProvider({ children }) {
 
       let response;
 
+      // Ensure customizations is an object (not array) for backend compatibility
+      // Backend expects: { groupId: [{ id, name, price }, ...], ... }
+      const customizationsObject = (customizations && typeof customizations === 'object' && !Array.isArray(customizations))
+        ? customizations
+        : {};
+
       if (!cartToken) {
         // Create new cart session with first item
         response = await publicApi.createCartSession(
           branch,
           product.id,
           quantity,
-          customizations || [],
+          customizationsObject,
           notes
         );
 
@@ -101,7 +107,7 @@ export function CartProvider({ children }) {
           product.id,
           quantity,
           branch,
-          customizations || [],
+          customizationsObject,
           notes
         );
       }

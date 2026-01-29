@@ -91,21 +91,41 @@ export default function CartItemDisplay({ item, compact = false, onItemClick, on
         </div>
 
         {/* 2. Customizations - Context, secondary */}
-        {item.customizations && Object.keys(item.customizations).length > 0 && (
-          <div
-            style={{
-              fontSize: compact ? '0.8125rem' : '0.875rem', // 13px / 14px
-              color: theme.colors.text.secondary,
-              lineHeight: '1.4',
-              opacity: 0.85,
-            }}
-          >
-            {Object.values(item.customizations).map((groupItems, idx) => (
-              <div key={idx} style={{ marginBottom: '2px' }}>
-                {groupItems.map(customItem => customItem.name).join(', ')}
+        {/* Handles both array format (from backend) and object format (legacy local) */}
+        {item.customizations && (
+          Array.isArray(item.customizations) ? (
+            // Array format from backend: [{name, price_modifier}, ...]
+            item.customizations.length > 0 && (
+              <div
+                style={{
+                  fontSize: compact ? '0.8125rem' : '0.875rem',
+                  color: theme.colors.text.secondary,
+                  lineHeight: '1.4',
+                  opacity: 0.85,
+                }}
+              >
+                {item.customizations.map(customItem => customItem.name).join(', ')}
               </div>
-            ))}
-          </div>
+            )
+          ) : (
+            // Object format (legacy): {groupId: [{name, price}, ...], ...}
+            Object.keys(item.customizations).length > 0 && (
+              <div
+                style={{
+                  fontSize: compact ? '0.8125rem' : '0.875rem',
+                  color: theme.colors.text.secondary,
+                  lineHeight: '1.4',
+                  opacity: 0.85,
+                }}
+              >
+                {Object.values(item.customizations).map((groupItems, idx) => (
+                  <div key={idx} style={{ marginBottom: '2px' }}>
+                    {groupItems.map(customItem => customItem.name).join(', ')}
+                  </div>
+                ))}
+              </div>
+            )
+          )
         )}
 
         {/* 3. Price Logic: Quantity × Unit = Total (visual equation) */}
