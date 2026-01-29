@@ -1,11 +1,15 @@
 import React from 'react';
 import theme from '../../config/theme';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
 /**
- * ProductCard - Full-width horizontal product card
+ * ProductCard - Responsive product card
+ * Mobile: Compact layout without description (56px image, smaller padding)
+ * Desktop: Full layout with description (100px image, more spacing)
  * Layout: [Product Image (left)] [Text Content (middle)] [+ Button (right)]
  */
 export default function ProductCard({ product, onAddToCart }) {
+  const isMobile = useIsMobile();
   const hasDiscount = product.discounted_price && product.discounted_price < product.price;
   const displayPrice = hasDiscount ? product.discounted_price : product.price;
   const originalPrice = product.price;
@@ -14,35 +18,46 @@ export default function ProductCard({ product, onAddToCart }) {
   const badges = (product.tags || []).map((tag) => ({
     text: tag,
     color: theme.colors.primary, // Red color for all tags
-  }))
+  }));
+
+  // Responsive sizing
+  const imageSize = isMobile ? '56px' : '100px';
+  const buttonSize = isMobile ? '44px' : '48px';
+  const cardPadding = isMobile ? theme.spacing.mobile.sm : theme.spacing.lg;
+  const gap = isMobile ? theme.spacing.mobile.sm : theme.spacing.lg;
 
   return (
     <div
       style={{
         backgroundColor: theme.colors.cardBg,
         borderRadius: theme.borderRadius.xl,
-        padding: theme.spacing.lg,
+        padding: cardPadding,
         boxShadow: theme.shadows.card,
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: theme.spacing.lg,
+        gap: gap,
         transition: 'box-shadow 0.2s ease',
         width: '100%',
+        minHeight: isMobile ? '72px' : 'auto',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = theme.shadows.lg;
+        if (!isMobile) {
+          e.currentTarget.style.boxShadow = theme.shadows.lg;
+        }
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = theme.shadows.card;
+        if (!isMobile) {
+          e.currentTarget.style.boxShadow = theme.shadows.card;
+        }
       }}
     >
       {/* Left: Product Image */}
       <div
         style={{
-          width: '100px',
-          height: '100px',
+          width: imageSize,
+          height: imageSize,
           flexShrink: 0,
           borderRadius: theme.borderRadius.lg,
           overflow: 'hidden',
@@ -68,7 +83,7 @@ export default function ProductCard({ product, onAddToCart }) {
               alignItems: 'center',
               justifyContent: 'center',
               color: theme.colors.text.muted,
-              fontSize: '3rem',
+              fontSize: isMobile ? '2rem' : '3rem',
             }}
           >
             🍽️
@@ -82,12 +97,12 @@ export default function ProductCard({ product, onAddToCart }) {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          gap: theme.spacing.xs,
+          gap: isMobile ? '2px' : theme.spacing.xs,
           minWidth: 0, // Allow text truncation
         }}
       >
-        {/* Badges (if any) */}
-        {badges.length > 0 && (
+        {/* Badges (if any) - Only on desktop */}
+        {!isMobile && badges.length > 0 && (
           <div style={{ display: 'flex', gap: theme.spacing.xs, marginBottom: theme.spacing.xs }}>
             {badges.map((badge, index) => (
               <span
@@ -110,8 +125,8 @@ export default function ProductCard({ product, onAddToCart }) {
         {/* Title */}
         <h3
           style={{
-            fontSize: '1.125rem',
-            fontWeight: 'bold',
+            fontSize: isMobile ? theme.typography.mobile.body : '1.125rem',
+            fontWeight: isMobile ? 600 : 'bold',
             color: theme.colors.text.primary,
             margin: 0,
             lineHeight: '1.4',
@@ -123,41 +138,43 @@ export default function ProductCard({ product, onAddToCart }) {
           {product.name}
         </h3>
 
-        {/* Description */}
-        <p
-          style={{
-            fontSize: '0.875rem',
-            color: theme.colors.text.secondary,
-            margin: 0,
-            lineHeight: '1.5',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {product.description || 'פלאפל טרי, חם וקריספי עם כל התוספות.'}
-        </p>
+        {/* Description - ONLY ON DESKTOP */}
+        {!isMobile && (
+          <p
+            style={{
+              fontSize: '0.875rem',
+              color: theme.colors.text.secondary,
+              margin: 0,
+              lineHeight: '1.5',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {product.description || 'פלאפל טרי, חם וקריספי עם כל התוספות.'}
+          </p>
+        )}
 
         {/* Price Row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
           <span
             style={{
-              fontSize: '1.125rem',
-              fontWeight: 'bold',
+              fontSize: isMobile ? theme.typography.mobile.body : '1.125rem',
+              fontWeight: isMobile ? 600 : 'bold',
               color: theme.colors.text.primary,
             }}
           >
-            ₪{displayPrice.toFixed(2)}
+            {displayPrice.toFixed(2)} ₪
           </span>
           {hasDiscount && (
             <span
               style={{
-                fontSize: '0.875rem',
+                fontSize: isMobile ? theme.typography.mobile.small : '0.875rem',
                 color: theme.colors.text.muted,
                 textDecoration: 'line-through',
               }}
             >
-              ₪{originalPrice.toFixed(2)}
+              {originalPrice.toFixed(2)} ₪
             </span>
           )}
         </div>
@@ -167,8 +184,8 @@ export default function ProductCard({ product, onAddToCart }) {
       <button
         onClick={() => onAddToCart(product)}
         style={{
-          width: '48px',
-          height: '48px',
+          width: buttonSize,
+          height: buttonSize,
           borderRadius: theme.borderRadius.lg,
           backgroundColor: '#FEF3C7', // Light yellow
           border: 'none',
@@ -176,17 +193,21 @@ export default function ProductCard({ product, onAddToCart }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '1.5rem',
+          fontSize: isMobile ? '1.25rem' : '1.5rem',
           fontWeight: 'bold',
           color: '#F59E0B', // Dark yellow/orange
           flexShrink: 0,
           transition: 'background-color 0.2s ease',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#FDE68A';
+          if (!isMobile) {
+            e.currentTarget.style.backgroundColor = '#FDE68A';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#FEF3C7';
+          if (!isMobile) {
+            e.currentTarget.style.backgroundColor = '#FEF3C7';
+          }
         }}
       >
         +

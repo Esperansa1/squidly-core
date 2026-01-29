@@ -1,21 +1,16 @@
 import React from 'react';
 import theme from '../../config/theme';
+import CartItemDisplay from '../cart/CartItemDisplay';
 
 /**
  * CartPanel - Order summary section (leftmost panel)
  * Shows order summary header, cart items, price details, and order button
  */
-export default function CartPanel({ cart, onCheckout, onClearCart }) {
+export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, onDeleteItem }) {
   const isEmpty = !cart || !cart.items || cart.items.length === 0;
   const subtotal = cart?.subtotal || 0;
   const deliveryFee = cart?.deliveryFee || 25.0;
   const total = subtotal + deliveryFee;
-
-  const handleClearCart = () => {
-    if (onClearCart && !isEmpty) {
-      onClearCart();
-    }
-  };
 
   return (
     <div
@@ -27,12 +22,9 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
         overflow: 'hidden',
       }}
     >
-      {/* Header: סיכום ההזמנה + Cancel Button */}
+      {/* Header: סיכום ההזמנה */}
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
           padding: theme.spacing.md,
         }}
       >
@@ -46,51 +38,6 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
         >
           סיכום ההזמנה
         </h2>
-        <button
-          onClick={handleClearCart}
-          disabled={isEmpty}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: theme.spacing.xs,
-            padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-            backgroundColor: isEmpty ? theme.colors.background : '#9CA3AF',
-            color: isEmpty ? theme.colors.text.muted : '#000000',
-            border: 'none',
-            borderRadius: theme.borderRadius.md,
-            fontSize: '0.875rem',
-            cursor: isEmpty ? 'not-allowed' : 'pointer',
-            transition: 'background-color 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            if (!isEmpty) {
-              e.currentTarget.style.backgroundColor = '#6B7280';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isEmpty) {
-              e.currentTarget.style.backgroundColor = '#9CA3AF';
-            }
-          }}
-        >
-          {/* Trash Icon */}
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            <line x1="10" y1="11" x2="10" y2="17" />
-            <line x1="14" y1="11" x2="14" y2="17" />
-          </svg>
-          <span>ביטול הזמנה</span>
-        </button>
       </div>
 
       {/* Cart Items Area - Takes all available vertical space */}
@@ -98,10 +45,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
         style={{
           flex: '1 1 0',
           overflowY: 'auto',
-          padding: theme.spacing.lg,
-          backgroundColor: theme.colors.cardBg,
-          borderRadius: theme.borderRadius.xl,
-          boxShadow: theme.shadows.card,
+          padding: theme.spacing.md,
         }}
       >
         {isEmpty ? (
@@ -155,89 +99,151 @@ export default function CartPanel({ cart, onCheckout, onClearCart }) {
           // Cart items list
           <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
             {cart.items.map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: theme.spacing.md,
-                  backgroundColor: theme.colors.background,
-                  borderRadius: theme.borderRadius.md,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: '500', color: theme.colors.text.primary }}>
-                    {item.name}
-                  </div>
-                  <div style={{ fontSize: '0.875rem', color: theme.colors.text.secondary }}>
-                    כמות: {item.quantity}
-                  </div>
-                </div>
-                <div style={{ fontWeight: 'bold', color: theme.colors.text.primary }}>
-                  ₪{(item.price * item.quantity).toFixed(2)}
-                </div>
-              </div>
+              <CartItemDisplay key={index} item={item} compact={false} onItemClick={onItemClick} onDelete={onDeleteItem} />
             ))}
           </div>
         )}
       </div>
 
-      {/* Order Details - Delivery + Total */}
+      {/* Order Summary - Complete Transparent Breakdown */}
       <div
         style={{
-          padding: theme.spacing.lg,
+          padding: `${theme.spacing.lg} ${theme.spacing.lg} ${theme.spacing.md}`,
           backgroundColor: theme.colors.cardBg,
           borderRadius: theme.borderRadius.xl,
           boxShadow: theme.shadows.card,
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: theme.spacing.sm,
-            color: theme.colors.text.primary,
-          }}
-        >
-          <span>דמי משלוח</span>
-          <span>₪{deliveryFee.toFixed(2)}</span>
+        {/* Price Breakdown - Low Emphasis (Explanation) */}
+        <div style={{ marginBottom: theme.spacing.md }}>
+          {/* Items Subtotal */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
+              marginBottom: theme.spacing.sm,
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                color: theme.colors.text.secondary,
+                opacity: 0.9,
+              }}
+            >
+              מחיר פריטים
+            </span>
+            <span
+              style={{
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                color: theme.colors.text.secondary,
+                opacity: 0.9,
+              }}
+            >
+              ₪{subtotal.toFixed(2)}
+            </span>
+          </div>
+
+          {/* Delivery Fee */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                color: theme.colors.text.secondary,
+                opacity: 0.9,
+              }}
+            >
+              דמי משלוח
+            </span>
+            <span
+              style={{
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                color: theme.colors.text.secondary,
+                opacity: 0.9,
+              }}
+            >
+              ₪{deliveryFee.toFixed(2)}
+            </span>
+          </div>
         </div>
+
+        {/* Divider With Meaning - Separates thinking from deciding */}
+        <div
+          style={{
+            height: '1px',
+            backgroundColor: theme.colors.border,
+            margin: `${theme.spacing.lg} 0`,
+            opacity: 0.5,
+          }}
+        />
+
+        {/* Total to Pay - High Emphasis (Conclusion) */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
+            alignItems: 'baseline',
             paddingTop: theme.spacing.sm,
-            borderTop: `1px solid ${theme.colors.border}`,
-            fontSize: '1.125rem',
-            fontWeight: 'bold',
-            color: theme.colors.text.primary,
           }}
         >
-          <span>סך הכל</span>
-          <span>₪{total.toFixed(2)}</span>
+          {/* Total Label - More Explicit */}
+          <span
+            style={{
+              fontSize: '1rem',
+              fontWeight: 500,
+              color: theme.colors.text.secondary,
+              letterSpacing: '0.01em',
+            }}
+          >
+            סה״כ לתשלום
+          </span>
+
+          {/* Total Price - Visual Hero */}
+          <span
+            style={{
+              fontSize: '1.75rem',
+              fontWeight: 700,
+              color: theme.colors.text.primary,
+              letterSpacing: '-0.02em',
+              lineHeight: '1.2',
+            }}
+          >
+            ₪{total.toFixed(2)}
+          </span>
         </div>
       </div>
 
-      {/* Order Now Button */}
+      {/* Order Now Button - Action comes after psychological closure */}
       <button
         onClick={onCheckout}
         disabled={isEmpty}
         style={{
           width: '100%',
           padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-          backgroundColor: isEmpty ? '#EF444480' : theme.colors.primary, // 50% opacity red when disabled
+          marginTop: theme.spacing.lg, // Clear separation from summary
+          backgroundColor: isEmpty ? '#EF444480' : theme.colors.primary,
           color: theme.colors.text.white,
           border: 'none',
           borderRadius: theme.borderRadius.md,
-          fontSize: '1.125rem',
-          fontWeight: 'bold',
+          fontSize: '1.0625rem',
+          fontWeight: 600,
           cursor: isEmpty ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: theme.spacing.sm,
-          transition: 'background-color 0.2s ease',
+          transition: 'all 0.2s ease',
         }}
         onMouseEnter={(e) => {
           if (!isEmpty) {

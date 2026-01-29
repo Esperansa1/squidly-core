@@ -1,18 +1,21 @@
 import React from 'react';
 import theme from '../../config/theme';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
 /**
- * HeroBanner - Large hero image banner at top of menu
- * Default image with food photography
+ * HeroBanner - Responsive hero image banner at top of menu
+ * Smaller on mobile, larger on desktop
  */
 export default function HeroBanner() {
+  const isMobile = useIsMobile();
+
   return (
     <div
       style={{
         width: '100%',
-        minHeight: '120px',
-        height: '15vh',
-        maxHeight: '180px',
+        minHeight: isMobile ? '100px' : '120px',
+        height: isMobile ? '100px' : '15vh',
+        maxHeight: isMobile ? '120px' : '180px',
         backgroundColor: '#1F2937',
         borderRadius: theme.borderRadius.xl,
         overflow: 'hidden',

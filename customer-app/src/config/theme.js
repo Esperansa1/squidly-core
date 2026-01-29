@@ -12,7 +12,7 @@ export const theme = {
     secondaryHover: '#C2410C', // Darker orange for hover
 
     // Background colors
-    background: '#F3F4F6',     // Light gray page background
+    background: '#FAFAFA',     // Very light gray page background
     cardBg: '#FFFFFF',         // White for cards/panels
 
     // Text colors
@@ -41,6 +41,14 @@ export const theme = {
     lg: '1.5rem',     // 24px
     xl: '2rem',       // 32px
     '2xl': '3rem',    // 48px
+
+    // Mobile-specific spacing (tighter for smaller screens)
+    mobile: {
+      xs: '0.5rem',   // 8px
+      sm: '0.75rem',  // 12px
+      md: '1rem',     // 16px
+      lg: '1.25rem',  // 20px
+    },
   },
 
   borderRadius: {
@@ -60,19 +68,46 @@ export const theme = {
 
   layout: {
     sidebarWidth: '250px',     // Right navigation sidebar
-    cartPanelWidth: '320px',   // Left cart panel
+    cartPanelWidth: '370px',   // Left cart panel
     maxContentWidth: '1400px', // Maximum content width
+
+    // Mobile-specific layout values
+    mobileCheckoutBarHeight: '80px',
+    mobileHeaderHeight: '56px',
+    mobileHeroBannerHeight: '120px',
+
+    // Touch targets (accessibility)
+    minTouchTarget: '44px',
   },
 
+  // Content-driven breakpoints (mobile-first)
   breakpoints: {
-    mobile: '640px',
-    tablet: '768px',
-    desktop: '1024px',
+    mobile: '599px',    // 0-599px
+    tablet: '600px',    // 600-1023px
+    desktop: '1024px',  // 1024px+
     wide: '1280px',
   },
 
   fonts: {
     primary: "'LiaDiplomat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+  },
+
+  // Typography scales (mobile vs desktop)
+  typography: {
+    mobile: {
+      h1: '1.5rem',      // 24px
+      h2: '1.25rem',     // 20px
+      h3: '1.125rem',    // 18px
+      body: '1rem',      // 16px
+      small: '0.875rem', // 14px
+    },
+    desktop: {
+      h1: '2rem',        // 32px
+      h2: '1.5rem',      // 24px
+      h3: '1.25rem',     // 20px
+      body: '1rem',      // 16px
+      small: '0.875rem', // 14px
+    },
   },
 };
 

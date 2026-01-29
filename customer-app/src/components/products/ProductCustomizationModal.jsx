@@ -2,19 +2,25 @@ import React, { useState, useEffect } from 'react';
 import publicApi from '../../services/publicApi';
 import theme from '../../config/theme';
 import { getCurrentLanguage } from '../../i18n/translations';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
 /**
- * ProductCustomizationModal - Phone-shaped modal for product customization
+ * ProductCustomizationModal - Responsive modal for product customization
+ * Mobile: Full-screen modal with back button
+ * Desktop: Phone-shaped modal (420px max-width)
  * Layout: Product image at top, name + quantity selector, description, groups, add button
  * Supports RTL/LTR based on language detection
+ * Supports editing existing cart items
  */
-export default function ProductCustomizationModal({ product, isOpen, onClose, onConfirm }) {
+export default function ProductCustomizationModal({ product, isOpen, onClose, onConfirm, editingItem }) {
+  const isMobile = useIsMobile();
   const [productData, setProductData] = useState(null);
   const [selections, setSelections] = useState({});
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState({});
   const [direction, setDirection] = useState('rtl');
+  const isEditing = !!editingItem; // Track if we're in editing mode
 
   // Detect direction when modal opens
   useEffect(() => {
@@ -29,20 +35,29 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
   useEffect(() => {
     if (isOpen && product) {
       fetchProductWithGroups();
-      setQuantity(1);
+      // Initialize quantity from editing item or default to 1
+      setQuantity(editingItem?.quantity || 1);
     }
-  }, [isOpen, product]);
+  }, [isOpen, product, editingItem]);
 
   const fetchProductWithGroups = async () => {
     setLoading(true);
     try {
       const data = await publicApi.getProductWithGroups(product.id);
       setProductData(data);
-      // Initialize empty selections
-      const initialSelections = {};
-      data.groups_product_data?.forEach(group => {
-        initialSelections[group.group_id] = [];
-      });
+
+      // Initialize selections from editing item or empty
+      let initialSelections = {};
+      if (editingItem && editingItem.customizations) {
+        // If editing, restore previous selections
+        initialSelections = editingItem.customizations;
+      } else {
+        // If new, initialize empty selections
+        data.groups_product_data?.forEach(group => {
+          initialSelections[group.group_id] = [];
+        });
+      }
+
       setSelections(initialSelections);
       setValidationErrors({});
     } catch (error) {
@@ -187,19 +202,24 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       }}
       onClick={onClose}
     >
-      {/* Modal container - phone-shaped */}
+      {/* Modal container - full-screen on mobile, phone-shaped on desktop */}
       <div
         style={{
           backgroundColor: theme.colors.cardBg,
-          borderRadius: theme.borderRadius.xl,
-          maxWidth: '420px',
+          borderRadius: isMobile ? 0 : theme.borderRadius.xl,
+          maxWidth: isMobile ? '100%' : '420px',
           width: '100%',
-          maxHeight: window.innerHeight < 700 ? '95vh' : '90vh',
+          height: isMobile ? '100%' : 'auto',
+          maxHeight: isMobile ? '100%' : (window.innerHeight < 700 ? '95vh' : '90vh'),
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
+          boxShadow: isMobile ? 'none' : '0 20px 50px rgba(0, 0, 0, 0.3)',
           direction: direction,
+          ...(isMobile && {
+            position: 'fixed',
+            inset: 0,
+          }),
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -647,7 +667,7 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
                   e.currentTarget.style.boxShadow = theme.shadows.md;
                 }}
               >
-                <span>הוסף עכשיו</span>
+                <span>{isEditing ? 'עדכן' : 'הוסף עכשיו'}</span>
                 <span>{calculateTotalPrice().toFixed(2)} ₪</span>
               </button>
             </div>
