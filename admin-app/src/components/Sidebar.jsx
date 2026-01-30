@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Bars3Icon,
   ChevronLeftIcon,
@@ -15,23 +15,48 @@ import {
   CogIcon,
   ChevronDownIcon,
   BuildingStorefrontIcon,
+  ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 import { useRouter } from '../router.jsx';
 import { DEFAULT_THEME } from '../config/theme.js';
 
-const Sidebar = ({ 
-  activeItem = 'menu-management', 
+const Sidebar = ({
+  activeItem = 'menu-management',
   onNavigate = () => {},
   onToggle = () => {},
   isExpanded = true,
-  className = '' 
+  className = ''
 }) => {
   const theme = DEFAULT_THEME;
   const { navigate } = useRouter();
-  
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef(null);
+
   const toggleSidebar = () => {
     onToggle(!isExpanded);
   };
+
+  const handleLogout = () => {
+    // Redirect to WordPress logout URL
+    window.location.href = '/wp-login.php?action=logout';
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   const navigationItems = {
     'ראשי': [
@@ -168,11 +193,14 @@ const Sidebar = ({
           </div>
 
           {/* User Section - Fixed at Bottom */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 relative" ref={userMenuRef}>
             <SectionDivider />
             <div className={`pt-4 pb-4 ${isExpanded ? '' : 'flex justify-center'}`}>
               {isExpanded ? (
-                <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors rounded-lg">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors rounded-lg"
+                >
                   <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: `${theme.primary_color}20`}}>
                     <span className="text-sm" style={{ fontWeight: 800, color: theme.primary_color }}>נ</span>
                   </div>
@@ -180,7 +208,7 @@ const Sidebar = ({
                     <div className="text-sm text-gray-900" style={{ fontWeight: 800 }}>ניסים דיין</div>
                     <div className="text-xs text-gray-500" style={{ fontWeight: 400 }}>מנהל</div>
                   </div>
-                  <ChevronDownIcon className="w-4 h-4 text-gray-400" />
+                  <ChevronDownIcon className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
                 </button>
               ) : (
                 <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{backgroundColor: `${theme.primary_color}20`}}>
@@ -188,6 +216,19 @@ const Sidebar = ({
                 </div>
               )}
             </div>
+
+            {/* User Dropdown Menu */}
+            {showUserMenu && isExpanded && (
+              <div className="absolute bottom-full left-4 right-4 mb-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-500" />
+                  <span className="text-sm font-medium">התנתק</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
