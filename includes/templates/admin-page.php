@@ -50,6 +50,7 @@
             nonce: '<?php echo wp_create_nonce('wp_rest'); ?>',
             wpPath: '<?php echo parse_url(site_url(), PHP_URL_PATH) ?: ''; ?>',
             pluginUrl: '<?php echo plugin_dir_url(__FILE__) . '../../'; ?>',
+            logoutUrl: '<?php echo wp_logout_url(); ?>',
             user: {
                 id: <?php echo get_current_user_id(); ?>,
                 can_manage: <?php echo current_user_can('manage_options') ? 'true' : 'false'; ?>

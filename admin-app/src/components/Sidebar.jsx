@@ -37,8 +37,9 @@ const Sidebar = ({
   };
 
   const handleLogout = () => {
-    // Redirect to WordPress logout URL
-    window.location.href = '/wp-login.php?action=logout';
+    // Get logout URL from wpConfig or construct it
+    const logoutUrl = window.wpConfig?.logoutUrl || '/wp-login.php?action=logout';
+    window.location.href = logoutUrl;
   };
 
   // Close dropdown when clicking outside
@@ -219,12 +220,12 @@ const Sidebar = ({
 
             {/* User Dropdown Menu */}
             {showUserMenu && isExpanded && (
-              <div className="absolute bottom-full left-4 right-4 mb-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+              <div className="absolute bottom-full left-4 right-4 mb-1 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors text-right"
                 >
-                  <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-500" />
+                  <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
                   <span className="text-sm font-medium">התנתק</span>
                 </button>
               </div>
