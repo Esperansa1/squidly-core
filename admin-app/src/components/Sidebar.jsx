@@ -220,10 +220,10 @@ const Sidebar = ({
 
             {/* User Dropdown Menu */}
             {showUserMenu && isExpanded && (
-              <div className="absolute bottom-full left-4 right-4 mb-1 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
+              <div className="absolute bottom-full left-0 right-0 bg-white border-t border-gray-200">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors text-right"
+                  className="w-full flex items-center gap-3 px-8 py-3 text-gray-700 hover:bg-gray-50 transition-colors text-right"
                 >
                   <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
                   <span className="text-sm font-medium">התנתק</span>
