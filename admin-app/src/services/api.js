@@ -56,7 +56,21 @@ class ApiService {
    * Base fetch method with authentication
    */
   async fetch(endpoint, options = {}) {
-    const url = `${this.baseUrl}${endpoint}`;
+    let url = `${this.baseUrl}${endpoint}`;
+
+    // Add query parameters if provided
+    if (options.params) {
+      const params = new URLSearchParams();
+      Object.entries(options.params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          params.append(key, value);
+        }
+      });
+      const queryString = params.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
 
     const defaultHeaders = {
       'Content-Type': 'application/json',
@@ -74,6 +88,9 @@ class ApiService {
       },
       ...options,
     };
+
+    // Remove params from config to avoid issues
+    delete config.params;
 
     try {
       const response = await fetch(url, config);

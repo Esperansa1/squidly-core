@@ -40,6 +40,10 @@ class AdminApiBootstrap
         $orders_controller = new OrderRestController();
         $orders_controller->register_routes();
 
+        // Dashboard Analytics API
+        $dashboard_controller = new DashboardAnalyticsController();
+        $dashboard_controller->register_routes();
+
         // Customers API
         $customers_controller = new CustomerRestController();
         $customers_controller->register_routes();

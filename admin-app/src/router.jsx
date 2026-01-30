@@ -5,10 +5,11 @@ import MenuManagement from './components/MenuManagement.jsx';
 import BranchManagement from './components/BranchManagement.jsx';
 import CustomerManagement from './components/CustomerManagement.jsx';
 import OrderManagement from './components/OrderManagement.jsx';
+import ManagementDashboard from './components/ManagementDashboard.jsx';
 
 // Route configuration
 const routes = {
-  'management-area': MenuManagement,
+  'management-area': ManagementDashboard,
   'performance': MenuManagement,
   'payments': MenuManagement,
   'orders': OrderManagement,
