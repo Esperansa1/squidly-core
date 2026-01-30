@@ -27,8 +27,7 @@ const ManagementDashboard = () => {
   const [customDateTo, setCustomDateTo] = useState('');
   const [showCustomDate, setShowCustomDate] = useState(false);
   const [analytics, setAnalytics] = useState(null);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -53,7 +52,6 @@ const ManagementDashboard = () => {
       console.error('Analytics error:', err);
     } finally {
       setLoading(false);
-      setInitialLoading(false);
     }
   };
 
@@ -103,15 +101,6 @@ const ManagementDashboard = () => {
     const periodId = periodIds[label];
     handlePeriodChange(periodId);
   };
-
-  // Only show full-page loading on initial load
-  if (initialLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-600">טוען נתונים...</div>
-      </div>
-    );
-  }
 
   const kpis = analytics?.kpis;
   const charts = analytics?.charts;
