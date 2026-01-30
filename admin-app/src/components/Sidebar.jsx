@@ -198,38 +198,43 @@ const Sidebar = ({
             <SectionDivider />
             <div className={`pt-4 pb-4 ${isExpanded ? '' : 'flex justify-center'}`}>
               {isExpanded ? (
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors rounded-lg"
-                >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: `${theme.primary_color}20`}}>
-                    <span className="text-sm" style={{ fontWeight: 800, color: theme.primary_color }}>נ</span>
-                  </div>
-                  <div className="flex-1 text-right">
-                    <div className="text-sm text-gray-900" style={{ fontWeight: 800 }}>ניסים דיין</div>
-                    <div className="text-xs text-gray-500" style={{ fontWeight: 400 }}>מנהל</div>
-                  </div>
-                  <ChevronDownIcon className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-                </button>
+                <div className="px-4">
+                  {/* User Dropdown Menu - Above button */}
+                  {showUserMenu && (
+                    <div className="bg-gray-50 border border-gray-200 border-b-0 rounded-t-lg overflow-hidden mb-0">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-100 transition-colors text-right"
+                      >
+                        <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                        <span className="text-sm font-medium">התנתק</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* User Button */}
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors border border-gray-200 ${
+                      showUserMenu ? 'rounded-b-lg border-t-0 bg-gray-50' : 'rounded-lg'
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: `${theme.primary_color}20`}}>
+                      <span className="text-sm" style={{ fontWeight: 800, color: theme.primary_color }}>נ</span>
+                    </div>
+                    <div className="flex-1 text-right">
+                      <div className="text-sm text-gray-900" style={{ fontWeight: 800 }}>ניסים דיין</div>
+                      <div className="text-xs text-gray-500" style={{ fontWeight: 400 }}>מנהל</div>
+                    </div>
+                    <ChevronDownIcon className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
               ) : (
                 <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{backgroundColor: `${theme.primary_color}20`}}>
                   <span className="text-sm" style={{ fontWeight: 800, color: theme.primary_color }}>נ</span>
                 </div>
               )}
             </div>
-
-            {/* User Dropdown Menu */}
-            {showUserMenu && isExpanded && (
-              <div className="absolute bottom-full left-4 right-4 mb-1 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors text-right"
-                >
-                  <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                  <span className="text-sm font-medium">התנתק</span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
