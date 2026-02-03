@@ -6,6 +6,7 @@ import BranchManagement from './components/BranchManagement.jsx';
 import CustomerManagement from './components/CustomerManagement.jsx';
 import OrderManagement from './components/OrderManagement.jsx';
 import ManagementDashboard from './components/ManagementDashboard.jsx';
+import Settings from './components/Settings.jsx';
 
 // Route configuration
 const routes = {
@@ -17,7 +18,7 @@ const routes = {
   'menu-management': MenuManagement,
   'customers': CustomerManagement,
   'tutorials': MenuManagement,
-  'settings': MenuManagement,
+  'settings': Settings,
 };
 
 // Simple router context

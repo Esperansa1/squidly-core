@@ -53,14 +53,14 @@ spl_autoload_register(function ($class) {
         'includes/shared/interfaces/',
         'includes/shared/exceptions/',
         'includes/shared/abstracts/',
-        
+
         // Domain models
         'includes/domains/customers/models/',
         'includes/domains/orders/models/',
         'includes/domains/products/models/',
         'includes/domains/payments/models/',
         'includes/domains/stores/models/',
-        
+
         // Domain repositories
         'includes/domains/customers/repositories/',
         'includes/domains/orders/repositories/',
@@ -73,13 +73,13 @@ spl_autoload_register(function ($class) {
         // Domain REST controllers
         'includes/domains/products/rest/',
         'includes/domains/stores/rest/',
-        
+
         // Domain post types
         'includes/domains/customers/post-types/',
         'includes/domains/orders/post-types/',
         'includes/domains/products/post-types/',
         'includes/domains/stores/post-types/',
-        
+
         // Payment system
         'includes/domains/payments/interfaces/',
         'includes/domains/payments/exceptions/',
@@ -91,9 +91,12 @@ spl_autoload_register(function ($class) {
         'includes/domains/payments/hooks/',
         'includes/domains/payments/activation/',
         'includes/domains/payments/bootstrap/',
-        
+
         // Admin components
         'includes/admin/',
+
+        // API controllers
+        'includes/api/controllers/',
     ];
 
     foreach ($paths as $path) {
@@ -108,6 +111,10 @@ spl_autoload_register(function ($class) {
 // Initialize admin menu system
 require_once __DIR__ . '/includes/admin/AdminMenuManager.php';
 AdminMenuManager::init();
+
+// Initialize role manager
+require_once __DIR__ . '/includes/admin/RoleManager.php';
+\SquidlyCore\Admin\RoleManager::init();
 
 // Register settings
 add_action('admin_init', function() {

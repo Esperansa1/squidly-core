@@ -98,7 +98,7 @@ const Card = React.forwardRef(({
       )}
 
       {/* Body */}
-      <div className={`${header || footer ? bodyPadding : ''} ${!header && !footer && padding === 'none' ? 'h-full flex flex-col' : ''}`}>
+      <div className={`${header || footer ? bodyPadding : ''} ${!header && !footer && padding === 'none' ? 'h-full flex flex-col overflow-hidden' : ''}`}>
         {children}
       </div>
 

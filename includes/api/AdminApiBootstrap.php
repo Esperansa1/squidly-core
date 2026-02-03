@@ -3,9 +3,13 @@ declare(strict_types=1);
 
 /**
  * Admin API Bootstrap
- * 
+ *
  * Registers all REST API controllers for the admin interface
  */
+
+// Manually require AdminUserRestController
+require_once SQUIDLY_CORE_PATH . 'includes/api/controllers/AdminUserRestController.php';
+
 class AdminApiBootstrap
 {
     public static function init(): void
@@ -47,6 +51,10 @@ class AdminApiBootstrap
         // Customers API
         $customers_controller = new CustomerRestController();
         $customers_controller->register_routes();
+
+        // Admin Users API
+        $admin_users_controller = new \SquidlyCore\Api\Controllers\AdminUserRestController();
+        $admin_users_controller->register_routes();
 
         // Auth check endpoint for admin
         register_rest_route('squidly/v1', '/auth/check', [

@@ -385,6 +385,61 @@ class ApiService {
     return await this.fetch(endpoint);
   }
 
+  // ===== ADMIN USERS API =====
+
+  async getAdminUsers(filters = {}, includePaginationHeaders = false) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `admin-users?${queryParams}` : 'admin-users';
+    return await this.fetch(endpoint, { includePaginationHeaders });
+  }
+
+  async getAdminUser(id) {
+    return await this.fetch(`admin-users/${id}`);
+  }
+
+  async createAdminUser(data) {
+    return await this.fetch('admin-users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateAdminUser(id, data) {
+    return await this.fetch(`admin-users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteAdminUser(id) {
+    return await this.fetch(`admin-users/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getCurrentUser() {
+    return await this.fetch('admin-users/me');
+  }
+
+  async updateCurrentUser(data) {
+    return await this.fetch('admin-users/me', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async uploadAvatar(userId, formData) {
+    const endpoint = userId === 'me'
+      ? 'admin-users/me/avatar'
+      : `admin-users/${userId}/avatar`;
+
+    return await this.fetch(endpoint, {
+      method: 'POST',
+      headers: { 'X-WP-Nonce': this.nonce },
+      body: formData,
+    });
+  }
+
   // ===== UTILITY METHODS =====
 
   getConfig() {
