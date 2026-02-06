@@ -14,12 +14,6 @@ export default function ProductCard({ product, onAddToCart }) {
   const displayPrice = hasDiscount ? product.discounted_price : product.price;
   const originalPrice = product.price;
 
-  // Get badges from product tags
-  const badges = (product.tags || []).map((tag) => ({
-    text: tag,
-    color: theme.colors.primary, // Red color for all tags
-  }));
-
   // Responsive sizing
   const imageSize = isMobile ? '56px' : '100px';
   const buttonSize = isMobile ? '44px' : '48px';
@@ -101,27 +95,6 @@ export default function ProductCard({ product, onAddToCart }) {
           minWidth: 0, // Allow text truncation
         }}
       >
-        {/* Badges (if any) - Only on desktop */}
-        {!isMobile && badges.length > 0 && (
-          <div style={{ display: 'flex', gap: theme.spacing.xs, marginBottom: theme.spacing.xs }}>
-            {badges.map((badge, index) => (
-              <span
-                key={index}
-                style={{
-                  fontSize: '0.75rem',
-                  fontWeight: '600',
-                  color: 'white',
-                  backgroundColor: badge.color,
-                  padding: '2px 8px',
-                  borderRadius: theme.borderRadius.full,
-                }}
-              >
-                {badge.text}
-              </span>
-            ))}
-          </div>
-        )}
-
         {/* Title */}
         <h3
           style={{

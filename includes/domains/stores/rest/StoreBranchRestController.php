@@ -276,6 +276,7 @@ class StoreBranchRestController extends \WP_REST_Controller
             'ingredients' => array_values($ingredients),
             'product_availability' => $item->product_availability,
             'ingredient_availability' => $item->ingredient_availability,
+            'banner_image_url' => $item->banner_image_url,
         ];
 
         return new \WP_REST_Response($data, 200);
@@ -347,6 +348,7 @@ class StoreBranchRestController extends \WP_REST_Controller
                 'ingredients' => $request['ingredients'] ?? [],
                 'product_availability' => $request['product_availability'] ?? [],
                 'ingredient_availability' => $request['ingredient_availability'] ?? [],
+                'banner_image_url' => sanitize_text_field($request['banner_image_url'] ?? ''),
             ];
 
             $branch_id = $this->repository->create($data);
@@ -437,6 +439,10 @@ class StoreBranchRestController extends \WP_REST_Controller
 
             if (isset($request['ingredient_availability'])) {
                 $data['ingredient_availability'] = $request['ingredient_availability'];
+            }
+
+            if (isset($request['banner_image_url'])) {
+                $data['banner_image_url'] = sanitize_text_field($request['banner_image_url']);
             }
 
             $success = $this->repository->update($id, $data);
@@ -842,6 +848,13 @@ class StoreBranchRestController extends \WP_REST_Controller
                 'type' => 'object',
                 'required' => false,
                 'default' => [],
+            ];
+
+            $args['banner_image_url'] = [
+                'description' => 'Banner image URL for customer-facing hero banner',
+                'type' => 'string',
+                'required' => false,
+                'sanitize_callback' => 'sanitize_text_field',
             ];
         }
 

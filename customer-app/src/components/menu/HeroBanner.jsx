@@ -4,9 +4,9 @@ import { useIsMobile } from '../../hooks/useMediaQuery';
 
 /**
  * HeroBanner - Responsive hero image banner at top of menu
- * Smaller on mobile, larger on desktop
+ * Displays branch banner image when available, gradient fallback otherwise
  */
-export default function HeroBanner() {
+export default function HeroBanner({ imageUrl }) {
   const isMobile = useIsMobile();
 
   return (
@@ -23,33 +23,33 @@ export default function HeroBanner() {
         flexShrink: 0,
       }}
     >
-      {/* Placeholder gradient until actual image is provided */}
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          background: 'linear-gradient(135deg, #DC2626 0%, #EA580C 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: '2rem',
-          fontWeight: 'bold',
-        }}
-      >
-        תמונת באנר
-      </div>
-
-      {/* TODO: Replace with actual image when provided */}
-      {/* <img
-        src="/path/to/hero-image.jpg"
-        alt="תפריט"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-        }}
-      /> */}
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt="באנר"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(135deg, #DC2626 0%, #EA580C 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '2rem',
+            fontWeight: 'bold',
+          }}
+        >
+          תמונת באנר
+        </div>
+      )}
     </div>
   );
 }

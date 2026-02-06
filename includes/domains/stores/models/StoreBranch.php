@@ -44,6 +44,8 @@ class StoreBranch
     /** @var array<int, array{max_distance: float, fee: float}> Zone-based pricing */
     public array  $delivery_zones = [];
 
+    public ?string $banner_image_url = null;     // Hero banner image URL for customer app
+
     public function __construct(array $data)
     {
         $this->id        = (int)    $data['id'];
@@ -78,6 +80,7 @@ class StoreBranch
         $this->delivery_max_distance    = (float) ($data['delivery_max_distance']    ?? 0.0);
         $this->min_order_amount         = (float) ($data['min_order_amount']         ?? 0.0);
         $this->delivery_zones           = $data['delivery_zones'] ?? [];
+        $this->banner_image_url         = isset($data['banner_image_url']) ? (string) $data['banner_image_url'] : null;
     }
 
     /* ---------- Helper look-ups ---------- */
@@ -219,6 +222,7 @@ class StoreBranch
             'delivery_max_distance'  => $this->delivery_max_distance,
             'min_order_amount'       => $this->min_order_amount,
             'delivery_zones'         => $this->delivery_zones,
+            'banner_image_url'       => $this->banner_image_url,
         ];
     }
 }

@@ -76,6 +76,10 @@ class StoreBranchRepository implements RepositoryInterface
         update_post_meta($post_id, '_min_order_amount',        (float) ($data['min_order_amount']        ?? 0.0));
         update_post_meta($post_id, '_delivery_zones',                  ($data['delivery_zones']          ?? []));
 
+        if (!empty($data['banner_image_url'])) {
+            update_post_meta($post_id, '_banner_image_url', esc_url_raw($data['banner_image_url']));
+        }
+
         return $post_id;
     }
 
@@ -119,6 +123,7 @@ class StoreBranchRepository implements RepositoryInterface
             'delivery_max_distance'  => (float)  get_post_meta($id, '_delivery_max_distance', true),
             'min_order_amount'       => (float)  get_post_meta($id, '_min_order_amount', true),
             'delivery_zones'         => get_post_meta($id, '_delivery_zones', true) ?: [],
+            'banner_image_url'       => get_post_meta($id, '_banner_image_url', true) ?: null,
         ]);
     }
 
@@ -442,6 +447,9 @@ class StoreBranchRepository implements RepositoryInterface
         }
         if (array_key_exists('delivery_zones', $data)) {
             update_post_meta($id, '_delivery_zones', $data['delivery_zones']);
+        }
+        if (array_key_exists('banner_image_url', $data)) {
+            update_post_meta($id, '_banner_image_url', $data['banner_image_url'] ? esc_url_raw($data['banner_image_url']) : '');
         }
 
         return true;

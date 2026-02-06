@@ -12,6 +12,7 @@ import MobileCheckoutBar from './MobileCheckoutBar';
 import MobileCartSheet from './MobileCartSheet';
 import CategoryBadgeButtons from './CategoryBadgeButtons';
 import { useCart } from '../../contexts/CartContext';
+import { useBranch } from '../../contexts/BranchContext';
 
 /**
  * MenuLayout - Responsive layout for menu page
@@ -24,6 +25,9 @@ export default function MenuLayout({ branchId, onCheckout }) {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const isDesktop = useIsDesktop();
+
+  // BranchContext - get full branch object for banner image
+  const { selectedBranch } = useBranch();
 
   // CartContext integration - sync with backend cart
   const {
@@ -122,10 +126,88 @@ export default function MenuLayout({ branchId, onCheckout }) {
     }
   };
 
-  // Get icon for category
+  // Get icon for category based on Hebrew name keywords
   const getCategoryIcon = (categoryName) => {
-    // No icons - return null
-    return null;
+    const name = (categoryName || '').toLowerCase();
+    const iconStyle = { width: 20, height: 20, fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 };
+
+    if (name.includes('ארוחות') || name.includes('ארוחה')) {
+      // Grid/meals icon
+      return (
+        <svg {...iconStyle} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+      );
+    }
+    if (name.includes('ראשונות') || name.includes('מנה ראשונה')) {
+      // Plate/starter icon
+      return (
+        <svg {...iconStyle} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="5" />
+        </svg>
+      );
+    }
+    if (name.includes('עיקריות') || name.includes('מנה עיקרית')) {
+      // Chef hat / main dish icon
+      return (
+        <svg {...iconStyle} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V17a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-3.13z" />
+          <line x1="6" y1="17" x2="18" y2="17" />
+        </svg>
+      );
+    }
+    if (name.includes('תוספות') || name.includes('תוספת') || name.includes('צדדי')) {
+      // Checkmark-circle / sides icon
+      return (
+        <svg {...iconStyle} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 12l2 2 4-4" />
+          <circle cx="12" cy="12" r="9" />
+        </svg>
+      );
+    }
+    if (name.includes('שתייה קלה') || name.includes('משקאות קלים') || name.includes('שתיה קלה')) {
+      // Soft drink icon
+      return (
+        <svg {...iconStyle} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 2h8l-1 9H9L8 2z" />
+          <path d="M9 11h6v2a5 5 0 0 1-6 0v-2z" />
+          <path d="M9 11l-1 9h8l-1-9" />
+        </svg>
+      );
+    }
+    if (name.includes('שתייה חריפה') || name.includes('אלכוהול') || name.includes('משקאות חריפים') || name.includes('שתיה חריפה')) {
+      // Cocktail glass icon
+      return (
+        <svg {...iconStyle} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 2l8 0-4 9-4-9z" />
+          <line x1="12" y1="11" x2="12" y2="19" />
+          <line x1="8" y1="19" x2="16" y2="19" />
+        </svg>
+      );
+    }
+    if (name.includes('קינוח') || name.includes('מתוקים') || name.includes('קינוחים')) {
+      // Cake/dessert icon
+      return (
+        <svg {...iconStyle} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 18h16v-4a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v4z" />
+          <path d="M12 6V4" />
+          <path d="M9 10c0-2 1-4 3-4s3 2 3 4" />
+          <line x1="4" y1="18" x2="20" y2="18" />
+        </svg>
+      );
+    }
+    // Default: utensils icon
+    return (
+      <svg {...iconStyle} viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+        <path d="M7 2v20" />
+        <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" />
+      </svg>
+    );
   };
 
   // Extract unique badges from all products
@@ -328,7 +410,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
 
             {/* Hero Banner */}
             <div style={{ padding: `0 ${theme.spacing.mobile.md}` }}>
-              <HeroBanner />
+              <HeroBanner imageUrl={selectedBranch?.banner_image_url} />
             </div>
 
             {/* "Our Menu" header with search/filter buttons */}
@@ -719,7 +801,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
             >
               {/* Hero Banner - Static */}
               <div style={{ flexShrink: 0, marginBottom: theme.spacing.md }}>
-                <HeroBanner />
+                <HeroBanner imageUrl={selectedBranch?.banner_image_url} />
               </div>
 
               {/* Our Menu Header with Search and Filter - Static */}

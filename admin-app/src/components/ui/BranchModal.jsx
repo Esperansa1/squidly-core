@@ -28,6 +28,7 @@ const BranchModal = ({
     delivery_base_fee: '',
     delivery_free_threshold: '',
     min_order_amount: '',
+    banner_image_url: '',
   });
 
   const [customAccessibility, setCustomAccessibility] = useState('');
@@ -107,6 +108,7 @@ const BranchModal = ({
           delivery_base_fee: editingBranch.delivery_base_fee || '',
           delivery_free_threshold: editingBranch.delivery_free_threshold || '',
           min_order_amount: editingBranch.min_order_amount || '',
+          banner_image_url: editingBranch.banner_image_url || '',
         });
       } else {
         // Reset form for new branch
@@ -126,6 +128,7 @@ const BranchModal = ({
           delivery_base_fee: '',
           delivery_free_threshold: '',
           min_order_amount: '',
+          banner_image_url: '',
         });
       }
       setErrors({});
@@ -436,6 +439,33 @@ const BranchModal = ({
                   <p className="text-green-600 text-xs mt-1">
                     ✓ {formData.latitude}, {formData.longitude}
                   </p>
+                )}
+              </div>
+
+              {/* Banner Image URL */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  תמונת באנר (URL)
+                </label>
+                <input
+                  type="url"
+                  value={formData.banner_image_url}
+                  onChange={(e) => handleInputChange('banner_image_url', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                  placeholder="https://example.com/banner.jpg"
+                  style={{ direction: 'ltr', textAlign: 'left' }}
+                />
+                <p className="text-gray-500 text-xs mt-1">כתובת URL של תמונת הבאנר שתוצג באפליקציית הלקוחות</p>
+                {formData.banner_image_url && (
+                  <div className="mt-2 rounded-lg overflow-hidden border border-gray-200" style={{ maxHeight: '80px' }}>
+                    <img
+                      src={formData.banner_image_url}
+                      alt="תצוגה מקדימה"
+                      className="w-full h-full object-cover"
+                      style={{ maxHeight: '80px' }}
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  </div>
                 )}
               </div>
 

@@ -45,7 +45,7 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
           }
         }}
       >
-        {category.icon && <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>{category.icon}</span>}
+        {category.icon && <span style={{ width: '22px', height: '22px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{category.icon}</span>}
         {isExpanded && <span>{category.name}</span>}
       </button>
     );
@@ -258,7 +258,7 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
                     margin: 0,
                   }}
                 >
-                  קטגוריות התפריט
+                  התפריט שלנו
                 </h3>
               </div>
             )}
@@ -271,7 +271,7 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
             </nav>
           </div>
 
-          {/* Bottom Section */}
+          {/* Bottom Section - Membership CTA */}
           <div style={{ flexShrink: 0 }}>
             <SectionDivider />
             <div
@@ -283,53 +283,73 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
               }}
             >
               {isExpanded ? (
-                <button
+                <div
                   style={{
                     width: '100%',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     gap: theme.spacing.sm,
-                    padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-                    color: theme.colors.text.primary,
-                    background: 'transparent',
-                    border: 'none',
-                    borderRadius: theme.borderRadius.lg,
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.colors.background;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
+                    padding: theme.spacing.md,
                   }}
                 >
+                  {/* Mascot / food illustration placeholder */}
                   <div
                     style={{
-                      width: '32px',
-                      height: '32px',
+                      width: '48px',
+                      height: '48px',
                       borderRadius: '50%',
+                      backgroundColor: '#FEF3C7',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      backgroundColor: `${theme.colors.primary}33`,
                     }}
                   >
-                    <span style={{ fontSize: '0.875rem', fontWeight: '800', color: theme.colors.primary }}>א</span>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+                      <path d="M7 2v20" />
+                      <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" />
+                    </svg>
                   </div>
-                  <div style={{ flex: 1, textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.875rem', color: theme.colors.text.primary, fontWeight: '800' }}>
-                      אורח
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.colors.text.secondary, fontWeight: '400' }}>
-                      לקוח
-                    </div>
-                  </div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={theme.colors.text.muted} strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                  </svg>
-                </button>
+                  <p
+                    style={{
+                      fontSize: '0.8rem',
+                      color: theme.colors.text.secondary,
+                      textAlign: 'center',
+                      margin: 0,
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    ?עדיין לא הצטרפתם למועדון
+                  </p>
+                  <button
+                    style={{
+                      width: '100%',
+                      padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+                      backgroundColor: theme.colors.primary,
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: theme.borderRadius.md,
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.primary;
+                    }}
+                    onClick={() => {
+                      // Placeholder: will be wired to real auth/registration later
+                      alert('הרשמה למועדון תהיה זמינה בקרוב!');
+                    }}
+                  >
+                    להצטרפות בחינם
+                  </button>
+                </div>
               ) : (
                 <div
                   style={{
@@ -340,9 +360,17 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: `${theme.colors.primary}33`,
+                    cursor: 'pointer',
                   }}
+                  title="הצטרפות למועדון"
                 >
-                  <span style={{ fontSize: '0.875rem', fontWeight: '800', color: theme.colors.primary }}>א</span>
+                  {/* User-plus icon for collapsed state */}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={theme.colors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <line x1="20" y1="8" x2="20" y2="14" />
+                    <line x1="23" y1="11" x2="17" y2="11" />
+                  </svg>
                 </div>
               )}
             </div>
