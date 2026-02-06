@@ -149,8 +149,6 @@ class PublicApiService {
     if (notes) body.notes = notes;
     if (customerId) body.customer_id = customerId;
 
-    console.log('📤 createCartSession - Sending body:', JSON.stringify(body, null, 2));
-
     return await this.fetch('cart', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -177,8 +175,6 @@ class PublicApiService {
     };
 
     if (notes) body.notes = notes;
-
-    console.log('📤 addToCart - Sending body:', JSON.stringify(body, null, 2));
 
     return await this.fetch('cart', {
       method: 'POST',

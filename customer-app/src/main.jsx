@@ -12,7 +12,6 @@ const setBackgroundImage = () => {
     const backgroundUrl = `${assetsUrl}customer-app/assets/background.png`;
     const root = document.documentElement;
     root.style.setProperty('--background-image-url', `url('${backgroundUrl}')`);
-    console.log('✅ Background image URL set:', backgroundUrl);
   }
 };
 

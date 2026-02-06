@@ -50,7 +50,6 @@ export function BranchProvider({ children }) {
           const savedBranch = data.find(b => b.id === parseInt(savedBranchId));
           if (savedBranch) {
             setSelectedBranch(savedBranch);
-            console.log('✅ Restored selected branch:', savedBranch.name);
           }
         }
 
@@ -76,9 +75,7 @@ export function BranchProvider({ children }) {
           setPickupTime(savedPickupTime);
         }
 
-        console.log(`✅ Loaded ${data.length} branches`);
       } catch (err) {
-        console.error('❌ Failed to load branches:', err);
         setError(err.message || 'Failed to load branches');
       } finally {
         setLoading(false);
@@ -95,13 +92,11 @@ export function BranchProvider({ children }) {
     const branch = branches.find(b => b.id === branchId);
 
     if (!branch) {
-      console.error('❌ Branch not found:', branchId);
       return;
     }
 
     setSelectedBranch(branch);
     sessionStorage.setItem('selectedBranchId', branchId.toString());
-    console.log('✅ Selected branch:', branch.name);
   };
 
   /**
@@ -113,7 +108,6 @@ export function BranchProvider({ children }) {
     const branch = branches.find(b => b.id === branchId);
 
     if (!branch) {
-      console.error('❌ Branch not found:', branchId);
       return;
     }
 
@@ -126,8 +120,6 @@ export function BranchProvider({ children }) {
     sessionStorage.setItem('squidly_order_type', 'delivery');
     sessionStorage.setItem('squidly_delivery_address', JSON.stringify(address));
     sessionStorage.removeItem('squidly_pickup_time');
-
-    console.log('✅ Selected branch for delivery:', branch.name, address);
   };
 
   /**
@@ -139,7 +131,6 @@ export function BranchProvider({ children }) {
     const branch = branches.find(b => b.id === branchId);
 
     if (!branch) {
-      console.error('❌ Branch not found:', branchId);
       return;
     }
 
@@ -152,8 +143,6 @@ export function BranchProvider({ children }) {
     sessionStorage.setItem('squidly_order_type', 'pickup');
     sessionStorage.setItem('squidly_pickup_time', time);
     sessionStorage.removeItem('squidly_delivery_address');
-
-    console.log('✅ Selected branch for pickup:', branch.name, time);
   };
 
   /**
@@ -169,8 +158,6 @@ export function BranchProvider({ children }) {
     sessionStorage.removeItem('squidly_order_type');
     sessionStorage.removeItem('squidly_delivery_address');
     sessionStorage.removeItem('squidly_pickup_time');
-
-    console.log('✅ Cleared branch selection');
   };
 
   const value = {

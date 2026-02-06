@@ -81,7 +81,6 @@ export default function BranchSelectionModal({ isOpen }) {
   const handleDeliverySubmit = (branch, address, distance) => {
     // Branch found by DeliveryAddressForm - select it
     selectBranchForDelivery(branch.id, address);
-    console.log(`✅ Branch selected for delivery: ${branch.name} (${distance.toFixed(1)} km away)`);
   };
 
   // Handle pickup branch selection
@@ -94,7 +93,6 @@ export default function BranchSelectionModal({ isOpen }) {
   const handlePickupConfirm = () => {
     if (selectedPickupBranchId && pickupTime) {
       selectBranchForPickup(selectedPickupBranchId, pickupTime);
-      console.log('✅ Branch selected for pickup:', selectedPickupBranchId, pickupTime);
     }
   };
 
@@ -275,7 +273,6 @@ function InitialStep({ direction, onDeliveryClick, onPickupClick }) {
       <button
         onClick={() => {
           // Login functionality - placeholder for now
-          console.log('Login clicked - not implemented yet');
         }}
         style={{
           padding: isMobile ? `${theme.spacing.sm} ${theme.spacing.xl}` : `${theme.spacing.md} ${theme.spacing['2xl']}`,

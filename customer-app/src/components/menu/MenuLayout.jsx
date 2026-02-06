@@ -84,14 +84,11 @@ export default function MenuLayout({ branchId, onCheckout }) {
   const loadMenuData = async () => {
     try {
       setLoading(true);
-      console.log('🔄 Loading menu data for branch:', branchId);
 
       // Fetch products for this branch
       const filters = branchId ? { branch_id: branchId } : {};
-      console.log('📦 Fetching products with filters:', filters);
 
       const productsData = await publicApi.getProducts(filters);
-      console.log('✅ Products loaded:', productsData);
 
       setProducts(productsData);
 
@@ -112,7 +109,6 @@ export default function MenuLayout({ branchId, onCheckout }) {
       });
 
       const cats = Array.from(categoryMap.values());
-      console.log('📂 Categories extracted:', cats);
 
       setCategories(cats);
       if (cats.length > 0) {
@@ -251,13 +247,6 @@ export default function MenuLayout({ branchId, onCheckout }) {
     filteredProducts = [...filteredProducts].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
   }
 
-  console.log('🔍 Filtered products:', {
-    total: products.length,
-    filtered: filteredProducts.length,
-    activeCategory,
-    searchQuery,
-  });
-
   // Handle add to cart
   const handleAddToCart = (product) => {
     // Check if product has customization groups
@@ -287,13 +276,6 @@ export default function MenuLayout({ branchId, onCheckout }) {
           }
         });
       }
-
-      console.log('🛒 Adding to cart:', {
-        product_id: product.id,
-        quantity,
-        customizations: customizationsToSend,
-        branchId
-      });
 
       await contextAddToCart(
         product,
