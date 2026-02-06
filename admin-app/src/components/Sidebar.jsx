@@ -5,8 +5,6 @@ import {
   ChevronRightIcon,
   MagnifyingGlassIcon,
   Squares2X2Icon,
-  ChartBarIcon,
-  CreditCardIcon,
   ClipboardDocumentListIcon,
   CalendarIcon,
   ListBulletIcon,
@@ -62,8 +60,6 @@ const Sidebar = ({
   const navigationItems = {
     'ראשי': [
       { id: 'management-area', icon: Squares2X2Icon, label: 'איזור ניהול' },
-      { id: 'performance', icon: ChartBarIcon, label: 'מעקב ביצועים' },
-      { id: 'payments', icon: CreditCardIcon, label: 'תשלומים' },
       { id: 'orders', icon: ClipboardDocumentListIcon, label: 'הזמנות' },
     ],
     'ניהול מסעדה': [
