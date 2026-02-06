@@ -66,15 +66,15 @@ export default function CouponSection() {
         </span>
       </div>
 
-      {/* Dashed line fills space, input at leftmost (end in RTL) */}
+      {/* Dashed lines aligned with red underline, input at leftmost (end in RTL) */}
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-end',
           gap: theme.spacing.sm,
         }}
       >
-        {/* Dashed line — fills remaining space */}
+        {/* Dashed line — fills remaining space, aligned with red underline */}
         <div
           style={{
             flex: 1,
@@ -82,7 +82,7 @@ export default function CouponSection() {
           }}
         />
 
-        {/* Input with red underline — at the left (end) side, text centered */}
+        {/* Input with red underline — bold black text, slightly narrower */}
         <input
           type="text"
           value={couponCode}
@@ -94,10 +94,11 @@ export default function CouponSection() {
           placeholder="ממשו קופון"
           disabled={loading}
           style={{
-            width: '120px',
+            width: '100px',
             flexShrink: 0,
             padding: `4px 0`,
             fontSize: '0.8125rem',
+            fontWeight: '700',
             border: 'none',
             borderBottom: `2px solid ${theme.colors.primary}`,
             backgroundColor: 'transparent',
