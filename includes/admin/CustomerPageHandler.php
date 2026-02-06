@@ -13,7 +13,6 @@ class CustomerPageHandler
         add_action('init', [self::class, 'create_customer_page']);
         add_action('template_redirect', [self::class, 'ensure_public_access'], 1); // Early priority
         add_filter('page_template', [self::class, 'customer_page_template']);
-        add_action('init', [self::class, 'disable_woocommerce_coming_soon']);
     }
 
     /**
@@ -85,16 +84,6 @@ class CustomerPageHandler
 
             // Update meta to mark as customer page
             update_post_meta($existing_page->ID, '_squidly_customer_page', true);
-        }
-    }
-
-    /**
-     * Disable WooCommerce Coming Soon mode entirely
-     */
-    public static function disable_woocommerce_coming_soon(): void
-    {
-        if (get_option('woocommerce_coming_soon') === 'yes') {
-            update_option('woocommerce_coming_soon', 'no');
         }
     }
 
