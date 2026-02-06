@@ -5,8 +5,6 @@ import './fonts.css';
 import { loadLiaDiplomatFonts } from './fontLoader.js';
 import { DEFAULT_THEME, generateCSSVariables } from './config/theme.js';
 
-console.log('✅ Squidly Admin React app main.jsx loaded');
-
 // Load fonts first
 loadLiaDiplomatFonts();
 
@@ -29,7 +27,6 @@ const setBackgroundImage = () => {
     const backgroundUrl = `${assetsUrl}admin-app/assets/background.png`;
     const root = document.documentElement;
     root.style.setProperty('--background-image-url', `url('${backgroundUrl}')`);
-    console.log('✅ Background image URL set:', backgroundUrl);
   }
 };
 
@@ -50,11 +47,8 @@ const initializeApp = () => {
   }
 
   if (container) {
-      console.log('✅ Container found, rendering React app');
       const root = createRoot(container);
       root.render(<App />);
-  } else {
-      console.error('❌ No suitable container found');
   }
 };
 

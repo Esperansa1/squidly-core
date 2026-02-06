@@ -303,8 +303,6 @@ class ApiService {
 
       return combinedData;
     } catch (error) {
-      console.error('❌ Error fetching all groups:', error);
-      console.error('❌ Error stack:', error.stack);
       return [];
     }
   }

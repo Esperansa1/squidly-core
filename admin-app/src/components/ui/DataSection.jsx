@@ -176,8 +176,6 @@ const DataSection = ({
       setShowDeleteModal(false);
     } catch (error) {
       console.error(`Failed to delete ${title.toLowerCase()}:`, error);
-      console.log('Error message received:', error.message);
-      console.log('Error object:', error);
 
       // Provide user-friendly error messages
       let errorMessage = `שגיאה במחיקת ${title.toLowerCase()}`;

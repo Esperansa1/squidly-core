@@ -212,8 +212,6 @@ const ProductGroupModal = ({
 
       // Send raw item IDs instead of group_item_ids for the new API
       const item_ids = selectedItems.map(item => item.id);
-      console.log('Submitting group with selectedItems:', selectedItems);
-      console.log('Extracted item_ids:', item_ids);
 
       const submissionData = {
         ...formData,
@@ -222,7 +220,6 @@ const ProductGroupModal = ({
         group_item_ids: undefined
       };
 
-      console.log('Final submission data:', submissionData);
       await onSave(submissionData);
 
       // Show success message
