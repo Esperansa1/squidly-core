@@ -13,7 +13,7 @@ class CustomerPageHandler
         add_action('init', [self::class, 'create_customer_page']);
         add_action('template_redirect', [self::class, 'ensure_public_access'], 1); // Early priority
         add_filter('page_template', [self::class, 'customer_page_template']);
-        add_filter('woocommerce_coming_soon_exclude', [self::class, 'exclude_from_coming_soon']);
+        add_action('init', [self::class, 'disable_woocommerce_coming_soon']);
     }
 
     /**
@@ -89,14 +89,13 @@ class CustomerPageHandler
     }
 
     /**
-     * Exclude the orders page from WooCommerce Coming Soon mode
+     * Disable WooCommerce Coming Soon mode entirely
      */
-    public static function exclude_from_coming_soon($is_excluded)
+    public static function disable_woocommerce_coming_soon(): void
     {
-        if (is_page('orders')) {
-            return true;
+        if (get_option('woocommerce_coming_soon') === 'yes') {
+            update_option('woocommerce_coming_soon', 'no');
         }
-        return $is_excluded;
     }
 
     /**
