@@ -26,17 +26,17 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        gap: theme.spacing.md,
         overflow: 'hidden',
       }}
     >
       {/* Header: סיכום ההזמנה + Cancel Button */}
       <div
         style={{
-          padding: theme.spacing.md,
+          padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.sm}`,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          flexShrink: 0,
         }}
       >
         <h2
@@ -50,7 +50,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
           סיכום ההזמנה
         </h2>
 
-        {/* Cancel Order Button (#6) */}
+        {/* Cancel Order Button */}
         {!isEmpty && (
           <button
             onClick={handleCancelOrder}
@@ -77,17 +77,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
               e.currentTarget.style.borderColor = theme.colors.border;
             }}
           >
-            {/* Trash icon */}
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" />
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             </svg>
@@ -96,48 +86,41 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
         )}
       </div>
 
-      {/* Cart Items Area - Takes all available vertical space */}
+      {/* Scrollable middle section: cart items OR empty state + coupon */}
       <div
         style={{
-          flex: '1 1 0',
+          flex: 1,
           overflowY: 'auto',
-          padding: theme.spacing.md,
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         {isEmpty ? (
-          // Empty cart placeholder (#7 icon + #8 text)
+          /* Empty state - centered in the scrollable area */
           <div
             style={{
+              flex: 1,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              height: '100%',
+              padding: theme.spacing.lg,
+              minHeight: '160px',
             }}
           >
             <div
               style={{
-                width: '80px',
-                height: '80px',
+                width: '72px',
+                height: '72px',
                 backgroundColor: theme.colors.background,
                 borderRadius: theme.borderRadius.full,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: theme.spacing.md,
+                marginBottom: theme.spacing.sm,
               }}
             >
-              {/* Clipboard/receipt icon (#7) */}
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={theme.colors.text.muted}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={theme.colors.text.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
                 <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
                 <line x1="9" y1="10" x2="15" y2="10" />
@@ -147,9 +130,9 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
             </div>
             <p
               style={{
-                fontSize: '1rem',
+                fontSize: '0.9375rem',
                 fontWeight: '500',
-                color: theme.colors.text.primary,
+                color: theme.colors.text.secondary,
                 textAlign: 'center',
                 margin: 0,
               }}
@@ -158,214 +141,94 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
             </p>
           </div>
         ) : (
-          // Cart items list
-          <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
+          /* Cart items list */
+          <div style={{ padding: theme.spacing.md, display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
             {cart.items.map((item, index) => (
               <CartItemDisplay key={index} item={item} compact={false} onItemClick={onItemClick} onDelete={onDeleteItem} />
             ))}
           </div>
         )}
+
+        {/* Coupon Section - inside scrollable area, after items */}
+        <div style={{ flexShrink: 0 }}>
+          <CouponSection />
+        </div>
       </div>
 
-      {/* Coupon Section (#9) */}
-      <CouponSection />
-
-      {/* Order Summary - Price Breakdown (#10) */}
-      <div
-        style={{
-          padding: `${theme.spacing.lg} ${theme.spacing.lg} ${theme.spacing.md}`,
-          backgroundColor: theme.colors.cardBg,
-          borderRadius: theme.borderRadius.xl,
-          boxShadow: theme.shadows.card,
-        }}
-      >
-        {/* Price Breakdown */}
-        <div style={{ marginBottom: theme.spacing.md }}>
-          {/* Delivery Fee (first) */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              marginBottom: theme.spacing.sm,
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: 400,
-                color: theme.colors.text.secondary,
-                opacity: 0.9,
-              }}
-            >
-              דמי משלוח
-            </span>
-            <span
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: 400,
-                color: theme.colors.text.secondary,
-                opacity: 0.9,
-              }}
-            >
-              ₪{deliveryFee.toFixed(2)}
-            </span>
+      {/* Bottom fixed section: Price breakdown + Order button */}
+      <div style={{ flexShrink: 0, padding: `0 ${theme.spacing.md} ${theme.spacing.md}` }}>
+        {/* Price Breakdown Card */}
+        <div
+          style={{
+            padding: theme.spacing.md,
+            backgroundColor: theme.colors.cardBg,
+            borderRadius: theme.borderRadius.xl,
+            boxShadow: theme.shadows.card,
+          }}
+        >
+          {/* Delivery Fee */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
+            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>דמי משלוח</span>
+            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>₪{deliveryFee.toFixed(2)}</span>
           </div>
 
-          {/* Subtotal (renamed to סכום כולל) */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              marginBottom: theme.spacing.sm,
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: 400,
-                color: theme.colors.text.secondary,
-                opacity: 0.9,
-              }}
-            >
-              סכום כולל
-            </span>
-            <span
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: 400,
-                color: theme.colors.text.secondary,
-                opacity: 0.9,
-              }}
-            >
-              ₪{subtotal.toFixed(2)}
-            </span>
+          {/* Subtotal */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
+            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>סכום כולל</span>
+            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>₪{subtotal.toFixed(2)}</span>
           </div>
 
-          {/* VAT Line (new) */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: 400,
-                color: theme.colors.text.secondary,
-                opacity: 0.9,
-              }}
-            >
-              מע״מ (17%)
-            </span>
-            <span
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: 400,
-                color: theme.colors.text.secondary,
-                opacity: 0.9,
-              }}
-            >
-              ₪{vat.toFixed(2)}
-            </span>
+          {/* VAT */}
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>מע״מ (17%)</span>
+            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>₪{vat.toFixed(2)}</span>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: '1px', backgroundColor: theme.colors.border, margin: `${theme.spacing.md} 0`, opacity: 0.5 }} />
+
+          {/* Total */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontSize: '0.9375rem', fontWeight: 500, color: theme.colors.text.secondary }}>סה״כ</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: theme.colors.text.primary, letterSpacing: '-0.02em' }}>₪{total.toFixed(2)}</span>
           </div>
         </div>
 
-        {/* Divider */}
-        <div
+        {/* Order Now Button */}
+        <button
+          onClick={onCheckout}
+          disabled={isEmpty}
           style={{
-            height: '1px',
-            backgroundColor: theme.colors.border,
-            margin: `${theme.spacing.lg} 0`,
-            opacity: 0.5,
-          }}
-        />
-
-        {/* Total (#10 renamed to סה״כ) */}
-        <div
-          style={{
+            width: '100%',
+            padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+            marginTop: theme.spacing.sm,
+            backgroundColor: isEmpty ? '#EF444480' : theme.colors.primary,
+            color: theme.colors.text.white,
+            border: 'none',
+            borderRadius: theme.borderRadius.md,
+            fontSize: '1rem',
+            fontWeight: 600,
+            cursor: isEmpty ? 'not-allowed' : 'pointer',
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'baseline',
-            paddingTop: theme.spacing.sm,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: theme.spacing.sm,
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (!isEmpty) e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
+          }}
+          onMouseLeave={(e) => {
+            if (!isEmpty) e.currentTarget.style.backgroundColor = theme.colors.primary;
           }}
         >
-          <span
-            style={{
-              fontSize: '1rem',
-              fontWeight: 500,
-              color: theme.colors.text.secondary,
-              letterSpacing: '0.01em',
-            }}
-          >
-            סה״כ
-          </span>
-
-          <span
-            style={{
-              fontSize: '1.75rem',
-              fontWeight: 700,
-              color: theme.colors.text.primary,
-              letterSpacing: '-0.02em',
-              lineHeight: '1.2',
-            }}
-          >
-            ₪{total.toFixed(2)}
-          </span>
-        </div>
+          <span>הזמינו עכשיו</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </button>
       </div>
-
-      {/* Order Now Button (#11 - text + lock icon) */}
-      <button
-        onClick={onCheckout}
-        disabled={isEmpty}
-        style={{
-          width: '100%',
-          padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-          marginTop: theme.spacing.lg,
-          backgroundColor: isEmpty ? '#EF444480' : theme.colors.primary,
-          color: theme.colors.text.white,
-          border: 'none',
-          borderRadius: theme.borderRadius.md,
-          fontSize: '1.0625rem',
-          fontWeight: 600,
-          cursor: isEmpty ? 'not-allowed' : 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: theme.spacing.sm,
-          transition: 'all 0.2s ease',
-        }}
-        onMouseEnter={(e) => {
-          if (!isEmpty) {
-            e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isEmpty) {
-            e.currentTarget.style.backgroundColor = theme.colors.primary;
-          }
-        }}
-      >
-        <span>הזמינו עכשיו</span>
-        {/* Lock/padlock icon (#11) */}
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
-      </button>
     </div>
   );
 }
