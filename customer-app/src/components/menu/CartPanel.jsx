@@ -181,20 +181,20 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
           <div style={{ padding: theme.spacing.md }}>
             {/* Delivery Fee */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>דמי משלוח</span>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>₪{deliveryFee.toFixed(2)}</span>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>דמי משלוח</span>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>₪{deliveryFee.toFixed(2)}</span>
             </div>
 
             {/* Subtotal */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>סכום כולל</span>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>₪{subtotal.toFixed(2)}</span>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>סכום כולל</span>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>₪{subtotal.toFixed(2)}</span>
             </div>
 
             {/* VAT */}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>מע״מ (17%)</span>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>₪{vat.toFixed(2)}</span>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>מע״מ (17%)</span>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>₪{vat.toFixed(2)}</span>
             </div>
 
             {/* Divider */}
@@ -202,7 +202,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
 
             {/* Total */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <span style={{ fontSize: '1rem', fontWeight: 600, color: theme.colors.text.secondary }}>סה״כ</span>
+              <span style={{ fontSize: '1rem', fontWeight: 600, color: theme.colors.text.primary }}>סה״כ</span>
               <span style={{ fontSize: '1.25rem', fontWeight: 700, color: theme.colors.text.primary, letterSpacing: '-0.02em' }}>₪{total.toFixed(2)}</span>
             </div>
           </div>
