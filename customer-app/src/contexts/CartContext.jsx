@@ -13,11 +13,10 @@ export function useCart() {
 
 /**
  * CartProvider - Manages shopping cart with backend session
- * Integrates with backend cart session API for server-side price calculation
+ * Uses optimistic updates for instant UI feedback, syncs with backend in background.
  */
 export function CartProvider({ children }) {
   const [cartToken, setCartToken] = useState(() => {
-    // Load cart token from sessionStorage
     return sessionStorage.getItem('squidly_cart_token') || null;
   });
 
@@ -42,7 +41,7 @@ export function CartProvider({ children }) {
   }, [cartToken]);
 
   /**
-   * Load cart from backend
+   * Load cart from backend (only operation that shows loading state)
    */
   const loadCart = async () => {
     if (!cartToken) return;
@@ -55,7 +54,6 @@ export function CartProvider({ children }) {
     } catch (err) {
       console.error('Failed to load cart:', err);
       setError('Failed to load cart');
-      // Clear invalid token
       setCartToken(null);
       setCart({ items: [] });
     } finally {
@@ -64,47 +62,64 @@ export function CartProvider({ children }) {
   };
 
   /**
-   * Add item to cart
-   * Creates cart session if doesn't exist, otherwise adds to existing cart
+   * Add item to cart — optimistic update with background sync
+   * Supports both regular products (has .id) and edited cart items (has .product_id)
    */
   const addToCart = async (product, quantity = 1, customizations = null, notes = '', branchId = null) => {
+    const branch = branchId || product.branch_id;
+    if (!branch) {
+      throw new Error('Branch ID is required to add items to cart');
+    }
+
+    // Resolve the real product ID — cart items use product_id, products use id
+    const productId = product.product_id || product.id;
+
+    const customizationsObject = (customizations && typeof customizations === 'object' && !Array.isArray(customizations))
+      ? customizations
+      : {};
+
+    // Build optimistic cart item using backend field names
+    const optimisticItem = {
+      id: 'temp_' + Date.now(),
+      product_id: productId,
+      product_name: product.product_name || product.name,
+      quantity,
+      unit_price: product.discounted_price || product.price || 0,
+      total_price: (product.discounted_price || product.price || 0) * quantity,
+      customizations: customizationsObject,
+      notes: notes || null,
+      image_url: product.image_url || null,
+    };
+
+    // Snapshot for rollback
+    const previousCart = cart;
+
+    // Optimistic: show item immediately
+    setCart(prev => ({
+      ...prev,
+      items: [...(prev.items || []), optimisticItem],
+    }));
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
-
-      // Get branch ID from product or parameter
-      const branch = branchId || product.branch_id;
-      if (!branch) {
-        throw new Error('Branch ID is required to add items to cart');
-      }
-
       let response;
 
-      // Ensure customizations is an object (not array) for backend compatibility
-      // Backend expects: { groupId: [{ id, name, price }, ...], ... }
-      const customizationsObject = (customizations && typeof customizations === 'object' && !Array.isArray(customizations))
-        ? customizations
-        : {};
-
       if (!cartToken) {
-        // Create new cart session with first item
         response = await publicApi.createCartSession(
           branch,
-          product.id,
+          productId,
           quantity,
           customizationsObject,
           notes
         );
 
-        // Store cart token
         if (response.cart && response.cart.token) {
           setCartToken(response.cart.token);
         }
       } else {
-        // Add to existing cart
         response = await publicApi.addToCart(
           cartToken,
-          product.id,
+          productId,
           quantity,
           branch,
           customizationsObject,
@@ -112,7 +127,7 @@ export function CartProvider({ children }) {
         );
       }
 
-      // Update local cart state from backend response
+      // Sync with server state (corrects prices, IDs, etc.)
       if (response.cart) {
         setCart(response.cart);
       }
@@ -120,16 +135,14 @@ export function CartProvider({ children }) {
       return response;
     } catch (err) {
       console.error('Failed to add to cart:', err);
+      setCart(previousCart);
       setError(err.message || 'Failed to add item to cart');
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   /**
-   * Update item quantity
-   * Uses backend cart item ID for updates
+   * Update item quantity — optimistic update with background sync
    */
   const updateQuantity = async (itemId, quantity) => {
     if (!cartToken) return;
@@ -138,10 +151,20 @@ export function CartProvider({ children }) {
       return removeFromCart(itemId);
     }
 
-    try {
-      setLoading(true);
-      setError(null);
+    const previousCart = cart;
 
+    // Optimistic: update quantity and recalculate total immediately
+    setCart(prev => ({
+      ...prev,
+      items: (prev.items || []).map(item =>
+        item.id === itemId
+          ? { ...item, quantity, total_price: (item.unit_price || 0) * quantity }
+          : item
+      ),
+    }));
+    setError(null);
+
+    try {
       const response = await publicApi.updateCartItem(cartToken, itemId, quantity);
 
       if (response.cart) {
@@ -151,23 +174,28 @@ export function CartProvider({ children }) {
       return response;
     } catch (err) {
       console.error('Failed to update quantity:', err);
+      setCart(previousCart);
       setError(err.message || 'Failed to update quantity');
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   /**
-   * Remove item from cart
+   * Remove item from cart — optimistic update with background sync
    */
   const removeFromCart = async (itemId) => {
     if (!cartToken) return;
 
-    try {
-      setLoading(true);
-      setError(null);
+    const previousCart = cart;
 
+    // Optimistic: remove item immediately
+    setCart(prev => ({
+      ...prev,
+      items: (prev.items || []).filter(item => item.id !== itemId),
+    }));
+    setError(null);
+
+    try {
       const response = await publicApi.removeCartItem(cartToken, itemId);
 
       if (response.cart) {
@@ -177,37 +205,34 @@ export function CartProvider({ children }) {
       return response;
     } catch (err) {
       console.error('Failed to remove item:', err);
+      setCart(previousCart);
       setError(err.message || 'Failed to remove item');
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   /**
-   * Clear entire cart
+   * Clear entire cart — optimistic update with background sync
    */
   const clearCart = async () => {
-    if (!cartToken) {
-      setCart({ items: [] });
-      return;
-    }
+    const previousCart = cart;
+    const previousToken = cartToken;
+
+    // Optimistic: clear immediately
+    setCart({ items: [] });
+    setCartToken(null);
+
+    if (!previousToken) return;
 
     try {
-      setLoading(true);
       setError(null);
-
-      await publicApi.clearCart(cartToken);
-
-      // Clear local state and token
-      setCart({ items: [] });
-      setCartToken(null);
+      await publicApi.clearCart(previousToken);
     } catch (err) {
       console.error('Failed to clear cart:', err);
+      setCart(previousCart);
+      setCartToken(previousToken);
       setError(err.message || 'Failed to clear cart');
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
