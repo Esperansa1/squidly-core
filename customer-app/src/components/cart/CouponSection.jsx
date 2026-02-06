@@ -3,7 +3,7 @@ import theme from '../../config/theme';
 
 /**
  * CouponSection - Coupon/discount code input section for cart
- * Displays ticket icon, header, and input field
+ * Displays ticket icon + header in black, dashed separator, red-underlined input
  */
 export default function CouponSection() {
   const [couponCode, setCouponCode] = useState('');
@@ -27,17 +27,14 @@ export default function CouponSection() {
     <div
       style={{
         padding: `${theme.spacing.md}`,
-        borderTop: `1px solid ${theme.colors.border}`,
-        borderBottom: `1px solid ${theme.colors.border}`,
       }}
     >
-      {/* Header with ticket icon */}
+      {/* Header with ticket icon — black text */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: theme.spacing.sm,
-          marginBottom: theme.spacing.sm,
         }}
       >
         {/* Ticket/coupon icon */}
@@ -46,7 +43,7 @@ export default function CouponSection() {
           height="18"
           viewBox="0 0 24 24"
           fill="none"
-          stroke={theme.colors.text.secondary}
+          stroke={theme.colors.text.primary}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -59,55 +56,45 @@ export default function CouponSection() {
         <span
           style={{
             fontSize: '0.875rem',
-            fontWeight: '500',
-            color: theme.colors.text.secondary,
+            fontWeight: '700',
+            color: theme.colors.text.primary,
           }}
         >
           ?יש לכם קופון
         </span>
       </div>
 
-      {/* Input field */}
-      <div style={{ display: 'flex', gap: theme.spacing.sm }}>
-        <input
-          type="text"
-          value={couponCode}
-          onChange={(e) => {
-            setCouponCode(e.target.value);
-            setMessage(null);
-          }}
-          onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
-          placeholder="ממשו קופון"
-          disabled={loading}
-          style={{
-            flex: 1,
-            padding: `${theme.spacing.sm}`,
-            fontSize: '0.875rem',
-            border: 'none',
-            borderBottom: `1px solid ${theme.colors.border}`,
-            backgroundColor: 'transparent',
-            textAlign: 'right',
-            outline: 'none',
-            color: theme.colors.text.primary,
-          }}
-        />
-        <button
-          onClick={handleApplyCoupon}
-          disabled={loading || !couponCode.trim()}
-          style={{
-            padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-            fontSize: '0.8rem',
-            fontWeight: '600',
-            color: loading || !couponCode.trim() ? theme.colors.text.muted : theme.colors.primary,
-            backgroundColor: 'transparent',
-            border: 'none',
-            cursor: loading || !couponCode.trim() ? 'not-allowed' : 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {loading ? '...' : 'החל'}
-        </button>
-      </div>
+      {/* Dashed separator */}
+      <div
+        style={{
+          borderBottom: `1px dashed ${theme.colors.border}`,
+          margin: `${theme.spacing.sm} 0`,
+        }}
+      />
+
+      {/* Input field with red underline */}
+      <input
+        type="text"
+        value={couponCode}
+        onChange={(e) => {
+          setCouponCode(e.target.value);
+          setMessage(null);
+        }}
+        onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+        placeholder="ממשו קופון"
+        disabled={loading}
+        style={{
+          width: '100%',
+          padding: `${theme.spacing.sm} 0`,
+          fontSize: '0.875rem',
+          border: 'none',
+          borderBottom: `2px solid ${theme.colors.primary}`,
+          backgroundColor: 'transparent',
+          textAlign: 'right',
+          outline: 'none',
+          color: theme.colors.text.primary,
+        }}
+      />
 
       {/* Status message */}
       {message && (
@@ -115,7 +102,6 @@ export default function CouponSection() {
           style={{
             fontSize: '0.75rem',
             color: message.type === 'error' ? '#DC2626' : message.type === 'success' ? '#16A34A' : theme.colors.text.secondary,
-            marginTop: theme.spacing.xs,
             margin: `${theme.spacing.xs} 0 0 0`,
           }}
         >

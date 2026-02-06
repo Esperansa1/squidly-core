@@ -188,6 +188,7 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
                     width: '16px',
                     height: '16px',
                     color: theme.colors.text.muted,
+                    pointerEvents: 'none',
                   }}
                   viewBox="0 0 24 24"
                   fill="none"
@@ -204,21 +205,22 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
                     width: '100%',
                     paddingLeft: theme.spacing.md,
                     paddingRight: '2.5rem',
-                    paddingTop: theme.spacing.sm,
-                    paddingBottom: theme.spacing.sm,
-                    backgroundColor: theme.colors.background,
+                    paddingTop: '6px',
+                    paddingBottom: '6px',
+                    backgroundColor: theme.colors.cardBg,
                     borderRadius: theme.borderRadius.lg,
-                    border: 'none',
+                    border: `1px solid ${theme.colors.border}`,
                     fontSize: '0.875rem',
                     color: theme.colors.text.primary,
                     outline: 'none',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.colors.cardBg;
+                    e.currentTarget.style.borderColor = 'transparent';
                     e.currentTarget.style.boxShadow = `0 0 0 2px ${theme.colors.primary}`;
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.colors.background;
+                    e.currentTarget.style.borderColor = theme.colors.border;
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 />
@@ -254,7 +256,7 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
                     color: theme.colors.text.secondary,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
-                    fontWeight: '600',
+                    fontWeight: '700',
                     margin: 0,
                   }}
                 >
@@ -287,13 +289,55 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
                   style={{
                     width: '100%',
                     display: 'flex',
-                    flexDirection: 'column',
+                    flexDirection: 'row',
                     alignItems: 'center',
-                    gap: theme.spacing.sm,
+                    gap: theme.spacing.md,
                     padding: theme.spacing.md,
                   }}
                 >
-                  {/* Mascot / food illustration placeholder */}
+                  {/* Text area (left side in RTL) */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: theme.spacing.xs,
+                      flex: 1,
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: '0.8rem',
+                        color: theme.colors.text.primary,
+                        margin: 0,
+                        lineHeight: '1.5',
+                        fontWeight: '600',
+                      }}
+                    >
+                      ?עדיין לא הצטרפתם למועדון
+                    </p>
+                    <button
+                      style={{
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderBottom: `2px solid ${theme.colors.primary}`,
+                        color: theme.colors.primary,
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        padding: '0 0 2px 0',
+                        cursor: 'pointer',
+                        textAlign: 'right',
+                        alignSelf: 'flex-start',
+                      }}
+                      onClick={() => {
+                        // Placeholder: will be wired to real auth/registration later
+                        alert('הרשמה למועדון תהיה זמינה בקרוב!');
+                      }}
+                    >
+                      להצטרפות בחינם
+                    </button>
+                  </div>
+
+                  {/* Mascot / food illustration (right side in RTL) */}
                   <div
                     style={{
                       width: '48px',
@@ -312,43 +356,6 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
                       <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" />
                     </svg>
                   </div>
-                  <p
-                    style={{
-                      fontSize: '0.8rem',
-                      color: theme.colors.text.secondary,
-                      textAlign: 'center',
-                      margin: 0,
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    ?עדיין לא הצטרפתם למועדון
-                  </p>
-                  <button
-                    style={{
-                      width: '100%',
-                      padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-                      backgroundColor: theme.colors.primary,
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: theme.borderRadius.md,
-                      fontSize: '0.8rem',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = theme.colors.primary;
-                    }}
-                    onClick={() => {
-                      // Placeholder: will be wired to real auth/registration later
-                      alert('הרשמה למועדון תהיה זמינה בקרוב!');
-                    }}
-                  >
-                    להצטרפות בחינם
-                  </button>
                 </div>
               ) : (
                 <div

@@ -42,7 +42,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
         <h2
           style={{
             fontSize: '1.25rem',
-            fontWeight: 'bold',
+            fontWeight: '700',
             color: theme.colors.text.primary,
             margin: 0,
           }}
@@ -86,7 +86,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
         )}
       </div>
 
-      {/* Scrollable middle section: cart items OR empty state + coupon */}
+      {/* Scrollable middle section: cart items OR empty state */}
       <div
         style={{
           flex: 1,
@@ -96,7 +96,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
         }}
       >
         {isEmpty ? (
-          /* Empty state - centered in the scrollable area */
+          /* Empty state - white card with rounded corners */
           <div
             style={{
               flex: 1,
@@ -110,35 +110,47 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
           >
             <div
               style={{
-                width: '72px',
-                height: '72px',
-                backgroundColor: theme.colors.background,
-                borderRadius: theme.borderRadius.full,
+                backgroundColor: theme.colors.cardBg,
+                borderRadius: theme.borderRadius.xl,
+                boxShadow: theme.shadows.card,
+                padding: `${theme.spacing.xl} ${theme.spacing.lg}`,
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: theme.spacing.sm,
               }}
             >
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={theme.colors.text.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-                <line x1="9" y1="10" x2="15" y2="10" />
-                <line x1="9" y1="14" x2="15" y2="14" />
-                <line x1="9" y1="18" x2="12" y2="18" />
-              </svg>
+              <div
+                style={{
+                  width: '72px',
+                  height: '72px',
+                  backgroundColor: theme.colors.background,
+                  borderRadius: theme.borderRadius.full,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: theme.spacing.sm,
+                }}
+              >
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={theme.colors.text.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                  <line x1="9" y1="10" x2="15" y2="10" />
+                  <line x1="9" y1="14" x2="15" y2="14" />
+                  <line x1="9" y1="18" x2="12" y2="18" />
+                </svg>
+              </div>
+              <p
+                style={{
+                  fontSize: '0.9375rem',
+                  fontWeight: '500',
+                  color: theme.colors.text.secondary,
+                  textAlign: 'center',
+                  margin: 0,
+                }}
+              >
+                העגלה שלכם ריקה
+              </p>
             </div>
-            <p
-              style={{
-                fontSize: '0.9375rem',
-                fontWeight: '500',
-                color: theme.colors.text.secondary,
-                textAlign: 'center',
-                margin: 0,
-              }}
-            >
-              העגלה שלכם ריקה
-            </p>
           </div>
         ) : (
           /* Cart items list */
@@ -148,49 +160,52 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
             ))}
           </div>
         )}
-
-        {/* Coupon Section - inside scrollable area, after items */}
-        <div style={{ flexShrink: 0 }}>
-          <CouponSection />
-        </div>
       </div>
 
-      {/* Bottom fixed section: Price breakdown + Order button */}
+      {/* Bottom fixed section: Coupon + Price breakdown + Order button */}
       <div style={{ flexShrink: 0, padding: `0 ${theme.spacing.md} ${theme.spacing.md}` }}>
-        {/* Price Breakdown Card */}
+        {/* Price Breakdown Card (includes coupon section) */}
         <div
           style={{
-            padding: theme.spacing.md,
             backgroundColor: theme.colors.cardBg,
             borderRadius: theme.borderRadius.xl,
             boxShadow: theme.shadows.card,
           }}
         >
-          {/* Delivery Fee */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
-            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>דמי משלוח</span>
-            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>₪{deliveryFee.toFixed(2)}</span>
-          </div>
+          {/* Coupon Section - inside the price card */}
+          <CouponSection />
 
-          {/* Subtotal */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
-            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>סכום כולל</span>
-            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>₪{subtotal.toFixed(2)}</span>
-          </div>
+          {/* Divider between coupon and prices */}
+          <div style={{ height: '1px', backgroundColor: theme.colors.border, opacity: 0.5 }} />
 
-          {/* VAT */}
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>מע״מ (17%)</span>
-            <span style={{ fontSize: '0.8125rem', color: theme.colors.text.secondary }}>₪{vat.toFixed(2)}</span>
-          </div>
+          {/* Price lines */}
+          <div style={{ padding: theme.spacing.md }}>
+            {/* Delivery Fee */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>דמי משלוח</span>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>₪{deliveryFee.toFixed(2)}</span>
+            </div>
 
-          {/* Divider */}
-          <div style={{ height: '1px', backgroundColor: theme.colors.border, margin: `${theme.spacing.md} 0`, opacity: 0.5 }} />
+            {/* Subtotal */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>סכום כולל</span>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>₪{subtotal.toFixed(2)}</span>
+            </div>
 
-          {/* Total */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontSize: '0.9375rem', fontWeight: 500, color: theme.colors.text.secondary }}>סה״כ</span>
-            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: theme.colors.text.primary, letterSpacing: '-0.02em' }}>₪{total.toFixed(2)}</span>
+            {/* VAT */}
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>מע״מ (17%)</span>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.secondary }}>₪{vat.toFixed(2)}</span>
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: '1px', backgroundColor: theme.colors.border, margin: `${theme.spacing.md} 0`, opacity: 0.5 }} />
+
+            {/* Total */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 600, color: theme.colors.text.secondary }}>סה״כ</span>
+              <span style={{ fontSize: '1.25rem', fontWeight: 700, color: theme.colors.text.primary, letterSpacing: '-0.02em' }}>₪{total.toFixed(2)}</span>
+            </div>
           </div>
         </div>
 
@@ -207,7 +222,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
             border: 'none',
             borderRadius: theme.borderRadius.md,
             fontSize: '1rem',
-            fontWeight: 600,
+            fontWeight: 700,
             cursor: isEmpty ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
