@@ -93,7 +93,7 @@ export default function CouponSection() {
           onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
           placeholder="ממשו קופון"
           disabled={loading}
-          className="placeholder:text-neutral-900"
+          className="placeholder:text-neutral-900 caret-transparent focus:outline-none focus:ring-0 focus:border-transparent"
           style={{
             width: '100px',
             flexShrink: 0,
