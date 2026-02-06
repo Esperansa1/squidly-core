@@ -162,7 +162,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
       </div>
 
       {/* Bottom fixed section: Coupon + Price breakdown + Order button */}
-      <div style={{ flexShrink: 0, padding: `0 ${theme.spacing.md} ${theme.spacing.md}`, marginTop: '5px' }}>
+      <div style={{ flexShrink: 0, padding: `0 ${theme.spacing.md} ${theme.spacing.md}`, marginTop: '10px' }}>
         {/* Price Breakdown Card (includes coupon section) */}
         <div
           style={{
