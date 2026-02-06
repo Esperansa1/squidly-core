@@ -84,31 +84,11 @@ class PublicApiService {
   }
 
   /**
-   * Get all product categories
-   */
-  async getCategories() {
-    return await this.fetch('products/categories');
-  }
-
-  /**
    * Get product with groups for customization
    * @param {number} id Product ID
    */
   async getProductWithGroups(id) {
     return await this.fetch(`products/${id}/customize`);
-  }
-
-  /**
-   * Check product availability at branch
-   * @param {number} branchId
-   * @param {Array} productIds
-   */
-  async checkAvailability(branchId, productIds) {
-    const params = new URLSearchParams({
-      branch_id: branchId,
-      product_ids: productIds.join(',')
-    });
-    return await this.fetch(`availability?${params}`);
   }
 
   // ===== Branches API =====
@@ -120,54 +100,6 @@ class PublicApiService {
   async getBranches(filters = {}) {
     const params = new URLSearchParams(filters);
     return await this.fetch(`branches${params.toString() ? '?' + params : ''}`);
-  }
-
-  /**
-   * Get single branch by ID
-   */
-  async getBranch(id) {
-    return await this.fetch(`branches/${id}`);
-  }
-
-  /**
-   * Find a branch that can deliver to the given address
-   * MVP: Matches by city name (case-insensitive partial match)
-   *
-   * @param {Object} address - { city, street, houseNumber }
-   * @returns {Object} { branch, deliverable } or { branch: null, deliverable: false }
-   */
-  async findBranchForDelivery(address) {
-    try {
-      const branches = await this.getBranches();
-
-      // MVP: Find branch by city name match
-      // Look for branches where the city matches (case-insensitive)
-      const normalizedCity = address.city.toLowerCase().trim();
-
-      const matchingBranch = branches.find(branch => {
-        const branchCity = (branch.city || '').toLowerCase().trim();
-        // Partial match - either the branch city contains the search city or vice versa
-        return branchCity.includes(normalizedCity) || normalizedCity.includes(branchCity);
-      });
-
-      if (matchingBranch) {
-        return {
-          branch: matchingBranch,
-          deliverable: true
-        };
-      }
-
-      return {
-        branch: null,
-        deliverable: false
-      };
-    } catch (error) {
-      console.error('❌ Failed to find branch for delivery:', error);
-      return {
-        branch: null,
-        deliverable: false
-      };
-    }
   }
 
   // ===== Guest Customers API =====
@@ -184,17 +116,6 @@ class PublicApiService {
   }
 
   // ===== Orders API =====
-
-  /**
-   * Create a new order
-   * @param {Object} orderData - Order details
-   */
-  async createOrder(orderData) {
-    return await this.fetch('orders', {
-      method: 'POST',
-      body: JSON.stringify(orderData),
-    });
-  }
 
   /**
    * Get order status
@@ -347,30 +268,6 @@ class PublicApiService {
     return await this.fetch(`delivery-fee?${params}`);
   }
 
-  /**
-   * Cancel an order
-   * @param {number} orderId - Order ID
-   * @param {string} trackingToken - Tracking token for authentication
-   * @returns {Object} { message, order_id, status }
-   */
-  async cancelOrder(orderId, trackingToken) {
-    return await this.fetch(`orders/${orderId}?token=${trackingToken}`, {
-      method: 'DELETE',
-    });
-  }
-
-  // ===== Payment API =====
-
-  /**
-   * Start payment process
-   * @param {number} orderId
-   */
-  async startPayment(orderId) {
-    return await this.fetch(`../pay/start`, {
-      method: 'POST',
-      body: JSON.stringify({ order_id: orderId }),
-    });
-  }
 }
 
 // Create and export singleton instance

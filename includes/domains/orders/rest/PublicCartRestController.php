@@ -144,16 +144,6 @@ class PublicCartRestController extends WP_REST_Controller
             $notes = $data['notes'] ?? null;
             $customer_id = $data['customer_id'] ?? null;
 
-            // Debug logging
-            error_log('📥 PublicCartRestController - Raw JSON params: ' . json_encode($data));
-            error_log('📥 PublicCartRestController - Received customizations: ' . json_encode($customizations));
-            error_log('📥 PublicCartRestController - Customizations type: ' . gettype($customizations));
-            if (is_array($customizations)) {
-                error_log('📥 PublicCartRestController - Customizations keys: ' . json_encode(array_keys($customizations)));
-                error_log('📥 PublicCartRestController - First key type: ' . gettype(array_key_first($customizations)));
-                error_log('📥 PublicCartRestController - First key value: ' . var_export(array_key_first($customizations), true));
-            }
-
             // Track if we're creating a new cart
             $is_new_cart = !$token;
 
@@ -476,9 +466,6 @@ class PublicCartRestController extends WP_REST_Controller
             $token = sanitize_text_field($request->get_param('token'));
             $data = $request->get_json_params();
 
-            // Debug logging
-            error_log('🛒 Checkout - Received data: ' . json_encode($data));
-
             // Step 1: Validate customer exists
             $customer_id = $data['customer_id'] ?? null;
             if (!$customer_id) {
@@ -515,19 +502,13 @@ class PublicCartRestController extends WP_REST_Controller
             if ($payment_method === 'woocommerce' || $payment_method === 'online') {
                 // Create WooCommerce order for payment (fee-based, no product needed)
                 try {
-                    error_log('🛍️ Creating WooCommerce order...');
                     $wc_order_id = $this->create_woocommerce_order($order, $customer);
-                    error_log('✅ WooCommerce order created: ' . $wc_order_id);
 
                     $this->orderRepo->linkWooCommerceOrder($order_id, $wc_order_id);
 
                     $wc_order = wc_get_order($wc_order_id);
                     $payment_url = $wc_order->get_checkout_payment_url();
-                    error_log('✅ Payment URL: ' . $payment_url);
                 } catch (Exception $e) {
-                    error_log("❌ Failed to create WooCommerce order: " . $e->getMessage());
-                    error_log("❌ Stack trace: " . $e->getTraceAsString());
-                    // Re-throw to show error to user
                     throw $e;
                 }
             }
@@ -609,10 +590,6 @@ class PublicCartRestController extends WP_REST_Controller
             $wc_order->set_address($shipping_address, 'shipping');
         }
 
-        error_log('🛍️ WC Order created with ID: ' . $wc_order->get_id());
-        error_log('🛍️ WC Order billing address set: ' . $customer->first_name . ' ' . $customer->last_name);
-        error_log('🛍️ Order items count: ' . count($order->order_items));
-
         // Add each Squidly order item as a fee (NO PRODUCTS NEEDED!)
         foreach ($order->order_items as $item) {
             $fee = new WC_Order_Item_Fee();
@@ -639,8 +616,6 @@ class PublicCartRestController extends WP_REST_Controller
             }
 
             $wc_order->add_item($fee);
-
-            error_log('✅ Added fee: ' . $fee_name . ' - ₪' . $item->total_price);
         }
 
         // Add delivery fee if applicable
@@ -653,7 +628,6 @@ class PublicCartRestController extends WP_REST_Controller
             $delivery_fee->add_meta_data('_squidly_item_type', 'delivery', true);
 
             $wc_order->add_item($delivery_fee);
-            error_log('✅ Added delivery fee: ₪' . $order->delivery_fee);
         }
 
         // Store Squidly order reference on the WC order itself
@@ -664,23 +638,7 @@ class PublicCartRestController extends WP_REST_Controller
         $wc_order->set_cart_tax($order->tax_amount);
         $wc_order->set_shipping_total($order->delivery_fee);
         $wc_order->calculate_totals();
-
-        error_log('🛍️ WC Order totals - Subtotal: ' . $wc_order->get_subtotal() . ', Total: ' . $wc_order->get_total());
-        error_log('🛍️ WC Order status: ' . $wc_order->get_status());
-        error_log('🛍️ WC Order needs payment: ' . ($wc_order->needs_payment() ? 'YES' : 'NO'));
-        error_log('🛍️ WC Order payment method: ' . $wc_order->get_payment_method());
-
-        // Check if COD gateway is available
-        $payment_gateways = WC()->payment_gateways->get_available_payment_gateways();
-        error_log('🛍️ Available payment gateways: ' . implode(', ', array_keys($payment_gateways)));
-
         $wc_order->save();
-
-        // Verify order can be paid after save
-        $saved_order = wc_get_order($wc_order->get_id());
-        error_log('🛍️ After save - Order total: ' . $saved_order->get_total());
-        error_log('🛍️ After save - Needs payment: ' . ($saved_order->needs_payment() ? 'YES' : 'NO'));
-        error_log('🛍️ After save - Has status: ' . $saved_order->get_status());
 
         return $wc_order->get_id();
     }

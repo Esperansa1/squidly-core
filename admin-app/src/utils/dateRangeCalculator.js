@@ -114,17 +114,6 @@ export const formatDate = (date) => {
 };
 
 /**
- * Calculate percentage change between two values
- */
-export const calculatePercentageChange = (oldValue, newValue) => {
-  if (oldValue === 0) {
-    return newValue > 0 ? 100 : 0;
-  }
-
-  return ((newValue - oldValue) / oldValue) * 100;
-};
-
-/**
  * Get display label for timeframe
  */
 export const getTimeframeLabel = (timeframe) => {
@@ -138,58 +127,6 @@ export const getTimeframeLabel = (timeframe) => {
   return labels[timeframe] || labels.month;
 };
 
-/**
- * Get custom date range
- */
-export const getCustomDateRange = (startDate, endDate) => {
-  const start = new Date(startDate);
-  start.setHours(0, 0, 0, 0);
-
-  const end = new Date(endDate);
-  end.setHours(23, 59, 59, 999);
-
-  return {
-    date_from: formatDate(start),
-    date_to: formatDate(end),
-  };
-};
-
-/**
- * Get date range for last N days
- */
-export const getLastNDaysRange = (days) => {
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - days + 1);
-  startDate.setHours(0, 0, 0, 0);
-
-  return {
-    date_from: formatDate(startDate),
-    date_to: formatDate(today),
-  };
-};
-
-/**
- * Parse date from YYYY-MM-DD format
- */
-export const parseDate = (dateString) => {
-  const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(year, month - 1, day);
-};
-
-/**
- * Check if a date is within a range
- */
-export const isDateInRange = (date, dateFrom, dateTo) => {
-  const checkDate = typeof date === 'string' ? parseDate(date) : date;
-  const startDate = typeof dateFrom === 'string' ? parseDate(dateFrom) : dateFrom;
-  const endDate = typeof dateTo === 'string' ? parseDate(dateTo) : dateTo;
-
-  return checkDate >= startDate && checkDate <= endDate;
-};
-
 export default {
   getTodayRange,
   getThisWeekRange,
@@ -197,10 +134,5 @@ export default {
   getThisYearRange,
   getDateRange,
   formatDate,
-  calculatePercentageChange,
   getTimeframeLabel,
-  getCustomDateRange,
-  getLastNDaysRange,
-  parseDate,
-  isDateInRange,
 };

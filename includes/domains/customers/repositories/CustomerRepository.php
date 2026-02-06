@@ -60,11 +60,8 @@ class CustomerRepository implements RepositoryInterface
 
         try {
             $customer_data = $this->extractCustomerData($post);
-            error_log("Customer data for ID {$id}: " . json_encode($customer_data));
             return new Customer($customer_data);
         } catch (Exception $e) {
-            error_log("Failed to create Customer object for ID {$id}: " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
             return null;
         }
     }
@@ -314,19 +311,8 @@ class CustomerRepository implements RepositoryInterface
             'fields' => 'ids',
         ]);
 
-        error_log("findByEmail debug - searching for email: $email");
-        error_log("findByEmail debug - query found posts: " . count($query->posts));
-        error_log("findByEmail debug - post_type: " . CustomerPostType::POST_TYPE);
-        
         if (!empty($query->posts)) {
-            $post_id = (int) $query->posts[0];
-            error_log("findByEmail debug - found post ID: $post_id");
-            
-            // Debug: check if meta actually exists
-            $saved_email = get_post_meta($post_id, '_email', true);
-            error_log("findByEmail debug - saved email meta: '$saved_email'");
-            
-            return $this->get($post_id);
+            return $this->get((int) $query->posts[0]);
         }
 
         return null;
@@ -432,8 +418,6 @@ class CustomerRepository implements RepositoryInterface
      */
     private function saveCustomerMeta(int $post_id, array $data): void
     {
-        error_log("Saving customer meta for post $post_id");
-        
         $meta_fields = [
             '_email' => $data['email'] ?? '',
             '_phone' => $data['phone'],
@@ -456,13 +440,8 @@ class CustomerRepository implements RepositoryInterface
         ];
 
         foreach ($meta_fields as $meta_key => $meta_value) {
-            $result = update_post_meta($post_id, $meta_key, $meta_value);
-            error_log("Saved $meta_key = " . print_r($meta_value, true) . " (result: " . ($result ? 'success' : 'failed') . ")");
+            update_post_meta($post_id, $meta_key, $meta_value);
         }
-        
-        // Verify the data was saved
-        $saved_email = get_post_meta($post_id, '_email', true);
-        error_log("Verification - saved email: '$saved_email'");
     }
 
     /**

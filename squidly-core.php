@@ -108,10 +108,6 @@ spl_autoload_register(function ($class) {
     }
 });
 
-// Initialize admin menu system
-require_once __DIR__ . '/includes/admin/AdminMenuManager.php';
-AdminMenuManager::init();
-
 // Initialize role manager
 require_once __DIR__ . '/includes/admin/RoleManager.php';
 \SquidlyCore\Admin\RoleManager::init();
@@ -119,7 +115,6 @@ require_once __DIR__ . '/includes/admin/RoleManager.php';
 // Register settings
 add_action('admin_init', function() {
     register_setting('squidly_settings', 'squidly_currency');
-    register_setting('squidly_settings', 'squidly_loyalty_rate');
     register_setting('squidly_settings', 'squidly_allow_guest_checkout');
     register_setting('squidly_settings', 'squidly_guest_cleanup_days');
 });
@@ -134,11 +129,7 @@ add_action('wp', function() {
 add_action('squidly_cleanup_guests', function() {
     $days = get_option('squidly_guest_cleanup_days', 30);
     $customerRepo = new CustomerRepository();
-    $deleted = $customerRepo->cleanupOldGuests($days);
-    
-    if ($deleted > 0) {
-        error_log("Squidly: Cleaned up {$deleted} old guest customers");
-    }
+    $customerRepo->cleanupOldGuests($days);
 });
 
 // Manual require of payment classes (temporary fix)
@@ -204,19 +195,6 @@ AdminPageHandler::init();
 require_once __DIR__ . '/includes/admin/CustomerPageHandler.php';
 CustomerPageHandler::init();
 
-// TEMPORARY: Load delete orders admin page (for development only)
-if (file_exists(__DIR__ . '/tools/test-data/delete-orders-admin.php')) {
-    require_once __DIR__ . '/tools/test-data/delete-orders-admin.php';
-}
-
-// DEPRECATED: Payment product filters no longer needed with fee-based orders
-/*
-require_once __DIR__ . '/includes/domains/payments/PaymentProductFilters.php';
-add_action('init', function() {
-    \Squidly\Domains\Payments\PaymentProductFilters::init();
-}, 15);
-*/
-
 // Payment system activation hooks
 register_activation_hook(__FILE__, function() {
     // Ensure WooCommerce is loaded before creating payment product
@@ -237,30 +215,6 @@ register_activation_hook(__FILE__, function() {
         });
     }
 });
-
-// DEPRECATED: Payment product no longer needed with fee-based orders
-// Keeping code commented for reference during migration period
-/*
-add_action('init', function() {
-    if (class_exists('WooCommerce') && class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {
-        $existing = get_option('squidly_wc_payment_product_id');
-
-        // Create if missing or if product was deleted
-        if (!$existing || !wc_get_product($existing)) {
-            error_log('⚠️ Payment product missing or deleted, creating now...');
-            \Squidly\Domains\Payments\Activation\PaymentProductActivation::createPaymentProduct();
-            $new_id = get_option('squidly_wc_payment_product_id');
-            error_log('✅ Payment product created with ID: ' . $new_id);
-        }
-
-        // Update status to 'publish' if needed (one-time fix for old installations)
-        if (!get_option('squidly_payment_product_status_fixed')) {
-            \Squidly\Domains\Payments\Activation\PaymentProductActivation::updatePaymentProductStatus();
-            update_option('squidly_payment_product_status_fixed', true);
-        }
-    }
-}, 20);
-*/
 
 register_deactivation_hook(__FILE__, function() {
     if (class_exists('WooCommerce') && class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {

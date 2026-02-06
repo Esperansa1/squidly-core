@@ -353,13 +353,6 @@ class ApiService {
     return await this.fetch(`orders/${id}`);
   }
 
-  async createOrder(data) {
-    return await this.fetch('orders', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
   async updateOrder(id, data) {
     return await this.fetch(`orders/${id}`, {
       method: 'PUT',
@@ -376,12 +369,6 @@ class ApiService {
   async getOrderStatistics(filters = {}) {
     const queryParams = new URLSearchParams(filters).toString();
     const endpoint = queryParams ? `orders/statistics?${queryParams}` : 'orders/statistics';
-    return await this.fetch(endpoint);
-  }
-
-  async getCustomerOrders(customerId, filters = {}) {
-    const queryParams = new URLSearchParams(filters).toString();
-    const endpoint = queryParams ? `orders/customer/${customerId}?${queryParams}` : `orders/customer/${customerId}`;
     return await this.fetch(endpoint);
   }
 
