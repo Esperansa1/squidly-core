@@ -159,6 +159,7 @@ require_once __DIR__ . '/includes/domains/stores/rest/PublicBranchRestController
 require_once __DIR__ . '/includes/domains/products/rest/PublicProductRestController.php';
 require_once __DIR__ . '/includes/domains/orders/rest/PublicOrderRestController.php';
 require_once __DIR__ . '/includes/domains/customers/rest/PublicCustomerRestController.php';
+require_once __DIR__ . '/includes/domains/customers/rest/PublicAuthRestController.php';
 
 // Cart models and services
 require_once __DIR__ . '/includes/domains/orders/models/Cart.php';
@@ -234,7 +235,9 @@ register_activation_hook(__FILE__, function() {
     add_option('squidly_guest_cleanup_days', 30);
     add_option('squidly_default_order_status', 'pending');
     add_option('squidly_enable_online_ordering', true);
-    
+    add_option('squidly_google_client_id', '');
+    add_option('squidly_sms_provider', 'mock');
+
     // Register post types before flushing rewrite rules
     PostTypeRegistry::register_all();
     

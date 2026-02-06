@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import publicApi from './services/publicApi';
+import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider, useBranch } from './contexts/BranchContext';
 import { CartProvider } from './contexts/CartContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -88,13 +89,15 @@ function AppContent() {
 // Main App component with providers
 function App() {
   return (
-    <BranchProvider>
-      <CartProvider>
-        <ToastProvider>
-          <AppContent />
-        </ToastProvider>
-      </CartProvider>
-    </BranchProvider>
+    <AuthProvider>
+      <BranchProvider>
+        <CartProvider>
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
+        </CartProvider>
+      </BranchProvider>
+    </AuthProvider>
   );
 }
 

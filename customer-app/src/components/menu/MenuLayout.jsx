@@ -13,6 +13,9 @@ import MobileCartSheet from './MobileCartSheet';
 import CategoryBadgeButtons from './CategoryBadgeButtons';
 import { useCart } from '../../contexts/CartContext';
 import { useBranch } from '../../contexts/BranchContext';
+import { useAuth } from '../../contexts/AuthContext';
+import UserMenu from '../auth/UserMenu';
+import AuthModal from '../auth/AuthModal';
 
 /**
  * MenuLayout - Responsive layout for menu page
@@ -75,6 +78,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
   const [selectedBadges, setSelectedBadges] = useState([]);
   const [sortOption, setSortOption] = useState('default');
   const [recentSearches, setRecentSearches] = useState([]);
+  const [desktopAuthModalOpen, setDesktopAuthModalOpen] = useState(false);
 
   // Load products and categories
   useEffect(() => {
@@ -388,7 +392,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
             className="hide-scrollbar smooth-scroll"
           >
             {/* User greeting at top right */}
-            <MobileUserHeader username="משתמש" />
+            <MobileUserHeader />
 
             {/* Hero Banner */}
             <div style={{ padding: `0 ${theme.spacing.mobile.md}` }}>
@@ -781,6 +785,19 @@ export default function MenuLayout({ branchId, onCheckout }) {
                 overflow: 'hidden',
               }}
             >
+              {/* Desktop User Menu - top of content area */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                  alignItems: 'center',
+                  marginBottom: theme.spacing.sm,
+                  flexShrink: 0,
+                }}
+              >
+                <UserMenu onLoginClick={() => setDesktopAuthModalOpen(true)} />
+              </div>
+
               {/* Hero Banner - Static */}
               <div style={{ flexShrink: 0, marginBottom: theme.spacing.md }}>
                 <HeroBanner imageUrl={selectedBranch?.banner_image_url} />
@@ -1101,6 +1118,11 @@ export default function MenuLayout({ branchId, onCheckout }) {
             <CartPanel cart={cart} onCheckout={onCheckout} onClearCart={handleClearCart} onItemClick={handleEditCartItem} onDeleteItem={handleDeleteItem} />
           </div>
         </div>
+      )}
+
+      {/* Desktop Auth Modal */}
+      {!isMobile && (
+        <AuthModal isOpen={desktopAuthModalOpen} onClose={() => setDesktopAuthModalOpen(false)} />
       )}
 
       {/* Product Customization Modal (both mobile and desktop) */}
