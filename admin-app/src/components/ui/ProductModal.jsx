@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { DEFAULT_THEME } from '../../config/theme.js';
 import DropdownButton from './DropdownButton.jsx';
@@ -135,22 +135,17 @@ const ProductModal = ({
     }
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = useCallback((field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
 
     // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
-    }
-  };
+    setErrors(prev => prev[field] ? { ...prev, [field]: '' } : prev);
+  }, []);
 
-  const handleAvailabilityChange = (branchId, available) => {
+  const handleAvailabilityChange = useCallback((branchId, available) => {
     setFormData(prev => {
       const newAvailability = {
         ...prev.availability,
@@ -171,9 +166,9 @@ const ProductModal = ({
         availability: newAvailability
       };
     });
-  };
+  }, [branches]);
 
-  const handleSelectAllChange = (selectAll) => {
+  const handleSelectAllChange = useCallback((selectAll) => {
     setSelectAllBranches(selectAll);
 
     const newAvailability = {};
@@ -189,25 +184,25 @@ const ProductModal = ({
       ...prev,
       availability: newAvailability
     }));
-  };
+  }, [branches]);
 
-  const handleProductGroupAdd = (groupId) => {
-    if (groupId && !formData.product_group_ids.includes(groupId)) {
-      setFormData(prev => ({
-        ...prev,
-        product_group_ids: [...prev.product_group_ids, groupId]
-      }));
+  const handleProductGroupAdd = useCallback((groupId) => {
+    if (groupId) {
+      setFormData(prev => {
+        if (prev.product_group_ids.includes(groupId)) return prev;
+        return { ...prev, product_group_ids: [...prev.product_group_ids, groupId] };
+      });
     }
-  };
+  }, []);
 
-  const handleProductGroupRemove = (groupId) => {
+  const handleProductGroupRemove = useCallback((groupId) => {
     setFormData(prev => ({
       ...prev,
       product_group_ids: prev.product_group_ids.filter(id => id !== groupId)
     }));
-  };
+  }, []);
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = useCallback(async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -269,16 +264,16 @@ const ProductModal = ({
       // Reset file input
       e.target.value = '';
     }
-  };
+  }, []);
 
-  const handleRemoveImage = () => {
+  const handleRemoveImage = useCallback(() => {
     setFormData(prev => ({
       ...prev,
       image_id: null,
       image_url: null
     }));
     setErrors(prev => ({ ...prev, image: '' }));
-  };
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};

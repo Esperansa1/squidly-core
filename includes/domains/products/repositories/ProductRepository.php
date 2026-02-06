@@ -554,34 +554,51 @@ class ProductRepository implements RepositoryInterface
     private function findProductDependants(int $productId): array
     {
         $names = [];
-        
+
         try {
             // Find GroupItems that reference this product
             $giIds = $this->findGroupItemsReferencingProduct($productId);
-            
+
             if (empty($giIds)) {
                 return []; // Product not referenced anywhere
             }
 
+            // Cache repository instance to avoid creating one per iteration
+            $pgRepo = new ProductGroupRepository();
+
             // Find ProductGroups containing those GroupItems
             foreach ($giIds as $giId) {
                 $pgIds = $this->findProductGroupsContainingGroupItem($giId);
-                
+
                 foreach ($pgIds as $pgId) {
-                    // Get ProductGroup name
-                    $pg_name = $this->getProductGroupName($pgId);
-                    if ($pg_name) {
-                        $names[] = $pg_name;
+                    // Get ProductGroup name using cached repository
+                    try {
+                        $pg = $pgRepo->get($pgId);
+                        if ($pg) {
+                            $names[] = $pg->name;
+                        }
+                    } catch (Exception $e) {
+                        error_log("Failed to get ProductGroup name for ID {$pgId}: " . $e->getMessage());
                     }
 
                     // Find other products that include this ProductGroup
                     $siblingIds = $this->findProductsUsingProductGroup($pgId);
-                    foreach ($siblingIds as $sid) {
-                        if ($sid != $productId) {
-                            $product_name = get_post_field('post_title', $sid);
-                            if ($product_name && !is_wp_error($product_name)) {
-                                $names[] = $product_name;
-                            }
+                    // Filter out the current product
+                    $siblingIds = array_filter($siblingIds, function ($sid) use ($productId) {
+                        return $sid != $productId;
+                    });
+
+                    // Batch-fetch product names instead of individual get_post_field() calls
+                    if (!empty($siblingIds)) {
+                        $siblingPosts = get_posts([
+                            'post_type'   => ProductPostType::POST_TYPE,
+                            'post__in'    => array_values($siblingIds),
+                            'fields'      => 'ids',
+                            'numberposts' => -1,
+                            'post_status' => 'publish',
+                        ]);
+                        foreach ($siblingPosts as $siblingPost) {
+                            $names[] = get_the_title($siblingPost);
                         }
                     }
                 }
@@ -654,18 +671,6 @@ class ProductRepository implements RepositoryInterface
         ]);
 
         return is_array($posts) ? array_map('intval', $posts) : [];
-    }
-
-    private function getProductGroupName(int $pgId): ?string
-    {
-        try {
-            $pgRepo = new ProductGroupRepository();
-            $pg = $pgRepo->get($pgId);
-            return $pg ? $pg->name : null;
-        } catch (Exception $e) {
-            error_log("Failed to get ProductGroup name for ID {$pgId}: " . $e->getMessage());
-            return null;
-        }
     }
 
     public function findBy(array $criteria, ?int $limit = null, int $offset = 0): array

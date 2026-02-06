@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import publicApi from '../../services/publicApi';
 import theme from '../../config/theme';
 import { getCurrentLanguage } from '../../i18n/translations';
@@ -86,7 +86,7 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
   };
 
   // Toggle item selection in a group (for checkboxes)
-  const toggleItem = (groupId, item, group) => {
+  const toggleItem = useCallback((groupId, item, group) => {
     setSelections(prev => {
       const groupSelections = prev[groupId] || [];
       const isSelected = groupSelections.some(s => s.id === item.id);
@@ -113,10 +113,10 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       delete newErrors[groupId];
       return newErrors;
     });
-  };
+  }, []);
 
   // Select single item (for radio buttons)
-  const selectSingleItem = (groupId, item) => {
+  const selectSingleItem = useCallback((groupId, item) => {
     setSelections(prev => ({
       ...prev,
       [groupId]: [item]
@@ -127,10 +127,10 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       delete newErrors[groupId];
       return newErrors;
     });
-  };
+  }, []);
 
   // Validate all selections
-  const validateSelections = () => {
+  const validateSelections = useCallback(() => {
     const errors = {};
     productData?.groups_product_data?.forEach(group => {
       const selectedCount = (selections[group.group_id] || []).length;
@@ -145,20 +145,20 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       }
     });
     return errors;
-  };
+  }, [productData, selections]);
 
-  // Calculate total price
-  const calculateTotalPrice = () => {
+  // Memoize total price calculation
+  const totalPrice = useMemo(() => {
     if (!productData) return 0;
     const basePrice = productData.discounted_price || productData.price;
     const addonsPrice = Object.values(selections)
       .flat()
       .reduce((sum, item) => sum + (item.price || 0), 0);
     return (basePrice + addonsPrice) * quantity;
-  };
+  }, [productData, selections, quantity]);
 
   // Handle confirm
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     const errors = validateSelections();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
@@ -177,11 +177,11 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       ...product,
       customizations: customizationsToSend,
       quantity,
-      final_price: calculateTotalPrice()
+      final_price: totalPrice
     };
     onConfirm(customizedProduct);
     onClose();
-  };
+  }, [validateSelections, selections, product, quantity, totalPrice, onConfirm, onClose]);
 
   if (!isOpen) return null;
 
@@ -668,7 +668,7 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
                 }}
               >
                 <span>{isEditing ? 'עדכן' : 'הוסף עכשיו'}</span>
-                <span>{calculateTotalPrice().toFixed(2)} ₪</span>
+                <span>{totalPrice.toFixed(2)} ₪</span>
               </button>
             </div>
           </>

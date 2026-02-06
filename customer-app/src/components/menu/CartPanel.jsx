@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import theme from '../../config/theme';
 import CartItemDisplay from '../cart/CartItemDisplay';
 import CouponSection from '../cart/CouponSection';
@@ -9,16 +9,19 @@ import CouponSection from '../cart/CouponSection';
  */
 export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, onDeleteItem }) {
   const isEmpty = !cart || !cart.items || cart.items.length === 0;
-  const subtotal = cart?.subtotal || 0;
-  const deliveryFee = cart?.deliveryFee || 25.0;
-  const vat = subtotal * 0.17;
-  const total = subtotal + deliveryFee + vat;
 
-  const handleCancelOrder = () => {
+  const { subtotal, deliveryFee, vat, total } = useMemo(() => {
+    const sub = cart?.subtotal || 0;
+    const delivery = cart?.deliveryFee || 25.0;
+    const vatAmount = sub * 0.17;
+    return { subtotal: sub, deliveryFee: delivery, vat: vatAmount, total: sub + delivery + vatAmount };
+  }, [cart?.subtotal, cart?.deliveryFee]);
+
+  const handleCancelOrder = useCallback(() => {
     if (window.confirm('האם אתם בטוחים שברצונכם לבטל את ההזמנה?')) {
       onClearCart();
     }
-  };
+  }, [onClearCart]);
 
   return (
     <div

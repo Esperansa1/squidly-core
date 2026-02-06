@@ -136,7 +136,7 @@ const BranchModal = ({
     }
   }, [isOpen, editingBranch]);
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
@@ -157,17 +157,15 @@ const BranchModal = ({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData.name, formData.phone, formData.city, formData.address]);
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = useCallback((field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
+    setErrors(prev => prev[field] ? { ...prev, [field]: '' } : prev);
+  }, []);
 
-  const handleActivityTimeChange = (day, timeSlots) => {
+  const handleActivityTimeChange = useCallback((day, timeSlots) => {
     setFormData(prev => ({
       ...prev,
       activity_times: {
@@ -175,56 +173,77 @@ const BranchModal = ({
         [day]: timeSlots
       }
     }));
-  };
+  }, []);
 
-  const addTimeSlot = (day) => {
-    const currentSlots = formData.activity_times[day] || [];
-    handleActivityTimeChange(day, [...currentSlots, '09:00-17:00']);
-  };
-
-  const removeTimeSlot = (day, index) => {
-    const currentSlots = formData.activity_times[day] || [];
-    const newSlots = currentSlots.filter((_, i) => i !== index);
-    handleActivityTimeChange(day, newSlots);
-  };
-
-  const updateTimeSlot = (day, index, value) => {
-    const currentSlots = formData.activity_times[day] || [];
-    const newSlots = [...currentSlots];
-    newSlots[index] = value;
-    handleActivityTimeChange(day, newSlots);
-  };
-
-  const handleAccessibilityChange = (option, checked) => {
-    if (checked) {
-      setFormData(prev => ({
+  const addTimeSlot = useCallback((day) => {
+    setFormData(prev => {
+      const currentSlots = prev.activity_times[day] || [];
+      return {
         ...prev,
-        accessibility_list: [...prev.accessibility_list, option]
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        accessibility_list: prev.accessibility_list.filter(item => item !== option)
-      }));
-    }
-  };
+        activity_times: {
+          ...prev.activity_times,
+          [day]: [...currentSlots, '09:00-17:00']
+        }
+      };
+    });
+  }, []);
 
-  const addCustomAccessibility = () => {
-    if (customAccessibility.trim() && !formData.accessibility_list.includes(customAccessibility.trim())) {
-      setFormData(prev => ({
+  const removeTimeSlot = useCallback((day, index) => {
+    setFormData(prev => {
+      const currentSlots = prev.activity_times[day] || [];
+      return {
         ...prev,
-        accessibility_list: [...prev.accessibility_list, customAccessibility.trim()]
-      }));
-      setCustomAccessibility('');
-    }
-  };
+        activity_times: {
+          ...prev.activity_times,
+          [day]: currentSlots.filter((_, i) => i !== index)
+        }
+      };
+    });
+  }, []);
 
-  const removeAccessibilityOption = (option) => {
+  const updateTimeSlot = useCallback((day, index, value) => {
+    setFormData(prev => {
+      const currentSlots = prev.activity_times[day] || [];
+      const newSlots = [...currentSlots];
+      newSlots[index] = value;
+      return {
+        ...prev,
+        activity_times: {
+          ...prev.activity_times,
+          [day]: newSlots
+        }
+      };
+    });
+  }, []);
+
+  const handleAccessibilityChange = useCallback((option, checked) => {
+    setFormData(prev => ({
+      ...prev,
+      accessibility_list: checked
+        ? [...prev.accessibility_list, option]
+        : prev.accessibility_list.filter(item => item !== option)
+    }));
+  }, []);
+
+  const addCustomAccessibility = useCallback(() => {
+    setCustomAccessibility(prev => {
+      const trimmed = prev.trim();
+      if (trimmed) {
+        setFormData(fd => {
+          if (fd.accessibility_list.includes(trimmed)) return fd;
+          return { ...fd, accessibility_list: [...fd.accessibility_list, trimmed] };
+        });
+      }
+      return '';
+    });
+  }, []);
+
+  const removeAccessibilityOption = useCallback((option) => {
     setFormData(prev => ({
       ...prev,
       accessibility_list: prev.accessibility_list.filter(item => item !== option)
     }));
-  };
+  }, []);
 
   // Geocode address using Photon API
   const handleGeolocate = useCallback(async () => {
@@ -257,7 +276,7 @@ const BranchModal = ({
     }
   }, [formData.address, formData.city]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (validateForm()) {
       // Convert numeric strings to proper types for the API
       const payload = {
@@ -272,7 +291,7 @@ const BranchModal = ({
       };
       onSave(payload);
     }
-  };
+  }, [formData, onSave, validateForm]);
 
   if (!isOpen) return null;
 

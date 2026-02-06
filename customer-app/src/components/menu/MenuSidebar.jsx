@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import theme from '../../config/theme';
 
 /**
@@ -6,12 +6,12 @@ import theme from '../../config/theme';
  * Dynamically populated with product categories
  * Features: Logo, search, category navigation, toggle functionality
  */
-export default function MenuSidebar({ activeCategory, onCategoryChange, categories, isExpanded = true, onToggle }) {
-  const toggleSidebar = () => {
+const MenuSidebar = React.memo(function MenuSidebar({ activeCategory, onCategoryChange, categories, isExpanded = true, onToggle }) {
+  const toggleSidebar = useCallback(() => {
     if (onToggle) {
       onToggle(!isExpanded);
     }
-  };
+  }, [onToggle, isExpanded]);
 
   const NavItem = ({ category, isActive }) => {
     return (
@@ -358,4 +358,6 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
       </div>
     </div>
   );
-}
+});
+
+export default MenuSidebar;
