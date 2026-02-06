@@ -134,6 +134,7 @@ class CartService
             'unit_price' => $unit_price,
             'customizations' => $customizations,
             'notes' => $notes,
+            'image_url' => $product->image_url,
         ]);
 
         $cart->addItem($cart_item);

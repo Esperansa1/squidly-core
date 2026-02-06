@@ -43,6 +43,7 @@ export default function CartItemDisplay({ item, compact = false, onItemClick, on
         position: 'relative', // For absolute positioned delete button
         display: 'flex',
         flexDirection: isRTL ? 'row-reverse' : 'row',
+        alignItems: 'center',
         gap: '8px',
         padding: compact ? '8px' : '12px',
         backgroundColor: '#FFFFFF',

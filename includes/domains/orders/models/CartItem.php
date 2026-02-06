@@ -16,6 +16,7 @@ class CartItem
     public float $total_price;   // quantity × unit_price
     public array $customizations;
     public ?string $notes;
+    public ?string $image_url;
 
     public function __construct(array $data)
     {
@@ -27,6 +28,7 @@ class CartItem
         $this->total_price = $data['total_price'] ?? ($this->unit_price * $this->quantity);
         $this->customizations = $data['customizations'] ?? [];
         $this->notes = $data['notes'] ?? null;
+        $this->image_url = $data['image_url'] ?? null;
     }
 
     /**
@@ -43,6 +45,7 @@ class CartItem
             'total_price' => $this->total_price,
             'customizations' => $this->customizations,
             'notes' => $this->notes,
+            'image_url' => $this->image_url,
         ];
     }
 }
