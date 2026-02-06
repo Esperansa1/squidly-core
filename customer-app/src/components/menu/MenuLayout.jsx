@@ -117,7 +117,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
 
       setLoading(false);
     } catch (error) {
-      console.error('❌ Failed to load menu data:', error);
+      console.error('Failed to load menu data:', error);
       setLoading(false);
     }
   };

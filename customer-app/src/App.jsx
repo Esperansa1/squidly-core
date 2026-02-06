@@ -22,7 +22,7 @@ function AppContent() {
         setApiStatus({ initialized: true, error: null, config });
       } catch (error) {
         setApiStatus({ initialized: false, error: error.message, config: null });
-        console.error('❌ Failed to initialize API:', error);
+        console.error('Failed to initialize API:', error);
       }
     };
 

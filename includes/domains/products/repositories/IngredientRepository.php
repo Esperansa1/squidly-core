@@ -280,9 +280,6 @@ class IngredientRepository implements RepositoryInterface
             ],
         ]);
 
-        /* Debug: Log what we found for troubleshooting */
-        error_log("IngredientRepository: Found " . count($giIds) . " GroupItems referencing ingredient ID {$iid}");
-
         /* If no group items reference this ingredient, return empty array */
         if (empty($giIds)) {
             return [];

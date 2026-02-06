@@ -1,107 +1,93 @@
-# Squidly Core WordPress Plugin
+# Squidly Core
 
-A comprehensive restaurant management system with advanced product customization, payment integration, and order management.
+Restaurant management WordPress plugin with decoupled React admin and customer interfaces, WooCommerce payment integration, and domain-driven architecture.
+
+## Requirements
+
+- WordPress 5.0+
+- PHP 8.0+
+- WooCommerce (for payment processing)
+- Node.js 16+ (for building frontend apps)
+
+## Setup
+
+1. Install and activate the plugin
+2. Install and activate WooCommerce
+3. Install PHP dependencies: `composer install`
+4. Build frontend apps:
+   ```bash
+   cd admin-app && npm install && npm run build
+   cd customer-app && npm install && npm run build
+   ```
+5. The admin interface is available at `/restaurant-admin`
+6. The customer ordering app is available at `/orders`
 
 ## Project Structure
 
-### Core Architecture
-- **Ingredient and Products** are the main structures
-- **GroupItem** is an abstraction of Ingredient/Product
-- **ProductGroup** is a collection of GroupItems (Ingredient/Product)
-- **Product** can have multiple ProductGroups
-- **Price overrides** can be set on GroupItem level
-- **Repository files** handle all database access for their corresponding models
-- **RepositoryInterface** sets the baseline for all repositories
-
-### Directory Structure
-
 ```
 squidly-core/
-├── includes/           # Core plugin functionality
-│   ├── domains/        # Domain-driven design structure
-│   │   ├── customers/  # Customer management
-│   │   ├── orders/     # Order processing and management
-│   │   ├── payments/   # Payment gateway integration
-│   │   ├── products/   # Product and ingredient management
-│   │   └── stores/     # Store branch management
-│   └── shared/         # Shared utilities and interfaces
-├── tools/              # Administrative and development tools
-│   ├── admin/          # Management interfaces
-│   └── test-data/      # Test data generation and cleanup
-├── debug-scripts/      # Development debugging utilities
-├── tests/              # Automated test suite
-└── assets/             # Static assets (CSS, JS, images)
+├── squidly-core.php          # Plugin entry point
+├── includes/
+│   ├── admin/                # Page handlers (AdminPageHandler, CustomerPageHandler, RoleManager)
+│   ├── api/                  # REST API bootstrapping
+│   ├── core/                 # PostTypeRegistry
+│   ├── domains/
+│   │   ├── customers/        # Customer management (regular + guest)
+│   │   ├── orders/           # Orders, cart, delivery
+│   │   ├── payments/         # WooCommerce payment integration
+│   │   ├── products/         # Products, ingredients, groups, customization
+│   │   └── stores/           # Store branches
+│   └── shared/               # Interfaces, abstracts, exceptions, models
+├── admin-app/                # React admin SPA (Vite + TailwindCSS)
+├── customer-app/             # React customer ordering SPA
+└── tests/                    # PHPUnit test suite (unit, integration, e2e)
 ```
 
-## Features
+## Architecture
 
-### 🍔 Complex Product Management
-- Multi-level product customization with Product Groups
-- Ingredient management with price overrides
-- Hamburger restaurant-style product configuration
-- Support for modifications and special instructions
+### Domain-Driven Design
 
-### 💳 Payment Integration
-- WooCommerce gateway integration
-- Bi-directional order synchronization
-- Multiple payment methods (cash, card, online)
-- Automatic payment status updates
+Each domain follows the same structure:
+- `models/` -- DTOs with constructor and `toArray()`
+- `repositories/` -- Data access implementing `RepositoryInterface`
+- `post-types/` -- WordPress custom post types extending `BasePostType`
+- `rest/` -- REST controllers extending `WP_REST_Controller`
+- `services/` -- Business logic
 
-### 📦 Order Management
-- Complete order lifecycle tracking
-- Customer preferences and dietary requirements
-- Delivery and pickup options
-- Kitchen workflow integration
+### REST API
 
-### 🏪 Multi-Store Support
-- Store branch management
-- Location-specific product availability
-- Individual branch settings and hours
+- **Namespace:** `squidly/v1`
+- **Admin endpoints:** Authenticated via WordPress nonce + session cookies
+- **Public endpoints:** `/squidly/v1/public/*` -- No authentication required (for customer app)
 
-## Tools and Administration
+### Frontend Apps
 
-### Management Hub
-Access the central management interface at:
-`/wp-content/plugins/squidly-core/tools/admin/manage-test-data.php`
+Both apps are fully decoupled React SPAs communicating exclusively via REST API.
 
-### Test Data Management
-- **Create Test Data**: Generate comprehensive restaurant data with complex products
-- **Cleanup Data**: Remove all test data with safety confirmations
-- **Debug Tools**: Access various debugging utilities
+- **Admin App** (`admin-app/`): React 18 + Vite + TailwindCSS, RTL support, port 3000
+- **Customer App** (`customer-app/`): React 18 + Vite + TailwindCSS, RTL support, port 3001
 
-### Debug Scripts
-Available debugging tools:
-- Payment system debugging and API testing
-- Order data inspection
-- Payment product creation and validation
+### Payment Integration
+
+WooCommerce handles payment processing. Squidly creates WooCommerce orders with fee-based line items (no WC products needed) and redirects customers to the WooCommerce checkout page. Any WooCommerce payment gateway works out of the box.
 
 ## Development
 
-### Testing
-- Comprehensive test suite in `/tests/`
-- Integration tests for payment flows
-- Unit tests for all major components
+```bash
+# PHP tests
+composer test              # All tests + linting
+composer test:unit         # Unit tests only
+composer test:int          # Integration tests only
 
-### Requirements
-- WordPress 5.0+
-- PHP 7.4+
-- WooCommerce (for payment features)
-- MySQL 5.7+ or MariaDB 10.2+
+# Frontend dev servers
+cd admin-app && npm run dev      # http://localhost:3000
+cd customer-app && npm run dev   # http://localhost:3001
 
-### Getting Started
-1. Install and activate the plugin
-2. Ensure WooCommerce is installed and activated
-3. Use the management hub to create test data
-4. Configure payment settings as needed
+# Production builds
+cd admin-app && npm run build
+cd customer-app && npm run build
+```
 
-## Production Notes
-- All debug and test tools require admin privileges
-- Test data scripts should only be used in development
-- Payment integration requires proper WooCommerce configuration
-- Regular backups recommended before using cleanup scripts
+## License
 
-## Architecture Principles
-- Domain-driven design with clear separation of concerns
-- Repository pattern for data access abstraction
-- Interface-based design for extensibility
-- WordPress best practices and security standards
+MIT

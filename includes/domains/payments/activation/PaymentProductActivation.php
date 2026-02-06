@@ -62,7 +62,6 @@ class PaymentProductActivation {
         if ($product->get_status() !== 'publish') {
             $product->set_status('publish');
             $product->save();
-            error_log('✅ Updated payment product status to publish');
         }
     }
 }

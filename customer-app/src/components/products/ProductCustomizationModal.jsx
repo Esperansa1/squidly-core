@@ -61,7 +61,7 @@ export default function ProductCustomizationModal({ product, isOpen, onClose, on
       setSelections(initialSelections);
       setValidationErrors({});
     } catch (error) {
-      console.error('❌ Failed to load product groups:', error);
+      console.error('Failed to load product groups:', error);
     } finally {
       setLoading(false);
     }
