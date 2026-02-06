@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api.js';
-import { TabSelector, BranchSelector, OrderColumn, DeclineOrderModal, Toast, LoadingState } from './ui';
+import { TabSelector, BranchSelector, OrderColumn, DeclineOrderModal, Toast, LoadingState, Card, Button } from './ui';
 import DeliveryTypeSelector from './ui/DeliveryTypeSelector.jsx';
 import StatisticsCards from './ui/organisms/StatisticsCards.jsx';
 import PreviousOrdersTable from './ui/organisms/PreviousOrdersTable.jsx';
 import OrderDetailsModal from './ui/organisms/OrderDetailsModal.jsx';
 import DownloadButton from './ui/molecules/DownloadButton.jsx';
+import { CalendarIcon } from '@heroicons/react/24/outline';
 import { getDateRange } from '../utils/dateRangeCalculator.js';
 
 const OrderManagement = () => {
@@ -15,6 +16,9 @@ const OrderManagement = () => {
   const [activeTab, setActiveTab] = useState('הזמנות חיות');
   const [deliveryType, setDeliveryType] = useState(null);
   const [timeframe, setTimeframe] = useState('היום');
+  const [customDateFrom, setCustomDateFrom] = useState('');
+  const [customDateTo, setCustomDateTo] = useState('');
+  const [showCustomDate, setShowCustomDate] = useState(false);
 
   // Orders data
   const [orders, setOrders] = useState([]);
@@ -66,6 +70,8 @@ const OrderManagement = () => {
       const interval = setInterval(() => fetchLiveOrders(true), 30000);
       return () => clearInterval(interval);
     } else if (activeTab === 'הזמנות קודמות') {
+      // Don't auto-fetch for custom — wait for user to pick dates and click "הצג"
+      if (timeframe === 'מותאם אישית') return;
       fetchPreviousOrders(false).then(() => {
         setHasInitiallyLoaded(true); // Mark as loaded after initial fetch
       });
@@ -247,7 +253,12 @@ const OrderManagement = () => {
     }
   };
 
-  const calculateDateFilters = (timeframe) => {
+  const calculateDateFilters = (tf) => {
+    // Custom date range
+    if (tf === 'מותאם אישית' && customDateFrom && customDateTo) {
+      return { date_from: customDateFrom, date_to: customDateTo };
+    }
+
     // Map Hebrew timeframe to English for dateRangeCalculator
     const timeframeMap = {
       'היום': 'today',
@@ -256,8 +267,13 @@ const OrderManagement = () => {
       'השנה': 'year'
     };
 
-    const englishTimeframe = timeframeMap[timeframe] || 'month';
+    const englishTimeframe = timeframeMap[tf] || 'month';
     return getDateRange(englishTimeframe);
+  };
+
+  const handleTimeframeChange = (newTimeframe) => {
+    setTimeframe(newTimeframe);
+    setShowCustomDate(newTimeframe === 'מותאם אישית');
   };
 
   const handleOrderClick = (order) => {
@@ -415,13 +431,49 @@ const OrderManagement = () => {
               <TabSelector
                 tabs={timeframeTabs}
                 activeTab={timeframe}
-                onTabChange={setTimeframe}
+                onTabChange={handleTimeframeChange}
                 className="w-auto"
               />
             )}
           </div>
         </div>
       </div>
+
+      {/* Custom Date Range Picker */}
+      {showCustomDate && activeTab === 'הזמנות קודמות' && (
+        <div className="px-6 pt-2">
+          <Card className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5 text-gray-500" />
+                <label className="text-sm font-medium text-gray-700">מתאריך:</label>
+                <input
+                  type="date"
+                  value={customDateFrom}
+                  onChange={(e) => setCustomDateFrom(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">עד תאריך:</label>
+                <input
+                  type="date"
+                  value={customDateTo}
+                  onChange={(e) => setCustomDateTo(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                />
+              </div>
+              <Button
+                variant="primary"
+                onClick={() => fetchPreviousOrders()}
+                disabled={!customDateFrom || !customDateTo}
+              >
+                הצג
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Scrollable Content Area */}
       <div className="flex-1 px-6 pb-6 min-h-0">
