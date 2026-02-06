@@ -14,6 +14,8 @@ class StoreBranch
     public string $phone;
     public string $city;
     public string $address;
+    public ?float $latitude = null;          // GPS latitude for distance calculations
+    public ?float $longitude = null;         // GPS longitude for distance calculations
     public bool   $is_open;                 // true = open, false = closed
 
     /** @var array<string, string[]>  e.g. 'Sunday' => ['08:00-13:00','16:00-21:00'] */
@@ -49,6 +51,8 @@ class StoreBranch
         $this->phone     = (string) $data['phone'];
         $this->city      = (string) $data['city'];
         $this->address   = (string) $data['address'];
+        $this->latitude  = isset($data['latitude']) ? (float) $data['latitude'] : null;
+        $this->longitude = isset($data['longitude']) ? (float) $data['longitude'] : null;
         $this->is_open   = (bool)   $data['is_open'];
 
         $this->activity_times      = $data['activity_times']      ?? [];
@@ -100,7 +104,7 @@ class StoreBranch
         }
 
         $current_time = current_time('H:i');
-        $current_day = current_time('l'); // e.g., 'Monday', 'Tuesday'
+        $current_day = strtoupper(current_time('l')); // e.g., 'MONDAY', 'TUESDAY' - match storage format
 
         if (!isset($this->activity_times[$current_day]) || empty($this->activity_times[$current_day])) {
             return false;
@@ -127,20 +131,20 @@ class StoreBranch
         }
 
         $current_time = current_time('H:i');
-        $current_day = current_time('l');
+        $current_day = strtoupper(current_time('l')); // Match storage format (UPPERCASE)
 
         // Check remaining times today
         if (isset($this->activity_times[$current_day])) {
             foreach ($this->activity_times[$current_day] as $time_range) {
                 $start_time = $this->extractStartTime($time_range);
                 if ($start_time > $current_time) {
-                    return "$current_day $start_time";
+                    return ucfirst(strtolower($current_day)) . " $start_time";
                 }
             }
         }
 
-        // Check next 7 days
-        $days_of_week = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        // Check next 7 days (use UPPERCASE for lookup, Title Case for display)
+        $days_of_week = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
         $current_day_index = array_search($current_day, $days_of_week);
 
         for ($i = 1; $i <= 7; $i++) {
@@ -150,7 +154,8 @@ class StoreBranch
             if (isset($this->activity_times[$next_day]) && !empty($this->activity_times[$next_day])) {
                 $first_range = $this->activity_times[$next_day][0];
                 $start_time = $this->extractStartTime($first_range);
-                return "$next_day $start_time";
+                // Return in Title Case for display
+                return ucfirst(strtolower($next_day)) . " $start_time";
             }
         }
 
@@ -196,6 +201,8 @@ class StoreBranch
             'phone'                  => $this->phone,
             'city'                   => $this->city,
             'address'                => $this->address,
+            'latitude'               => $this->latitude,
+            'longitude'              => $this->longitude,
             'is_open'                => $this->is_open,
             'activity_times'         => $this->activity_times,
             'kosher_type'            => $this->kosher_type,

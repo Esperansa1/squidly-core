@@ -56,6 +56,8 @@ class StoreBranchRepository implements RepositoryInterface
         update_post_meta($post_id, '_phone',            sanitize_text_field($data['phone']));
         update_post_meta($post_id, '_city',             sanitize_text_field($data['city']));
         update_post_meta($post_id, '_address',          sanitize_text_field($data['address']));
+        update_post_meta($post_id, '_latitude',         isset($data['latitude']) ? (float) $data['latitude'] : null);
+        update_post_meta($post_id, '_longitude',        isset($data['longitude']) ? (float) $data['longitude'] : null);
         update_post_meta($post_id, '_is_open',          (bool) $data['is_open']);
         update_post_meta($post_id, '_activity_times',   $data['activity_times']);
         update_post_meta($post_id, '_kosher_type',      sanitize_text_field($data['kosher_type']));
@@ -101,6 +103,8 @@ class StoreBranchRepository implements RepositoryInterface
             'phone'                  => (string) get_post_meta($id, '_phone', true),
             'city'                   => (string) get_post_meta($id, '_city', true),
             'address'                => (string) get_post_meta($id, '_address', true),
+            'latitude'               => get_post_meta($id, '_latitude', true) ?: null,
+            'longitude'              => get_post_meta($id, '_longitude', true) ?: null,
             'is_open'                => (bool)   get_post_meta($id, '_is_open', true),
             'activity_times'         => get_post_meta($id, '_activity_times', true)      ?: [],
             'kosher_type'            => (string) get_post_meta($id, '_kosher_type', true),
@@ -381,6 +385,12 @@ class StoreBranchRepository implements RepositoryInterface
             if (array_key_exists($fld, $data)) {
                 update_post_meta($id, $metaKey, sanitize_text_field($data[$fld]));
             }
+        }
+        if (array_key_exists('latitude', $data)) {
+            update_post_meta($id, '_latitude', $data['latitude'] !== null ? (float) $data['latitude'] : null);
+        }
+        if (array_key_exists('longitude', $data)) {
+            update_post_meta($id, '_longitude', $data['longitude'] !== null ? (float) $data['longitude'] : null);
         }
         if (array_key_exists('is_open', $data)) {
             update_post_meta($id, '_is_open', (bool) $data['is_open']);
