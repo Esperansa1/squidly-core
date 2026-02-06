@@ -129,6 +129,47 @@ class PublicApiService {
     return await this.fetch(`branches/${id}`);
   }
 
+  /**
+   * Find a branch that can deliver to the given address
+   * MVP: Matches by city name (case-insensitive partial match)
+   *
+   * @param {Object} address - { city, street, houseNumber }
+   * @returns {Object} { branch, deliverable } or { branch: null, deliverable: false }
+   */
+  async findBranchForDelivery(address) {
+    try {
+      const branches = await this.getBranches();
+
+      // MVP: Find branch by city name match
+      // Look for branches where the city matches (case-insensitive)
+      const normalizedCity = address.city.toLowerCase().trim();
+
+      const matchingBranch = branches.find(branch => {
+        const branchCity = (branch.city || '').toLowerCase().trim();
+        // Partial match - either the branch city contains the search city or vice versa
+        return branchCity.includes(normalizedCity) || normalizedCity.includes(branchCity);
+      });
+
+      if (matchingBranch) {
+        return {
+          branch: matchingBranch,
+          deliverable: true
+        };
+      }
+
+      return {
+        branch: null,
+        deliverable: false
+      };
+    } catch (error) {
+      console.error('❌ Failed to find branch for delivery:', error);
+      return {
+        branch: null,
+        deliverable: false
+      };
+    }
+  }
+
   // ===== Guest Customers API =====
 
   /**

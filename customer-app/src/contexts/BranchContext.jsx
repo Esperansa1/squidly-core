@@ -21,6 +21,19 @@ export function BranchProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Order type: 'pickup' | 'delivery' | null
+  const [orderType, setOrderType] = useState(null);
+
+  // Delivery address for delivery orders
+  const [deliveryAddress, setDeliveryAddress] = useState({
+    city: '',
+    street: '',
+    houseNumber: ''
+  });
+
+  // Pickup time for pickup orders
+  const [pickupTime, setPickupTime] = useState(null);
+
   // Load branches on mount
   useEffect(() => {
     const loadBranches = async () => {
@@ -39,6 +52,28 @@ export function BranchProvider({ children }) {
             setSelectedBranch(savedBranch);
             console.log('✅ Restored selected branch:', savedBranch.name);
           }
+        }
+
+        // Restore order type
+        const savedOrderType = sessionStorage.getItem('squidly_order_type');
+        if (savedOrderType) {
+          setOrderType(savedOrderType);
+        }
+
+        // Restore delivery address
+        const savedAddress = sessionStorage.getItem('squidly_delivery_address');
+        if (savedAddress) {
+          try {
+            setDeliveryAddress(JSON.parse(savedAddress));
+          } catch (e) {
+            console.warn('Failed to parse saved delivery address');
+          }
+        }
+
+        // Restore pickup time
+        const savedPickupTime = sessionStorage.getItem('squidly_pickup_time');
+        if (savedPickupTime) {
+          setPickupTime(savedPickupTime);
         }
 
         console.log(`✅ Loaded ${data.length} branches`);
@@ -70,11 +105,71 @@ export function BranchProvider({ children }) {
   };
 
   /**
-   * Clear selected branch
+   * Select a branch for delivery orders
+   * @param {number} branchId - Branch ID
+   * @param {Object} address - { city, street, houseNumber }
+   */
+  const selectBranchForDelivery = (branchId, address) => {
+    const branch = branches.find(b => b.id === branchId);
+
+    if (!branch) {
+      console.error('❌ Branch not found:', branchId);
+      return;
+    }
+
+    setSelectedBranch(branch);
+    setOrderType('delivery');
+    setDeliveryAddress(address);
+    setPickupTime(null);
+
+    sessionStorage.setItem('selectedBranchId', branchId.toString());
+    sessionStorage.setItem('squidly_order_type', 'delivery');
+    sessionStorage.setItem('squidly_delivery_address', JSON.stringify(address));
+    sessionStorage.removeItem('squidly_pickup_time');
+
+    console.log('✅ Selected branch for delivery:', branch.name, address);
+  };
+
+  /**
+   * Select a branch for pickup orders
+   * @param {number} branchId - Branch ID
+   * @param {string} time - Pickup time (ISO string or datetime-local value)
+   */
+  const selectBranchForPickup = (branchId, time) => {
+    const branch = branches.find(b => b.id === branchId);
+
+    if (!branch) {
+      console.error('❌ Branch not found:', branchId);
+      return;
+    }
+
+    setSelectedBranch(branch);
+    setOrderType('pickup');
+    setPickupTime(time);
+    setDeliveryAddress({ city: '', street: '', houseNumber: '' });
+
+    sessionStorage.setItem('selectedBranchId', branchId.toString());
+    sessionStorage.setItem('squidly_order_type', 'pickup');
+    sessionStorage.setItem('squidly_pickup_time', time);
+    sessionStorage.removeItem('squidly_delivery_address');
+
+    console.log('✅ Selected branch for pickup:', branch.name, time);
+  };
+
+  /**
+   * Clear selected branch and all related data
    */
   const clearSelection = () => {
     setSelectedBranch(null);
+    setOrderType(null);
+    setDeliveryAddress({ city: '', street: '', houseNumber: '' });
+    setPickupTime(null);
+
     sessionStorage.removeItem('selectedBranchId');
+    sessionStorage.removeItem('squidly_order_type');
+    sessionStorage.removeItem('squidly_delivery_address');
+    sessionStorage.removeItem('squidly_pickup_time');
+
     console.log('✅ Cleared branch selection');
   };
 
@@ -82,7 +177,12 @@ export function BranchProvider({ children }) {
     branches,
     selectedBranch,
     selectBranch,
+    selectBranchForDelivery,
+    selectBranchForPickup,
     clearSelection,
+    orderType,
+    deliveryAddress,
+    pickupTime,
     loading,
     error
   };

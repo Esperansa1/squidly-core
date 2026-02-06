@@ -187,6 +187,25 @@ const translations = {
     developmentStatus: 'Development Status',
     accessAt: 'Access this at',
     currentView: 'Current view',
+
+    // Branch Selection Modal
+    branchModalTitle: 'Eaten with us before?',
+    branchModalLogin: 'Login',
+    branchModalPickup: 'Pickup',
+    branchModalDelivery: 'Delivery',
+    branchModalCity: 'City',
+    branchModalStreet: 'Street',
+    branchModalHouseNumber: 'House Number',
+    branchModalFindingBranch: 'Finding nearest branch...',
+    branchModalNotInRange: 'Address is not in delivery range',
+    branchModalSelectBranch: 'Select Branch',
+    branchModalSearchBranches: 'Search branches...',
+    branchModalWhenArrive: 'When would you like to arrive?',
+    branchModalBack: 'Back',
+    branchModalContinue: 'Continue',
+    branchModalNoBranchFound: 'No branch found for this area',
+    branchModalRequiredField: 'This field is required',
+    branchModalSelectTime: 'Select Time',
   },
 
   he: {
@@ -366,6 +385,25 @@ const translations = {
     developmentStatus: 'סטטוס פיתוח',
     accessAt: 'גש ב',
     currentView: 'תצוגה נוכחית',
+
+    // Branch Selection Modal
+    branchModalTitle: 'כבר אכלנו יחד?',
+    branchModalLogin: 'התחבר',
+    branchModalPickup: 'איסוף עצמי',
+    branchModalDelivery: 'משלוח',
+    branchModalCity: 'עיר',
+    branchModalStreet: 'רחוב',
+    branchModalHouseNumber: 'מספר בית',
+    branchModalFindingBranch: 'מחפש סניף קרוב...',
+    branchModalNotInRange: 'הכתובת אינה באזור משלוחים',
+    branchModalSelectBranch: 'בחר סניף',
+    branchModalSearchBranches: 'חפש סניף...',
+    branchModalWhenArrive: 'מתי תרצה להגיע?',
+    branchModalBack: 'חזרה',
+    branchModalContinue: 'המשך',
+    branchModalNoBranchFound: 'לא נמצא סניף באזור זה',
+    branchModalRequiredField: 'שדה חובה',
+    branchModalSelectTime: 'בחר זמן',
   },
 
   ar: {
@@ -545,6 +583,25 @@ const translations = {
     developmentStatus: 'حالة التطوير',
     accessAt: 'الوصول في',
     currentView: 'العرض الحالي',
+
+    // Branch Selection Modal
+    branchModalTitle: 'أكلنا معًا من قبل؟',
+    branchModalLogin: 'تسجيل الدخول',
+    branchModalPickup: 'الاستلام',
+    branchModalDelivery: 'التوصيل',
+    branchModalCity: 'المدينة',
+    branchModalStreet: 'الشارع',
+    branchModalHouseNumber: 'رقم المنزل',
+    branchModalFindingBranch: 'البحث عن أقرب فرع...',
+    branchModalNotInRange: 'العنوان ليس في نطاق التوصيل',
+    branchModalSelectBranch: 'اختر الفرع',
+    branchModalSearchBranches: 'ابحث عن فرع...',
+    branchModalWhenArrive: 'متى تريد الوصول؟',
+    branchModalBack: 'رجوع',
+    branchModalContinue: 'متابعة',
+    branchModalNoBranchFound: 'لم يتم العثور على فرع في هذه المنطقة',
+    branchModalRequiredField: 'هذا الحقل مطلوب',
+    branchModalSelectTime: 'اختر الوقت',
   },
 };
 
