@@ -338,6 +338,59 @@ vendor/bin/phpunit <path>    # Specific file/method
 composer test:coverage       # With coverage
 ```
 
+## Git Workflow (Autonomous)
+
+Claude MUST manage git automatically without waiting for the user to ask. This is not optional.
+
+### When to Commit
+- After any working change: code compiles, builds succeed, tests pass (if applicable)
+- Do NOT batch unrelated changes into one commit — commit each logical unit separately
+- Do NOT ask "should I commit?" — just do it
+
+### Commit Rules
+- Write concise commit messages in English, imperative mood ("Add branch modal", not "Added branch modal")
+- Always include `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`
+- Stage only relevant files (no `git add -A` unless everything is relevant)
+- Never commit `.env`, credentials, or `node_modules`
+
+### When to Push
+- Push to remote immediately after every commit
+- If on a feature branch: `git push -u origin <branch>`
+- If on `dev` or `main`: `git push origin <branch>`
+
+### Branch Strategy
+- **`main`** — production-stable code. Only merge here when a feature is fully complete and tested.
+- **`dev`** — active development integration branch. Merge feature branches here when done.
+- **Feature branches** — create from `dev` for any non-trivial work: `feature/<short-name>`
+
+### Feature Workflow
+1. **Start feature:** `git checkout dev && git pull origin dev && git checkout -b feature/<name>`
+2. **Work:** commit and push as you go
+3. **Feature done:** merge into `dev`:
+   ```
+   git checkout dev && git pull origin dev && git merge feature/<name> && git push origin dev
+   ```
+4. **Milestone / release-ready:** merge `dev` into `main`:
+   ```
+   git checkout main && git pull origin main && git merge dev && git push origin main
+   ```
+5. **Cleanup:** delete merged feature branch locally and remotely
+
+### Decision Guide
+| Situation | Action |
+|---|---|
+| Small fix on `dev` or `main` | Commit + push directly |
+| New feature or multi-step work | Create `feature/` branch from `dev` |
+| Feature branch work is done | Merge to `dev`, push, delete branch |
+| User says "merge to main" or feature is release-ready | Merge `dev` → `main`, push |
+| Build fails | Fix first, then commit the fix |
+
+### What NOT to Do
+- Never force-push (`--force`) without explicit user request
+- Never amend commits that are already pushed
+- Never rebase shared branches without user approval
+- Never leave working changes uncommitted at the end of a task
+
 ## Troubleshooting
 
 **Class not found:** Check autoloader paths, file naming, manual requires for payment classes

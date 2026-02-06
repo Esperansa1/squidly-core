@@ -11,6 +11,8 @@ Administrative tools and management interfaces:
 ### `/test-data/`
 Test data management scripts:
 - `create-full-store-test.php` - Creates comprehensive test data including complex hamburger restaurant products, customers, and orders
+- `create-50-test-users.php` - Creates 50 test users for testing pagination and user management functionality
+- `delete-test-users.php` - Removes all test users created by the user creation script (with safety confirmation)
 - `cleanup-all-test-data.php` - Removes all test data from the system (with safety confirmation)
 
 ## Usage
