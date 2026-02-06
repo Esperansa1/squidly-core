@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { XMarkIcon, PlusIcon, TrashIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { DEFAULT_THEME } from '../../config/theme.js';
 import DropdownButton from './DropdownButton.jsx';
 
@@ -17,14 +17,22 @@ const BranchModal = ({
     phone: '',
     city: '',
     address: '',
+    latitude: '',
+    longitude: '',
     is_open: true,
     activity_times: {},
     kosher_type: '',
-    accessibility_list: []
+    accessibility_list: [],
+    delivery_enabled: false,
+    delivery_max_distance: '',
+    delivery_base_fee: '',
+    delivery_free_threshold: '',
+    min_order_amount: '',
   });
 
   const [customAccessibility, setCustomAccessibility] = useState('');
   const [errors, setErrors] = useState({});
+  const [isGeolocating, setIsGeolocating] = useState(false);
 
   const daysOfWeek = [
     { key: 'SUNDAY', label: 'ראשון' },
@@ -88,10 +96,17 @@ const BranchModal = ({
           phone: editingBranch.phone || '',
           city: editingBranch.city || '',
           address: editingBranch.address || '',
+          latitude: editingBranch.latitude ?? '',
+          longitude: editingBranch.longitude ?? '',
           is_open: editingBranch.is_open !== undefined ? Boolean(editingBranch.is_open) : true,
           activity_times: activityTimes,
           kosher_type: editingBranch.kosher_type || '',
-          accessibility_list: accessibilityList
+          accessibility_list: accessibilityList,
+          delivery_enabled: Boolean(editingBranch.delivery_enabled),
+          delivery_max_distance: editingBranch.delivery_max_distance || '',
+          delivery_base_fee: editingBranch.delivery_base_fee || '',
+          delivery_free_threshold: editingBranch.delivery_free_threshold || '',
+          min_order_amount: editingBranch.min_order_amount || '',
         });
       } else {
         // Reset form for new branch
@@ -100,10 +115,17 @@ const BranchModal = ({
           phone: '',
           city: '',
           address: '',
+          latitude: '',
+          longitude: '',
           is_open: true,
           activity_times: {},
           kosher_type: '',
-          accessibility_list: []
+          accessibility_list: [],
+          delivery_enabled: false,
+          delivery_max_distance: '',
+          delivery_base_fee: '',
+          delivery_free_threshold: '',
+          min_order_amount: '',
         });
       }
       setErrors({});
@@ -201,9 +223,51 @@ const BranchModal = ({
     }));
   };
 
+  // Geocode address using Photon API
+  const handleGeolocate = useCallback(async () => {
+    const query = `${formData.address} ${formData.city}`.trim();
+    if (!query || query.length < 3) return;
+
+    setIsGeolocating(true);
+    try {
+      const response = await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&lang=default&lat=31.8&lon=34.8`
+      );
+      if (!response.ok) throw new Error('Geocoding failed');
+
+      const data = await response.json();
+      if (data.features && data.features.length > 0) {
+        const [lon, lat] = data.features[0].geometry.coordinates;
+        setFormData(prev => ({
+          ...prev,
+          latitude: lat.toFixed(6),
+          longitude: lon.toFixed(6),
+        }));
+        setErrors(prev => ({ ...prev, latitude: '', longitude: '' }));
+      } else {
+        setErrors(prev => ({ ...prev, latitude: 'לא נמצאו קואורדינטות לכתובת זו' }));
+      }
+    } catch {
+      setErrors(prev => ({ ...prev, latitude: 'שגיאה באיתור קואורדינטות' }));
+    } finally {
+      setIsGeolocating(false);
+    }
+  }, [formData.address, formData.city]);
+
   const handleSave = () => {
     if (validateForm()) {
-      onSave(formData);
+      // Convert numeric strings to proper types for the API
+      const payload = {
+        ...formData,
+        latitude: formData.latitude !== '' ? parseFloat(formData.latitude) : null,
+        longitude: formData.longitude !== '' ? parseFloat(formData.longitude) : null,
+        delivery_enabled: Boolean(formData.delivery_enabled),
+        delivery_max_distance: formData.delivery_max_distance !== '' ? parseFloat(formData.delivery_max_distance) : 0,
+        delivery_base_fee: formData.delivery_base_fee !== '' ? parseFloat(formData.delivery_base_fee) : 0,
+        delivery_free_threshold: formData.delivery_free_threshold !== '' ? parseFloat(formData.delivery_free_threshold) : 0,
+        min_order_amount: formData.min_order_amount !== '' ? parseFloat(formData.min_order_amount) : 0,
+      };
+      onSave(payload);
     }
   };
 
@@ -327,6 +391,140 @@ const BranchModal = ({
                   getOptionLabel={(option) => option.label}
                   getOptionValue={(option) => option.value}
                 />
+              </div>
+
+              {/* Location (Coordinates) */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    מיקום (קואורדינטות)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleGeolocate}
+                    disabled={isGeolocating || (!formData.address.trim() && !formData.city.trim())}
+                    className="flex items-center gap-1 text-xs text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <MapPinIcon className={`w-4 h-4 ${isGeolocating ? 'animate-pulse' : ''}`} />
+                    {isGeolocating ? 'מאתר...' : 'אתר לפי כתובת'}
+                  </button>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={formData.latitude}
+                      onChange={(e) => handleInputChange('latitude', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                      placeholder="קו רוחב (lat)"
+                      style={{ direction: 'ltr', textAlign: 'left' }}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={formData.longitude}
+                      onChange={(e) => handleInputChange('longitude', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                      placeholder="קו אורך (lon)"
+                      style={{ direction: 'ltr', textAlign: 'left' }}
+                    />
+                  </div>
+                </div>
+                {errors.latitude && <p className="text-red-500 text-xs mt-1">{errors.latitude}</p>}
+                {formData.latitude && formData.longitude && (
+                  <p className="text-green-600 text-xs mt-1">
+                    ✓ {formData.latitude}, {formData.longitude}
+                  </p>
+                )}
+              </div>
+
+              {/* Delivery Configuration */}
+              <div className="border-t border-gray-200 pt-4 mt-2">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">הגדרות משלוח</h4>
+
+                {/* Delivery Enabled */}
+                <label className="flex items-center space-x-2 space-x-reverse mb-3">
+                  <input
+                    type="checkbox"
+                    checked={formData.delivery_enabled}
+                    onChange={(e) => handleInputChange('delivery_enabled', e.target.checked)}
+                    className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">משלוחים פעילים</span>
+                </label>
+
+                {formData.delivery_enabled && (
+                  <div className="space-y-3">
+                    {/* Max Distance */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        מרחק משלוח מקסימלי (ק״מ)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={formData.delivery_max_distance}
+                        onChange={(e) => handleInputChange('delivery_max_distance', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                        placeholder="למשל: 5"
+                        style={{ direction: 'ltr', textAlign: 'left' }}
+                      />
+                    </div>
+
+                    {/* Base Fee */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        דמי משלוח (₪)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={formData.delivery_base_fee}
+                        onChange={(e) => handleInputChange('delivery_base_fee', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                        placeholder="למשל: 15"
+                        style={{ direction: 'ltr', textAlign: 'left' }}
+                      />
+                    </div>
+
+                    {/* Free Delivery Threshold */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        משלוח חינם מעל (₪)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={formData.delivery_free_threshold}
+                        onChange={(e) => handleInputChange('delivery_free_threshold', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                        placeholder="למשל: 100 (0 = ללא)"
+                        style={{ direction: 'ltr', textAlign: 'left' }}
+                      />
+                    </div>
+
+                    {/* Min Order Amount */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        הזמנה מינימלית (₪)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={formData.min_order_amount}
+                        onChange={(e) => handleInputChange('min_order_amount', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                        placeholder="למשל: 50 (0 = ללא)"
+                        style={{ direction: 'ltr', textAlign: 'left' }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
