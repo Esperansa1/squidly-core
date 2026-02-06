@@ -96,27 +96,26 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
         }}
       >
         {isEmpty ? (
-          /* Empty state - white card with rounded corners */
+          /* Empty state - white card spanning full available area */
           <div
             style={{
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: theme.spacing.lg,
+              padding: theme.spacing.md,
               minHeight: '160px',
             }}
           >
             <div
               style={{
+                flex: 1,
                 backgroundColor: theme.colors.cardBg,
                 borderRadius: theme.borderRadius.xl,
                 boxShadow: theme.shadows.card,
-                padding: `${theme.spacing.xl} ${theme.spacing.lg}`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               <div

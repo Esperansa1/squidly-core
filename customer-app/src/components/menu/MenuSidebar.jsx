@@ -178,50 +178,21 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
             }}
           >
             {isExpanded ? (
-              <div style={{ position: 'relative', width: '100%' }}>
-                <svg
-                  style={{
-                    position: 'absolute',
-                    right: theme.spacing.sm,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: '16px',
-                    height: '16px',
-                    color: theme.colors.text.muted,
-                    pointerEvents: 'none',
-                  }}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="M21 21l-4.35-4.35" />
-                </svg>
+              <div className="relative w-full">
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="w-4 h-4" style={{ color: theme.colors.text.muted }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
+                  </svg>
+                </div>
                 <input
                   type="text"
                   placeholder="חיפוש"
+                  className="w-full border rounded-lg transition-all duration-200 outline-none px-3 py-1.5 text-sm pr-9 focus:ring-2 focus:border-transparent"
                   style={{
-                    width: '100%',
-                    paddingLeft: theme.spacing.md,
-                    paddingRight: '2.5rem',
-                    paddingTop: '6px',
-                    paddingBottom: '6px',
-                    backgroundColor: theme.colors.cardBg,
-                    borderRadius: theme.borderRadius.lg,
-                    border: `1px solid ${theme.colors.border}`,
-                    fontSize: '0.875rem',
+                    borderColor: theme.colors.border,
                     color: theme.colors.text.primary,
-                    outline: 'none',
-                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = 'transparent';
-                    e.currentTarget.style.boxShadow = `0 0 0 2px ${theme.colors.primary}`;
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = theme.colors.border;
-                    e.currentTarget.style.boxShadow = 'none';
+                    '--tw-ring-color': theme.colors.primary,
                   }}
                 />
               </div>
@@ -293,9 +264,30 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
                     alignItems: 'center',
                     gap: theme.spacing.md,
                     padding: theme.spacing.md,
+                    direction: 'rtl',
                   }}
                 >
-                  {/* Text area (left side in RTL) */}
+                  {/* Mascot / food illustration — first in RTL so it appears on the right */}
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      backgroundColor: '#FEF3C7',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+                      <path d="M7 2v20" />
+                      <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" />
+                    </svg>
+                  </div>
+
+                  {/* Text area — second in RTL so it appears on the left */}
                   <div
                     style={{
                       display: 'flex',
@@ -313,7 +305,7 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
                         fontWeight: '600',
                       }}
                     >
-                      ?עדיין לא הצטרפתם למועדון
+                      עדיין לא הצטרפתם למועדון?
                     </p>
                     <button
                       style={{
@@ -335,26 +327,6 @@ export default function MenuSidebar({ activeCategory, onCategoryChange, categori
                     >
                       להצטרפות בחינם
                     </button>
-                  </div>
-
-                  {/* Mascot / food illustration (right side in RTL) */}
-                  <div
-                    style={{
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: '50%',
-                      backgroundColor: '#FEF3C7',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
-                      <path d="M7 2v20" />
-                      <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" />
-                    </svg>
                   </div>
                 </div>
               ) : (

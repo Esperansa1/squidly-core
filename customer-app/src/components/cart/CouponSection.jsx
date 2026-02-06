@@ -3,7 +3,7 @@ import theme from '../../config/theme';
 
 /**
  * CouponSection - Coupon/discount code input section for cart
- * Displays ticket icon + header in black, dashed separator, red-underlined input
+ * Displays ticket icon + header in black, then dashed line + input on same row
  */
 export default function CouponSection() {
   const [couponCode, setCouponCode] = useState('');
@@ -27,6 +27,7 @@ export default function CouponSection() {
     <div
       style={{
         padding: `${theme.spacing.md}`,
+        direction: 'rtl',
       }}
     >
       {/* Header with ticket icon — black text */}
@@ -35,6 +36,7 @@ export default function CouponSection() {
           display: 'flex',
           alignItems: 'center',
           gap: theme.spacing.sm,
+          marginBottom: theme.spacing.sm,
         }}
       >
         {/* Ticket/coupon icon */}
@@ -60,41 +62,53 @@ export default function CouponSection() {
             color: theme.colors.text.primary,
           }}
         >
-          ?יש לכם קופון
+          יש לכם קופון?
         </span>
       </div>
 
-      {/* Dashed separator */}
+      {/* Dashed line + input on same row — dashed line fills remaining space, input at the left (end in RTL) */}
       <div
         style={{
-          borderBottom: `1px dashed ${theme.colors.border}`,
-          margin: `${theme.spacing.sm} 0`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: theme.spacing.sm,
         }}
-      />
+      >
+        {/* Dashed line — grows to fill available space */}
+        <div
+          style={{
+            flex: 1,
+            borderBottom: `2px dashed ${theme.colors.border}`,
+            backgroundImage: 'none',
+          }}
+        />
 
-      {/* Input field with red underline */}
-      <input
-        type="text"
-        value={couponCode}
-        onChange={(e) => {
-          setCouponCode(e.target.value);
-          setMessage(null);
-        }}
-        onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
-        placeholder="ממשו קופון"
-        disabled={loading}
-        style={{
-          width: '100%',
-          padding: `${theme.spacing.sm} 0`,
-          fontSize: '0.875rem',
-          border: 'none',
-          borderBottom: `2px solid ${theme.colors.primary}`,
-          backgroundColor: 'transparent',
-          textAlign: 'right',
-          outline: 'none',
-          color: theme.colors.text.primary,
-        }}
-      />
+        {/* Input with red underline — fixed width on the left (end) side */}
+        <input
+          type="text"
+          value={couponCode}
+          onChange={(e) => {
+            setCouponCode(e.target.value);
+            setMessage(null);
+          }}
+          onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+          placeholder="ממשו קופון"
+          disabled={loading}
+          style={{
+            width: '120px',
+            flexShrink: 0,
+            padding: `4px 0`,
+            fontSize: '0.8125rem',
+            border: 'none',
+            borderBottom: `2px solid ${theme.colors.primary}`,
+            backgroundColor: 'transparent',
+            textAlign: 'right',
+            outline: 'none',
+            color: theme.colors.text.primary,
+            direction: 'rtl',
+          }}
+        />
+      </div>
 
       {/* Status message */}
       {message && (
