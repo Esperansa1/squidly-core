@@ -78,14 +78,19 @@ export function CartProvider({ children }) {
       ? customizations
       : {};
 
+    // Calculate unit price including customization modifiers
+    // final_price is set by the customization modal and already includes add-ons
+    const basePrice = product.discounted_price || product.price || 0;
+    const unitPrice = product.final_price || basePrice;
+
     // Build optimistic cart item using backend field names
     const optimisticItem = {
       id: 'temp_' + Date.now(),
       product_id: productId,
       product_name: product.product_name || product.name,
       quantity,
-      unit_price: product.discounted_price || product.price || 0,
-      total_price: (product.discounted_price || product.price || 0) * quantity,
+      unit_price: unitPrice,
+      total_price: unitPrice * quantity,
       customizations: customizationsObject,
       notes: notes || null,
       image_url: product.image_url || null,
