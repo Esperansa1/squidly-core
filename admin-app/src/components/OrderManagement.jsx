@@ -441,7 +441,7 @@ const OrderManagement = () => {
 
       {/* Custom Date Range Picker */}
       {showCustomDate && activeTab === 'הזמנות קודמות' && (
-        <div className="px-6 pt-2">
+        <div className="px-6 pt-2 pb-4">
           <Card className="p-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
