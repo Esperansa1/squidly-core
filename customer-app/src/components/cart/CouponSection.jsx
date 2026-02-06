@@ -30,12 +30,11 @@ export default function CouponSection() {
         direction: 'rtl',
       }}
     >
-      {/* Header with ticket icon — black text, centered */}
+      {/* Header with ticket icon — black text, right-aligned (RTL start) */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
           gap: theme.spacing.sm,
           marginBottom: theme.spacing.sm,
         }}
@@ -67,25 +66,23 @@ export default function CouponSection() {
         </span>
       </div>
 
-      {/* Dashed line + input on same row, centered */}
+      {/* Dashed line fills space, input at leftmost (end in RTL) */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
           gap: theme.spacing.sm,
         }}
       >
-        {/* Dashed line — left side */}
+        {/* Dashed line — fills remaining space */}
         <div
           style={{
             flex: 1,
-            maxWidth: '80px',
             borderBottom: `2px dashed ${theme.colors.border}`,
           }}
         />
 
-        {/* Input with red underline — centered */}
+        {/* Input with red underline — at the left (end) side, text centered */}
         <input
           type="text"
           value={couponCode}
@@ -107,15 +104,6 @@ export default function CouponSection() {
             textAlign: 'center',
             outline: 'none',
             color: theme.colors.text.primary,
-          }}
-        />
-
-        {/* Dashed line — right side */}
-        <div
-          style={{
-            flex: 1,
-            maxWidth: '80px',
-            borderBottom: `2px dashed ${theme.colors.border}`,
           }}
         />
       </div>
