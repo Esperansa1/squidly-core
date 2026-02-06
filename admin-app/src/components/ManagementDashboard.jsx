@@ -79,9 +79,7 @@ const ManagementDashboard = () => {
     'today': 'היום',
     'yesterday': 'אתמול',
     'this_week': 'השבוע',
-    'last_week': 'שבוע שעבר',
     'this_month': 'החודש',
-    'last_month': 'חודש שעבר',
     'custom': 'מותאם אישית',
   };
 
@@ -89,9 +87,7 @@ const ManagementDashboard = () => {
     'היום': 'today',
     'אתמול': 'yesterday',
     'השבוע': 'this_week',
-    'שבוע שעבר': 'last_week',
     'החודש': 'this_month',
-    'חודש שעבר': 'last_month',
     'מותאם אישית': 'custom',
   };
 
@@ -113,7 +109,7 @@ const ManagementDashboard = () => {
           <h1 className="text-2xl font-bold text-gray-900">ניהול ודוחות</h1>
 
           <TabSelector
-            tabs={['היום', 'אתמול', 'השבוע', 'שבוע שעבר', 'החודש', 'חודש שעבר', 'מותאם אישית']}
+            tabs={['היום', 'אתמול', 'השבוע', 'החודש', 'מותאם אישית']}
             activeTab={getActivePeriodLabel(period)}
             onTabChange={handleTabChange}
           />

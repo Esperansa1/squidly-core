@@ -14,7 +14,7 @@ const OrderManagement = () => {
   const [selectedBranch, setSelectedBranch] = useState({ id: 0, name: 'כל הסניפים' });
   const [activeTab, setActiveTab] = useState('הזמנות חיות');
   const [deliveryType, setDeliveryType] = useState(null);
-  const [timeframe, setTimeframe] = useState('יום');
+  const [timeframe, setTimeframe] = useState('היום');
 
   // Orders data
   const [orders, setOrders] = useState([]);
@@ -42,7 +42,7 @@ const OrderManagement = () => {
 
   // Tab options
   const mainTabs = ['הזמנות חיות', 'הזמנות קודמות'];
-  const timeframeTabs = ['יום', 'שבוע', 'חודש', 'שנה', 'מותאם אישית'];
+  const timeframeTabs = ['היום', 'השבוע', 'החודש', 'השנה', 'מותאם אישית'];
 
   // Initialize API and load branches
   useEffect(() => {
@@ -250,10 +250,10 @@ const OrderManagement = () => {
   const calculateDateFilters = (timeframe) => {
     // Map Hebrew timeframe to English for dateRangeCalculator
     const timeframeMap = {
-      'יום': 'today',
-      'שבוע': 'week',
-      'חודש': 'month',
-      'שנה': 'year'
+      'היום': 'today',
+      'השבוע': 'week',
+      'החודש': 'month',
+      'השנה': 'year'
     };
 
     const englishTimeframe = timeframeMap[timeframe] || 'month';
