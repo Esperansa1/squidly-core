@@ -13,8 +13,6 @@ import MobileCartSheet from './MobileCartSheet';
 import CategoryBadgeButtons from './CategoryBadgeButtons';
 import { useCart } from '../../contexts/CartContext';
 import { useBranch } from '../../contexts/BranchContext';
-import { useAuth } from '../../contexts/AuthContext';
-import UserMenu from '../auth/UserMenu';
 import AuthModal from '../auth/AuthModal';
 
 /**
@@ -774,6 +772,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
               categories={categories}
               isExpanded={sidebarExpanded}
               onToggle={setSidebarExpanded}
+              onLoginClick={() => setDesktopAuthModalOpen(true)}
             />
 
             {/* Center - Main Content */}
@@ -785,19 +784,6 @@ export default function MenuLayout({ branchId, onCheckout }) {
                 overflow: 'hidden',
               }}
             >
-              {/* Desktop User Menu - top of content area */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'flex-start',
-                  alignItems: 'center',
-                  marginBottom: theme.spacing.sm,
-                  flexShrink: 0,
-                }}
-              >
-                <UserMenu onLoginClick={() => setDesktopAuthModalOpen(true)} />
-              </div>
-
               {/* Hero Banner - Static */}
               <div style={{ flexShrink: 0, marginBottom: theme.spacing.md }}>
                 <HeroBanner imageUrl={selectedBranch?.banner_image_url} />
