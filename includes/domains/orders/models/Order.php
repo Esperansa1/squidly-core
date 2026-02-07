@@ -29,6 +29,11 @@ class Order
     public ?string $pickup_time;
     public ?string $special_instructions;
 
+    // Loyalty
+    public float $loyalty_points_earned = 0.0;
+    public float $loyalty_points_used = 0.0;
+    public float $loyalty_discount = 0.0;
+
     // Order statuses
     public const STATUS_PENDING = 'pending';
     public const STATUS_CONFIRMED = 'confirmed';
@@ -74,6 +79,11 @@ class Order
         $order->gateway_transaction_id = get_post_meta($post->ID, '_gateway_transaction_id', true) ?: null;
         $order->pickup_time = get_post_meta($post->ID, '_pickup_time', true) ?: null;
         $order->special_instructions = get_post_meta($post->ID, '_special_instructions', true) ?: null;
+
+        // Loyalty
+        $order->loyalty_points_earned = (float) get_post_meta($post->ID, '_loyalty_points_earned', true);
+        $order->loyalty_points_used = (float) get_post_meta($post->ID, '_loyalty_points_used', true);
+        $order->loyalty_discount = (float) get_post_meta($post->ID, '_loyalty_discount', true);
 
         // Load order items
         $items_data = get_post_meta($post->ID, '_order_items', true) ?: [];
@@ -136,7 +146,7 @@ class Order
         );
 
         $this->tax_amount = $this->subtotal * $tax_rate;
-        $this->total_amount = $this->subtotal + $this->tax_amount + $this->delivery_fee;
+        $this->total_amount = $this->subtotal + $this->tax_amount + $this->delivery_fee - $this->loyalty_discount;
     }
 
     /**
@@ -187,6 +197,9 @@ class Order
             'tracking_token' => $this->tracking_token,
             'pickup_time' => $this->pickup_time,
             'special_instructions' => $this->special_instructions,
+            'loyalty_points_earned' => $this->loyalty_points_earned,
+            'loyalty_points_used' => $this->loyalty_points_used,
+            'loyalty_discount' => $this->loyalty_discount,
         ];
     }
 }

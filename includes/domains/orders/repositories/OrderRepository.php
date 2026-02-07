@@ -763,6 +763,9 @@ class OrderRepository implements RepositoryInterface
             '_pickup_time' => $data['pickup_time'] ?? null,
             '_special_instructions' => $data['special_instructions'] ?? null,
             '_order_items' => $data['order_items'] ?? [],
+            '_loyalty_points_earned' => $data['loyalty_points_earned'] ?? 0.0,
+            '_loyalty_points_used' => $data['loyalty_points_used'] ?? 0.0,
+            '_loyalty_discount' => $data['loyalty_discount'] ?? 0.0,
         ];
 
         foreach ($meta_fields as $key => $value) {
@@ -870,6 +873,9 @@ class OrderRepository implements RepositoryInterface
             'pickup_time' => '_pickup_time',
             'special_instructions' => '_special_instructions',
             'order_items' => '_order_items',
+            'loyalty_points_earned' => '_loyalty_points_earned',
+            'loyalty_points_used' => '_loyalty_points_used',
+            'loyalty_discount' => '_loyalty_discount',
         ];
 
         foreach ($updatable_fields as $data_key => $meta_key) {

@@ -492,6 +492,14 @@ class OrderRestController extends \WP_REST_Controller
             }
 
             $order = $this->repository->get($id);
+
+            // Award loyalty points when order is completed
+            if ($status === Order::STATUS_COMPLETED) {
+                $this->award_loyalty_points($id);
+                // Re-fetch to include updated loyalty data
+                $order = $this->repository->get($id);
+            }
+
             return rest_ensure_response($this->prepare_order_for_response($order, $request));
 
         } catch (InvalidArgumentException $e) {
@@ -506,6 +514,46 @@ class OrderRestController extends \WP_REST_Controller
                 $e->getMessage(),
                 ['status' => 500]
             );
+        }
+    }
+
+    /**
+     * Award loyalty points for a completed order.
+     * Only awards to registered (non-guest) customers who haven't already been awarded.
+     */
+    private function award_loyalty_points(int $order_id): void
+    {
+        try {
+            $order = $this->repository->get($order_id);
+            if (!$order) {
+                return;
+            }
+
+            // Skip if already awarded
+            if ($order->loyalty_points_earned > 0) {
+                return;
+            }
+
+            $customer_repo = new \CustomerRepository();
+            $customer = $customer_repo->get($order->customer_id);
+            if (!$customer || !$customer->canEarnLoyaltyPoints()) {
+                return;
+            }
+
+            // Get effective cashback rate from the order's branch
+            $branch_repo = new \StoreBranchRepository();
+            $branch = $order->branch_id ? $branch_repo->get($order->branch_id) : null;
+            $rate = $branch ? $branch->getEffectiveCashbackRate() : (float) get_option('squidly_loyalty_rate', 2.0);
+
+            $points = round($order->subtotal * $rate / 100, 2);
+            if ($points <= 0) {
+                return;
+            }
+
+            $customer_repo->addLoyaltyPoints($order->customer_id, $points);
+            $this->repository->update($order_id, ['loyalty_points_earned' => $points]);
+        } catch (\Exception $e) {
+            error_log('Loyalty points award failed for order #' . $order_id . ': ' . $e->getMessage());
         }
     }
 
@@ -1028,6 +1076,9 @@ class OrderRestController extends \WP_REST_Controller
             'pickup_time' => $order->pickup_time,
             'special_instructions' => $order->special_instructions,
             'order_items' => array_map([$this, 'prepare_order_item'], $order->order_items),
+            'loyalty_points_earned' => $order->loyalty_points_earned,
+            'loyalty_points_used' => $order->loyalty_points_used,
+            'loyalty_discount' => $order->loyalty_discount,
         ];
 
         // Include customer data inline to avoid separate API calls
