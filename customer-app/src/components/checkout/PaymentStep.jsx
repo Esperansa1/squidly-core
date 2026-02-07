@@ -18,7 +18,7 @@ export default function PaymentStep({
   error,
   setError,
 }) {
-  const { customer: authCustomer, isAuthenticated } = useAuth();
+  const { customer: authCustomer, isAuthenticated, refreshCustomer } = useAuth();
   const [processingStage, setProcessingStage] = useState('idle'); // 'idle', 'creating_customer', 'creating_order', 'redirecting', 'complete'
 
   // Auto-initiate checkout when component mounts (if not already processed)
@@ -68,12 +68,18 @@ export default function PaymentStep({
         payment_method: 'woocommerce',
         delivery_fee: deliveryFee,
         notes: '',
+        loyalty_points_to_use: checkoutData.loyaltyPointsToUse || 0,
       });
 
       // Store order result
       setOrderResult(orderResponse);
 
       // Step 4: Redirect to payment if payment URL provided
+      // Refresh customer data to sync loyalty points balance
+      if (isAuthenticated) {
+        refreshCustomer().catch(() => {});
+      }
+
       if (orderResponse.payment_url) {
         setProcessingStage('redirecting');
 
@@ -149,11 +155,19 @@ export default function PaymentStep({
             <p>
               <strong>{t('total')}:</strong> ₪{orderResult.total_price.toFixed(2)}
             </p>
+            {orderResult.loyalty_discount > 0 && (
+              <p className="text-green-600">
+                <strong>{t('pointsDiscount')}:</strong> -₪{orderResult.loyalty_discount.toFixed(2)} ({orderResult.loyalty_points_used} {t('pointsRedeemed')})
+              </p>
+            )}
           </div>
           <div className="mt-6 bg-white border p-4">
             <p className="font-bold mb-2">{t('trackYourOrder')}</p>
             <p className="text-sm">{t('useTokenToTrack')}</p>
             <p className="text-sm mt-2">{t('confirmationSentTo', { phone: checkoutData.customerInfo.phone })}</p>
+            {isAuthenticated && (
+              <p className="text-sm mt-2 text-amber-600 font-medium">{t('pointsWillBeAwarded')}</p>
+            )}
           </div>
         </div>
       )}

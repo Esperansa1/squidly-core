@@ -35,6 +35,8 @@ export default function CheckoutFlow({ onBack, branchId }) {
     // Step 3: Review (no additional data)
     // Step 4: Payment
     paymentMethod: 'woocommerce',
+    // Loyalty points
+    loyaltyPointsToUse: 0,
   });
 
   // Pre-fill customer info from auth context
@@ -187,6 +189,7 @@ export default function CheckoutFlow({ onBack, branchId }) {
             cartData={cartData}
             branchId={branchId}
             onEditStep={(step) => setCurrentStep(step)}
+            onUpdateLoyaltyPoints={(points) => updateCheckoutData({ loyaltyPointsToUse: points })}
           />
         )}
 

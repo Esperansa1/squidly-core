@@ -1,18 +1,29 @@
 import React from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useBranch } from '../../contexts/BranchContext';
 import { t } from '../../i18n/translations';
 
 /**
  * ReviewStep - Order summary and confirmation
  * Step 3 of checkout process
  */
-export default function ReviewStep({ checkoutData, cartData, branchId, onEditStep }) {
-  const { customerInfo, deliveryType, deliveryAddress, deliveryTime, deliveryFee } = checkoutData;
+export default function ReviewStep({ checkoutData, cartData, branchId, onEditStep, onUpdateLoyaltyPoints }) {
+  const { customer, isAuthenticated } = useAuth();
+  const { selectedBranch } = useBranch();
+  const { customerInfo, deliveryType, deliveryAddress, deliveryTime, deliveryFee, loyaltyPointsToUse } = checkoutData;
   const { items, subtotal } = cartData;
 
   // Calculate tax (17% VAT in Israel)
   const taxRate = 0.17;
   const taxAmount = subtotal * taxRate;
-  const totalAmount = subtotal + deliveryFee + taxAmount;
+  const loyaltyDiscount = loyaltyPointsToUse || 0;
+  const totalAmount = subtotal + deliveryFee + taxAmount - loyaltyDiscount;
+
+  // Loyalty points available
+  const pointsBalance = isAuthenticated ? (customer?.loyalty_points_balance || 0) : 0;
+  const maxRedeemable = Math.min(pointsBalance, subtotal); // Can't discount more than subtotal
+  const cashbackRate = selectedBranch?.cashback_rate ?? 2.0;
+  const pointsToEarn = subtotal * cashbackRate / 100;
 
   return (
     <div className="space-y-6">
@@ -143,10 +154,68 @@ export default function ReviewStep({ checkoutData, cartData, branchId, onEditSte
             <span>{t('tax')} (17%):</span>
             <span>₪{taxAmount.toFixed(2)}</span>
           </div>
+
+          {/* Loyalty Points Redemption */}
+          {isAuthenticated && pointsBalance > 0 && (
+            <div className="border-t pt-3 mt-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold text-amber-600">
+                  {t('redeemPoints')} ({t('pointsBalance', { points: pointsBalance })})
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max={maxRedeemable}
+                  step="1"
+                  value={loyaltyPointsToUse || ''}
+                  onChange={(e) => {
+                    const val = Math.min(Math.max(0, parseFloat(e.target.value) || 0), maxRedeemable);
+                    onUpdateLoyaltyPoints(val);
+                  }}
+                  placeholder="0"
+                  className="w-24 px-2 py-1 border rounded text-sm text-center"
+                />
+                <button
+                  onClick={() => onUpdateLoyaltyPoints(maxRedeemable)}
+                  className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded hover:bg-amber-200"
+                >
+                  {t('useAllPoints')}
+                </button>
+                {loyaltyPointsToUse > 0 && (
+                  <button
+                    onClick={() => onUpdateLoyaltyPoints(0)}
+                    className="px-2 py-1 text-gray-500 text-xs hover:text-red-500"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">{t('maxPointsAvailable', { points: maxRedeemable.toFixed(0) })}</p>
+            </div>
+          )}
+
+          {/* Loyalty Discount Line */}
+          {loyaltyDiscount > 0 && (
+            <div className="flex justify-between text-sm text-green-600 font-bold">
+              <span>{t('pointsDiscount')}:</span>
+              <span>-₪{loyaltyDiscount.toFixed(2)}</span>
+            </div>
+          )}
+
           <div className="border-t pt-2 flex justify-between text-xl font-bold">
             <span>{t('total')}:</span>
             <span>₪{totalAmount.toFixed(2)}</span>
           </div>
+
+          {/* Points you'll earn */}
+          {isAuthenticated && pointsToEarn > 0 && (
+            <div className="flex justify-between text-xs text-amber-600 mt-1">
+              <span>{t('pointsYouWillEarn')}:</span>
+              <span>+{pointsToEarn.toFixed(1)}</span>
+            </div>
+          )}
         </div>
       </div>
 
