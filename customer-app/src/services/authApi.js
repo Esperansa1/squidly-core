@@ -49,10 +49,11 @@ export async function sendPhoneCode(phone) {
 /**
  * Verify phone code and optionally provide name for new customers
  */
-export async function verifyPhoneCode({ phone, code, first_name, last_name }) {
+export async function verifyPhoneCode({ phone, code, first_name, last_name, email }) {
   const body = { phone, code };
   if (first_name) body.first_name = first_name;
   if (last_name) body.last_name = last_name;
+  if (email) body.email = email;
 
   return request('auth/phone/verify', {
     method: 'POST',

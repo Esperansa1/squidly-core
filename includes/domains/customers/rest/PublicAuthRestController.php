@@ -30,7 +30,7 @@ class PublicAuthRestController extends PublicRestController
             'methods' => \WP_REST_Server::CREATABLE,
             'callback' => [$this, 'google_login'],
             'permission_callback' => function () {
-                return $this->public_permission_with_rate_limit(20, 60);
+                return $this->auth_rate_limit('google', 20, 60);
             },
             'args' => [
                 'id_token' => [
@@ -46,7 +46,7 @@ class PublicAuthRestController extends PublicRestController
             'methods' => \WP_REST_Server::CREATABLE,
             'callback' => [$this, 'send_phone_code'],
             'permission_callback' => function () {
-                return $this->public_permission_with_rate_limit(5, 300);
+                return $this->auth_rate_limit('otp_send', 5, 300);
             },
             'args' => [
                 'phone' => [
@@ -62,7 +62,7 @@ class PublicAuthRestController extends PublicRestController
             'methods' => \WP_REST_Server::CREATABLE,
             'callback' => [$this, 'verify_phone_code'],
             'permission_callback' => function () {
-                return $this->public_permission_with_rate_limit(10, 60);
+                return $this->auth_rate_limit('otp_verify', 10, 60);
             },
             'args' => [
                 'phone' => [
@@ -85,6 +85,11 @@ class PublicAuthRestController extends PublicRestController
                     'type' => 'string',
                     'sanitize_callback' => 'sanitize_text_field',
                 ],
+                'email' => [
+                    'required' => false,
+                    'type' => 'string',
+                    'sanitize_callback' => 'sanitize_email',
+                ],
             ],
         ]);
 
@@ -101,6 +106,32 @@ class PublicAuthRestController extends PublicRestController
             'callback' => [$this, 'logout'],
             'permission_callback' => [$this, 'public_permission_callback'],
         ]);
+    }
+
+    /**
+     * Per-endpoint rate limiting (avoids shared key collision)
+     */
+    private function auth_rate_limit(string $endpoint, int $max_requests, int $time_window)
+    {
+        $ip = $this->get_client_ip();
+        $transient_key = 'squidly_rl_' . $endpoint . '_' . md5($ip);
+        $current_count = get_transient($transient_key);
+
+        if ($current_count === false) {
+            set_transient($transient_key, 1, $time_window);
+            return true;
+        }
+
+        if ($current_count >= $max_requests) {
+            return new \WP_Error(
+                'rate_limit_exceeded',
+                'Too many requests. Please try again later.',
+                ['status' => 429]
+            );
+        }
+
+        set_transient($transient_key, $current_count + 1, $time_window);
+        return true;
     }
 
     /**
@@ -139,7 +170,6 @@ class PublicAuthRestController extends PublicRestController
                         'google',
                         $google_id
                     );
-                    // Refresh customer data
                     $customer = $this->customer_repository->get($customer->id);
                 } elseif ($customer && !$customer->is_guest) {
                     // Existing registered customer found by email — link Google ID
@@ -152,8 +182,6 @@ class PublicAuthRestController extends PublicRestController
 
             if (!$customer) {
                 // 3. Create new customer
-                // Phone is required by CustomerRepository — use a placeholder
-                // The customer can add their real phone later
                 $customer_id = $this->customer_repository->create([
                     'first_name' => $first_name ?: 'Google',
                     'last_name' => $last_name ?: 'User',
@@ -172,7 +200,6 @@ class PublicAuthRestController extends PublicRestController
                 ], 500);
             }
 
-            // Generate auth token
             $token = $this->generate_auth_token($customer->id);
 
             return new \WP_REST_Response([
@@ -191,7 +218,6 @@ class PublicAuthRestController extends PublicRestController
     {
         $phone = $request->get_param('phone');
 
-        // Normalize phone number
         try {
             $normalized = $this->normalize_phone($phone);
         } catch (\InvalidArgumentException $e) {
@@ -211,10 +237,8 @@ class PublicAuthRestController extends PublicRestController
         $provider = get_option('squidly_sms_provider', 'mock');
 
         if ($provider === 'mock') {
-            // Mock mode: log to error_log
             error_log("Squidly OTP for {$normalized}: {$code}");
         }
-        // Future: add real SMS provider integration here
 
         return new \WP_REST_Response([
             'success' => true,
@@ -231,8 +255,8 @@ class PublicAuthRestController extends PublicRestController
         $code = $request->get_param('code');
         $first_name = $request->get_param('first_name');
         $last_name = $request->get_param('last_name');
+        $email = $request->get_param('email');
 
-        // Normalize phone
         try {
             $normalized = $this->normalize_phone($phone);
         } catch (\InvalidArgumentException $e) {
@@ -251,8 +275,7 @@ class PublicAuthRestController extends PublicRestController
             ], 401);
         }
 
-        // Delete transient (single-use)
-        delete_transient($transient_key);
+        // DO NOT delete the OTP yet — only delete after successful auth/creation
 
         try {
             $is_new_customer = false;
@@ -261,42 +284,46 @@ class PublicAuthRestController extends PublicRestController
             $customer = $this->customer_repository->findByPhone($normalized);
 
             if ($customer && !$customer->is_guest) {
-                // Existing registered customer — update phone_verified_at
+                // Existing registered customer — just log them in
                 $this->customer_repository->update($customer->id, [
                     'phone_verified_at' => date('Y-m-d H:i:s'),
                 ]);
                 $customer = $this->customer_repository->get($customer->id);
+
             } elseif ($customer && $customer->is_guest) {
-                // Guest customer — need name to convert
+                // Guest customer — need info to convert
                 if (empty($first_name) || empty($last_name)) {
+                    // Keep OTP alive, ask frontend for info
                     return new \WP_REST_Response([
                         'is_new_customer' => true,
-                        'needs_name' => true,
-                        'message' => 'Please provide first_name and last_name to complete registration',
+                        'needs_info' => true,
+                        'message' => 'Please provide your details to complete registration',
                     ], 200);
                 }
 
-                // Update name first (guest may have placeholder names)
+                // Update name
                 $this->customer_repository->update($customer->id, [
                     'first_name' => $first_name,
                     'last_name' => $last_name,
                 ]);
 
-                // Convert guest to registered with phone provider
+                // Convert guest to registered
                 $this->customer_repository->convertGuestToRegistered(
                     $customer->id,
-                    $customer->email ?: '',
+                    $email ?: $customer->email ?: '',
                     'phone'
                 );
                 $customer = $this->customer_repository->get($customer->id);
                 $is_new_customer = true;
+
             } else {
-                // No customer found — need name to create new
+                // No customer found — need info to create
                 if (empty($first_name) || empty($last_name)) {
+                    // Keep OTP alive, ask frontend for info
                     return new \WP_REST_Response([
                         'is_new_customer' => true,
-                        'needs_name' => true,
-                        'message' => 'Please provide first_name and last_name to complete registration',
+                        'needs_info' => true,
+                        'message' => 'Please provide your details to complete registration',
                     ], 200);
                 }
 
@@ -305,6 +332,7 @@ class PublicAuthRestController extends PublicRestController
                     'first_name' => $first_name,
                     'last_name' => $last_name,
                     'phone' => $normalized,
+                    'email' => $email ?: '',
                     'auth_provider' => 'phone',
                     'phone_verified_at' => date('Y-m-d H:i:s'),
                     'is_guest' => false,
@@ -319,7 +347,9 @@ class PublicAuthRestController extends PublicRestController
                 ], 500);
             }
 
-            // Generate auth token
+            // NOW delete the OTP — auth succeeded
+            delete_transient($transient_key);
+
             $token = $this->generate_auth_token($customer->id);
 
             return new \WP_REST_Response([
@@ -379,8 +409,6 @@ class PublicAuthRestController extends PublicRestController
 
     /**
      * Authenticate request from Authorization header
-     *
-     * @return int|null Customer ID or null
      */
     private function authenticate_request(\WP_REST_Request $request): ?int
     {
@@ -428,8 +456,6 @@ class PublicAuthRestController extends PublicRestController
 
     /**
      * Verify Google ID token via Google's tokeninfo endpoint
-     *
-     * @return array|\WP_Error Google user data or error
      */
     private function verify_google_token(string $id_token)
     {
@@ -450,12 +476,10 @@ class PublicAuthRestController extends PublicRestController
             return new \WP_Error('google_token_invalid', 'Invalid Google token');
         }
 
-        // Verify audience matches our client ID (if configured)
         if (!empty($google_client_id) && ($body['aud'] ?? '') !== $google_client_id) {
             return new \WP_Error('google_audience_mismatch', 'Google token audience does not match');
         }
 
-        // Verify token is not expired
         if (isset($body['exp']) && (int) $body['exp'] < time()) {
             return new \WP_Error('google_token_expired', 'Google token has expired');
         }
@@ -517,11 +541,9 @@ class PublicAuthRestController extends PublicRestController
 
     /**
      * Generate a placeholder phone for Google-only auth
-     * (Customer model requires phone, but Google users may not provide one)
      */
     private function generate_placeholder_phone(): string
     {
-        // Generate unique placeholder in valid Israeli format
         $random = str_pad((string) random_int(1000000, 9999999), 7, '0', STR_PAD_LEFT);
         return '+97200' . $random;
     }

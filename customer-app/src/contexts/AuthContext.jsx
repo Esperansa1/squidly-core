@@ -60,21 +60,24 @@ export function AuthProvider({ children }) {
 
   /**
    * Verify phone code
-   * @param {string} phone
-   * @param {string} code
-   * @param {string} [firstName]
-   * @param {string} [lastName]
+   * @param {Object} params
+   * @param {string} params.phone
+   * @param {string} params.code
+   * @param {string} [params.firstName]
+   * @param {string} [params.lastName]
+   * @param {string} [params.email]
    */
-  const verifyPhoneCode = useCallback(async (phone, code, firstName, lastName) => {
+  const verifyPhoneCode = useCallback(async ({ phone, code, firstName, lastName, email }) => {
     const data = await authApi.verifyPhoneCode({
       phone,
       code,
       first_name: firstName,
       last_name: lastName,
+      email,
     });
 
-    // If needs_name, return the response for the UI to handle
-    if (data.needs_name) {
+    // If needs_info, return the response for the UI to handle
+    if (data.needs_info) {
       return data;
     }
 
