@@ -289,6 +289,28 @@ class CartService
         $tax_amount = $subtotal * $tax_rate;
         $total_amount = $subtotal + $tax_amount + $delivery_fee;
 
+        // Loyalty points redemption
+        $loyalty_points_used = 0.0;
+        $loyalty_discount = 0.0;
+        $requested_points = (float) ($checkout_data['loyalty_points_to_use'] ?? 0);
+
+        if ($requested_points > 0 && !empty($checkout_data['customer_id'])) {
+            $customerRepo = new CustomerRepository();
+            $customer = $customerRepo->get((int) $checkout_data['customer_id']);
+
+            if ($customer && $customer->canEarnLoyaltyPoints()) {
+                // Cap at balance and subtotal (1 point = ₪1)
+                $loyalty_points_used = min($requested_points, $customer->loyalty_points_balance, $subtotal);
+                $loyalty_discount = $loyalty_points_used;
+                $total_amount -= $loyalty_discount;
+
+                // Deduct points from customer balance
+                if ($loyalty_points_used > 0) {
+                    $customerRepo->useLoyaltyPoints((int) $checkout_data['customer_id'], $loyalty_points_used);
+                }
+            }
+        }
+
         // Generate tracking token
         $tracking_token = 'tk_' . bin2hex(random_bytes(16));
 
@@ -310,6 +332,9 @@ class CartService
             'special_instructions' => sanitize_textarea_field($checkout_data['notes'] ?? ''),
             'tracking_token'       => $tracking_token,
             'order_items'          => $order_items,
+            'loyalty_points_used'  => $loyalty_points_used,
+            'loyalty_discount'     => $loyalty_discount,
+            'loyalty_points_earned'=> 0.0,
         ];
     }
 

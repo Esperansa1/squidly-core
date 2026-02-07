@@ -518,16 +518,18 @@ class PublicCartRestController extends WP_REST_Controller
 
             // Step 7: Return response
             return new WP_REST_Response([
-                'order_id'        => $order_id,
-                'tracking_token'  => $order->tracking_token,
-                'total_price'     => $order->total_amount,
-                'subtotal'        => $order->subtotal,
-                'tax_amount'      => $order->tax_amount,
-                'delivery_fee'    => $order->delivery_fee,
-                'status'          => $order->status,
-                'payment_status'  => $order->payment_status,
-                'payment_url'     => $payment_url,
-                'message'         => 'Order created successfully',
+                'order_id'             => $order_id,
+                'tracking_token'       => $order->tracking_token,
+                'total_price'          => $order->total_amount,
+                'subtotal'             => $order->subtotal,
+                'tax_amount'           => $order->tax_amount,
+                'delivery_fee'         => $order->delivery_fee,
+                'loyalty_points_used'  => $order->loyalty_points_used,
+                'loyalty_discount'     => $order->loyalty_discount,
+                'status'               => $order->status,
+                'payment_status'       => $order->payment_status,
+                'payment_url'          => $payment_url,
+                'message'              => 'Order created successfully',
             ], 201);
 
         } catch (InvalidArgumentException $e) {
@@ -690,6 +692,11 @@ class PublicCartRestController extends WP_REST_Controller
             'notes' => [
                 'description' => 'Order notes',
                 'type'        => 'string',
+            ],
+            'loyalty_points_to_use' => [
+                'description' => 'Number of loyalty points to redeem (1 point = ₪1)',
+                'type'        => 'number',
+                'default'     => 0,
             ],
         ];
     }

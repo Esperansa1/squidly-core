@@ -327,6 +327,9 @@ class PublicOrderRestController extends WP_REST_Controller
                 'delivery_address' => $order->delivery_address ?? '',
                 'pickup_time'     => $order->pickup_time ?? '',
                 'special_instructions' => $order->special_instructions ?? '',
+                'loyalty_points_earned' => $order->loyalty_points_earned,
+                'loyalty_points_used'   => $order->loyalty_points_used,
+                'loyalty_discount'      => $order->loyalty_discount,
                 'estimated_time'  => $order->estimated_ready_time ?? null,
                 'items'           => array_map(function($item) {
                     return [
