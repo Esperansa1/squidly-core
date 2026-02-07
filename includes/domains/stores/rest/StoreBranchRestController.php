@@ -277,6 +277,7 @@ class StoreBranchRestController extends \WP_REST_Controller
             'product_availability' => $item->product_availability,
             'ingredient_availability' => $item->ingredient_availability,
             'banner_image_url' => $item->banner_image_url,
+            'cashback_rate' => $item->cashback_rate,
         ];
 
         return new \WP_REST_Response($data, 200);
@@ -349,6 +350,7 @@ class StoreBranchRestController extends \WP_REST_Controller
                 'product_availability' => $request['product_availability'] ?? [],
                 'ingredient_availability' => $request['ingredient_availability'] ?? [],
                 'banner_image_url' => sanitize_text_field($request['banner_image_url'] ?? ''),
+                'cashback_rate' => isset($request['cashback_rate']) ? (float) $request['cashback_rate'] : null,
             ];
 
             $branch_id = $this->repository->create($data);
@@ -443,6 +445,10 @@ class StoreBranchRestController extends \WP_REST_Controller
 
             if (isset($request['banner_image_url'])) {
                 $data['banner_image_url'] = sanitize_text_field($request['banner_image_url']);
+            }
+
+            if (isset($request['cashback_rate'])) {
+                $data['cashback_rate'] = $request['cashback_rate'] !== null && $request['cashback_rate'] !== '' ? (float) $request['cashback_rate'] : null;
             }
 
             $success = $this->repository->update($id, $data);
@@ -855,6 +861,12 @@ class StoreBranchRestController extends \WP_REST_Controller
                 'type' => 'string',
                 'required' => false,
                 'sanitize_callback' => 'sanitize_text_field',
+            ];
+
+            $args['cashback_rate'] = [
+                'description' => 'Per-branch loyalty cashback rate (%). Null uses global default.',
+                'type' => 'number',
+                'required' => false,
             ];
         }
 

@@ -46,6 +46,9 @@ class StoreBranch
 
     public ?string $banner_image_url = null;     // Hero banner image URL for customer app
 
+    // Loyalty configuration
+    public ?float $cashback_rate = null;         // Per-branch cashback % (null = use global default)
+
     public function __construct(array $data)
     {
         $this->id        = (int)    $data['id'];
@@ -81,6 +84,7 @@ class StoreBranch
         $this->min_order_amount         = (float) ($data['min_order_amount']         ?? 0.0);
         $this->delivery_zones           = $data['delivery_zones'] ?? [];
         $this->banner_image_url         = isset($data['banner_image_url']) ? (string) $data['banner_image_url'] : null;
+        $this->cashback_rate            = isset($data['cashback_rate']) ? (float) $data['cashback_rate'] : null;
     }
 
     /* ---------- Helper look-ups ---------- */
@@ -195,6 +199,18 @@ class StoreBranch
         return $parts[0] ?? '00:00';
     }
 
+    /**
+     * Get the effective cashback rate for this branch.
+     * Falls back to the global squidly_loyalty_rate option.
+     */
+    public function getEffectiveCashbackRate(): float
+    {
+        if ($this->cashback_rate !== null) {
+            return $this->cashback_rate;
+        }
+        return (float) get_option('squidly_loyalty_rate', 2.0);
+    }
+
     /** Flatten everything to an array for JSON / API use. */
     public function toArray(): array
     {
@@ -223,6 +239,7 @@ class StoreBranch
             'min_order_amount'       => $this->min_order_amount,
             'delivery_zones'         => $this->delivery_zones,
             'banner_image_url'       => $this->banner_image_url,
+            'cashback_rate'          => $this->cashback_rate,
         ];
     }
 }

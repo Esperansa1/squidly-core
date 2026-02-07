@@ -80,6 +80,10 @@ class StoreBranchRepository implements RepositoryInterface
             update_post_meta($post_id, '_banner_image_url', esc_url_raw($data['banner_image_url']));
         }
 
+        if (isset($data['cashback_rate']) && $data['cashback_rate'] !== null) {
+            update_post_meta($post_id, '_cashback_rate', (float) $data['cashback_rate']);
+        }
+
         return $post_id;
     }
 
@@ -124,6 +128,7 @@ class StoreBranchRepository implements RepositoryInterface
             'min_order_amount'       => (float)  get_post_meta($id, '_min_order_amount', true),
             'delivery_zones'         => get_post_meta($id, '_delivery_zones', true) ?: [],
             'banner_image_url'       => get_post_meta($id, '_banner_image_url', true) ?: null,
+            'cashback_rate'          => get_post_meta($id, '_cashback_rate', true) !== '' ? (float) get_post_meta($id, '_cashback_rate', true) : null,
         ]);
     }
 
@@ -450,6 +455,13 @@ class StoreBranchRepository implements RepositoryInterface
         }
         if (array_key_exists('banner_image_url', $data)) {
             update_post_meta($id, '_banner_image_url', $data['banner_image_url'] ? esc_url_raw($data['banner_image_url']) : '');
+        }
+        if (array_key_exists('cashback_rate', $data)) {
+            if ($data['cashback_rate'] !== null && $data['cashback_rate'] !== '') {
+                update_post_meta($id, '_cashback_rate', (float) $data['cashback_rate']);
+            } else {
+                delete_post_meta($id, '_cashback_rate');
+            }
         }
 
         return true;
