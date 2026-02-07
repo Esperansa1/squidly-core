@@ -333,6 +333,14 @@ class CustomerRestController extends \WP_REST_Controller
                 $data['staff_labels'] = sanitize_textarea_field($request['staff_labels']);
             }
 
+            if (isset($request['loyalty_points_balance'])) {
+                $data['loyalty_points_balance'] = (float) $request['loyalty_points_balance'];
+            }
+
+            if (isset($request['lifetime_points_earned'])) {
+                $data['lifetime_points_earned'] = (float) $request['lifetime_points_earned'];
+            }
+
             $success = $this->repository->update($id, $data);
 
             if (!$success) {
@@ -735,6 +743,16 @@ class CustomerRestController extends \WP_REST_Controller
             $args['staff_labels'] = [
                 'type' => 'string',
                 'description' => 'Staff labels for customer',
+            ];
+            $args['loyalty_points_balance'] = [
+                'type' => 'number',
+                'description' => 'Current loyalty points balance',
+                'minimum' => 0,
+            ];
+            $args['lifetime_points_earned'] = [
+                'type' => 'number',
+                'description' => 'Total lifetime points earned',
+                'minimum' => 0,
             ];
         }
 
