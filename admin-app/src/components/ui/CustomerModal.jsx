@@ -180,6 +180,13 @@ const CustomerModal = ({
     e.preventDefault();
 
     if (!validateForm()) {
+      // Scroll to the first field with an error
+      requestAnimationFrame(() => {
+        const firstErrorField = document.querySelector('[data-has-error="true"]');
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
       return;
     }
 

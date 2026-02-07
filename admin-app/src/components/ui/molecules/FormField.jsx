@@ -78,7 +78,7 @@ const FormField = ({
   };
 
   return (
-    <div className={`flex flex-col gap-1 ${className}`}>
+    <div className={`flex flex-col gap-1 ${className}`} data-has-error={error ? 'true' : undefined}>
       {/* Label */}
       {label && (
         <Label
