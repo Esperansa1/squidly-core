@@ -207,6 +207,21 @@ const translations = {
     branchModalNoBranchFound: 'No branch found for this area',
     branchModalRequiredField: 'This field is required',
     branchModalSelectTime: 'Select Time',
+
+    // Loyalty Points
+    loyaltyPoints: 'Loyalty Points',
+    yourPoints: 'Your Points',
+    pointsBalance: '{{points}} points',
+    pointsYouWillEarn: 'Points you\'ll earn',
+    redeemPoints: 'Redeem Points',
+    usePoints: 'Use Points',
+    pointsDiscount: 'Points Discount',
+    pointsRedeemed: 'Points Redeemed',
+    maxPointsAvailable: 'Max available: {{points}}',
+    pointsEarned: 'Points Earned',
+    loginToEarnPoints: 'Login to earn loyalty points',
+    pointsWillBeAwarded: 'Points will be awarded when your order is completed',
+    useAllPoints: 'Use All',
   },
 
   he: {
@@ -406,6 +421,21 @@ const translations = {
     branchModalNoBranchFound: 'לא נמצא סניף באזור זה',
     branchModalRequiredField: 'שדה חובה',
     branchModalSelectTime: 'בחר זמן',
+
+    // Loyalty Points
+    loyaltyPoints: 'נקודות נאמנות',
+    yourPoints: 'הנקודות שלך',
+    pointsBalance: '{{points}} נקודות',
+    pointsYouWillEarn: 'נקודות שתצברו',
+    redeemPoints: 'מימוש נקודות',
+    usePoints: 'השתמש בנקודות',
+    pointsDiscount: 'הנחת נקודות',
+    pointsRedeemed: 'נקודות שמומשו',
+    maxPointsAvailable: 'מקסימום זמין: {{points}}',
+    pointsEarned: 'נקודות שנצברו',
+    loginToEarnPoints: 'התחבר כדי לצבור נקודות נאמנות',
+    pointsWillBeAwarded: 'נקודות יזוכו כשההזמנה תושלם',
+    useAllPoints: 'השתמש בהכל',
   },
 
   ar: {
@@ -605,6 +635,21 @@ const translations = {
     branchModalNoBranchFound: 'لم يتم العثور على فرع في هذه المنطقة',
     branchModalRequiredField: 'هذا الحقل مطلوب',
     branchModalSelectTime: 'اختر الوقت',
+
+    // Loyalty Points
+    loyaltyPoints: 'نقاط الولاء',
+    yourPoints: 'نقاطك',
+    pointsBalance: '{{points}} نقاط',
+    pointsYouWillEarn: 'النقاط التي ستحصل عليها',
+    redeemPoints: 'استبدال النقاط',
+    usePoints: 'استخدم النقاط',
+    pointsDiscount: 'خصم النقاط',
+    pointsRedeemed: 'النقاط المستبدلة',
+    maxPointsAvailable: 'الحد الأقصى المتاح: {{points}}',
+    pointsEarned: 'النقاط المكتسبة',
+    loginToEarnPoints: 'سجل الدخول لكسب نقاط الولاء',
+    pointsWillBeAwarded: 'سيتم منح النقاط عند اكتمال طلبك',
+    useAllPoints: 'استخدم الكل',
   },
 };
 

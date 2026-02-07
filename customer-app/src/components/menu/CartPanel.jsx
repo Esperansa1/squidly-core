@@ -2,12 +2,17 @@ import React, { useMemo, useCallback } from 'react';
 import theme from '../../config/theme';
 import CartItemDisplay from '../cart/CartItemDisplay';
 import CouponSection from '../cart/CouponSection';
+import { useAuth } from '../../contexts/AuthContext';
+import { useBranch } from '../../contexts/BranchContext';
+import { t } from '../../i18n/translations';
 
 /**
  * CartPanel - Order summary section (leftmost panel)
  * Shows order summary header, cart items, coupon section, price details, and order button
  */
 export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, onDeleteItem }) {
+  const { customer, isAuthenticated } = useAuth();
+  const { selectedBranch } = useBranch();
   const isEmpty = !cart || !cart.items || cart.items.length === 0;
 
   const { subtotal, deliveryFee, vat, total } = useMemo(() => {
@@ -199,6 +204,29 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
               <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>מע״מ (17%)</span>
               <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>₪{vat.toFixed(2)}</span>
             </div>
+
+            {/* Loyalty Points Line */}
+            {!isEmpty && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: theme.spacing.xs }}>
+                {isAuthenticated ? (
+                  <>
+                    <span style={{ fontSize: '0.8125rem', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="#F59E0B" stroke="none">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                      {t('pointsYouWillEarn')}
+                    </span>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: '#F59E0B' }}>
+                      +{(subtotal * (selectedBranch?.cashback_rate ?? 2.0) / 100).toFixed(1)}
+                    </span>
+                  </>
+                ) : (
+                  <span style={{ fontSize: '0.75rem', color: theme.colors.text.muted, fontStyle: 'italic' }}>
+                    {t('loginToEarnPoints')}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Divider */}
             <div style={{ height: '1px', backgroundColor: theme.colors.border, margin: `${theme.spacing.md} 0`, opacity: 0.5 }} />

@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import theme from '../../config/theme';
 import { useAuth } from '../../contexts/AuthContext';
+import { t } from '../../i18n/translations';
 
 /**
  * MenuSidebar - Navigation sidebar matching admin-app style
@@ -310,6 +311,26 @@ const MenuSidebar = React.memo(function MenuSidebar({ activeCategory, onCategory
                       >
                         שלום, {customer?.first_name}
                       </p>
+                      {customer?.loyalty_points_balance > 0 && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            backgroundColor: '#FEF3C7',
+                            padding: '2px 8px',
+                            borderRadius: theme.borderRadius.full,
+                            alignSelf: 'flex-start',
+                          }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#F59E0B" stroke="none">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                          </svg>
+                          <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#92400E' }}>
+                            {t('pointsBalance', { points: customer.loyalty_points_balance })}
+                          </span>
+                        </div>
+                      )}
                       <button
                         style={{
                           backgroundColor: 'transparent',
