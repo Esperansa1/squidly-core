@@ -298,17 +298,31 @@ class CartService
             $customerRepo = new CustomerRepository();
             $customer = $customerRepo->get((int) $checkout_data['customer_id']);
 
-            if ($customer && $customer->canEarnLoyaltyPoints()) {
-                // Cap at balance and subtotal (1 point = ₪1)
-                $loyalty_points_used = min($requested_points, $customer->loyalty_points_balance, $subtotal);
-                $loyalty_discount = $loyalty_points_used;
-                $total_amount -= $loyalty_discount;
-
-                // Deduct points from customer balance
-                if ($loyalty_points_used > 0) {
-                    $customerRepo->useLoyaltyPoints((int) $checkout_data['customer_id'], $loyalty_points_used);
-                }
+            if (!$customer || !$customer->canEarnLoyaltyPoints()) {
+                throw new InvalidArgumentException('Customer is not eligible for loyalty points redemption');
             }
+
+            if ($requested_points > $customer->loyalty_points_balance) {
+                throw new InvalidArgumentException(
+                    sprintf('Insufficient loyalty points. Requested: %s, Available: %s',
+                        number_format($requested_points, 1),
+                        number_format($customer->loyalty_points_balance, 1)
+                    )
+                );
+            }
+
+            if ($requested_points > $subtotal) {
+                throw new InvalidArgumentException(
+                    sprintf('Points cannot exceed order subtotal (₪%s)', number_format($subtotal, 2))
+                );
+            }
+
+            $loyalty_points_used = $requested_points;
+            $loyalty_discount = $loyalty_points_used;
+            $total_amount -= $loyalty_discount;
+
+            // Deduct points from customer balance
+            $customerRepo->useLoyaltyPoints((int) $checkout_data['customer_id'], $loyalty_points_used);
         }
 
         // Generate tracking token

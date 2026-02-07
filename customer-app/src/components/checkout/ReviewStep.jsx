@@ -171,11 +171,14 @@ export default function ReviewStep({ checkoutData, cartData, branchId, onEditSte
                   step="1"
                   value={loyaltyPointsToUse || ''}
                   onChange={(e) => {
-                    const val = Math.min(Math.max(0, parseFloat(e.target.value) || 0), maxRedeemable);
+                    const raw = parseFloat(e.target.value) || 0;
+                    const val = Math.min(Math.max(0, raw), maxRedeemable);
                     onUpdateLoyaltyPoints(val);
                   }}
                   placeholder="0"
-                  className="w-24 px-2 py-1 border rounded text-sm text-center"
+                  className={`w-24 px-2 py-1 border rounded text-sm text-center ${
+                    loyaltyPointsToUse > maxRedeemable ? 'border-red-500 bg-red-50' : ''
+                  }`}
                 />
                 <button
                   onClick={() => onUpdateLoyaltyPoints(maxRedeemable)}
