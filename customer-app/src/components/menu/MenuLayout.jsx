@@ -13,6 +13,7 @@ import MobileCartSheet from './MobileCartSheet';
 import CategoryBadgeButtons from './CategoryBadgeButtons';
 import { useCart } from '../../contexts/CartContext';
 import { useBranch } from '../../contexts/BranchContext';
+import AuthModal from '../auth/AuthModal';
 
 /**
  * MenuLayout - Responsive layout for menu page
@@ -75,6 +76,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
   const [selectedBadges, setSelectedBadges] = useState([]);
   const [sortOption, setSortOption] = useState('default');
   const [recentSearches, setRecentSearches] = useState([]);
+  const [desktopAuthModalOpen, setDesktopAuthModalOpen] = useState(false);
 
   // Load products and categories
   useEffect(() => {
@@ -388,7 +390,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
             className="hide-scrollbar smooth-scroll"
           >
             {/* User greeting at top right */}
-            <MobileUserHeader username="משתמש" />
+            <MobileUserHeader />
 
             {/* Hero Banner */}
             <div style={{ padding: `0 ${theme.spacing.mobile.md}` }}>
@@ -770,6 +772,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
               categories={categories}
               isExpanded={sidebarExpanded}
               onToggle={setSidebarExpanded}
+              onLoginClick={() => setDesktopAuthModalOpen(true)}
             />
 
             {/* Center - Main Content */}
@@ -1101,6 +1104,11 @@ export default function MenuLayout({ branchId, onCheckout }) {
             <CartPanel cart={cart} onCheckout={onCheckout} onClearCart={handleClearCart} onItemClick={handleEditCartItem} onDeleteItem={handleDeleteItem} />
           </div>
         </div>
+      )}
+
+      {/* Desktop Auth Modal */}
+      {!isMobile && (
+        <AuthModal isOpen={desktopAuthModalOpen} onClose={() => setDesktopAuthModalOpen(false)} />
       )}
 
       {/* Product Customization Modal (both mobile and desktop) */}

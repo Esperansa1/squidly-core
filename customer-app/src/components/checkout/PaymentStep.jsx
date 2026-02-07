@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import publicApi from '../../services/publicApi';
+import { useAuth } from '../../contexts/AuthContext';
 import { t } from '../../i18n/translations';
 
 /**
@@ -17,6 +18,7 @@ export default function PaymentStep({
   error,
   setError,
 }) {
+  const { customer: authCustomer, isAuthenticated } = useAuth();
   const [processingStage, setProcessingStage] = useState('idle'); // 'idle', 'creating_customer', 'creating_order', 'redirecting', 'complete'
 
   // Auto-initiate checkout when component mounts (if not already processed)
@@ -31,16 +33,23 @@ export default function PaymentStep({
       setLoading(true);
       setError(null);
 
-      // Step 1: Create guest customer
-      setProcessingStage('creating_customer');
-      const customerResponse = await publicApi.createGuestCustomer({
-        first_name: checkoutData.customerInfo.firstName,
-        last_name: checkoutData.customerInfo.lastName,
-        phone: checkoutData.customerInfo.phone,
-        email: checkoutData.customerInfo.email || '',
-      });
-
-      const customerId = customerResponse.customer_id;
+      // Step 1: Get or create customer
+      let customerId;
+      if (isAuthenticated && authCustomer) {
+        // Authenticated user — use existing customer ID
+        customerId = authCustomer.id;
+        setProcessingStage('creating_order');
+      } else {
+        // Guest — create guest customer
+        setProcessingStage('creating_customer');
+        const customerResponse = await publicApi.createGuestCustomer({
+          first_name: checkoutData.customerInfo.firstName,
+          last_name: checkoutData.customerInfo.lastName,
+          phone: checkoutData.customerInfo.phone,
+          email: checkoutData.customerInfo.email || '',
+        });
+        customerId = customerResponse.customer_id;
+      }
 
       // Step 2: Calculate tax and total
       const taxRate = 0.17;

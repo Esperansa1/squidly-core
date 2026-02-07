@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
 import CustomerInfoStep from './CustomerInfoStep';
 import DeliveryStep from './DeliveryStep';
 import ReviewStep from './ReviewStep';
@@ -16,6 +17,7 @@ import { t } from '../../i18n/translations';
  */
 export default function CheckoutFlow({ onBack, branchId }) {
   const { getCartData } = useCart();
+  const { customer, isAuthenticated } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [checkoutData, setCheckoutData] = useState({
     // Step 1: Customer Info
@@ -34,6 +36,21 @@ export default function CheckoutFlow({ onBack, branchId }) {
     // Step 4: Payment
     paymentMethod: 'woocommerce',
   });
+
+  // Pre-fill customer info from auth context
+  useEffect(() => {
+    if (isAuthenticated && customer) {
+      setCheckoutData((prev) => ({
+        ...prev,
+        customerInfo: {
+          firstName: customer.first_name || prev.customerInfo.firstName,
+          lastName: customer.last_name || prev.customerInfo.lastName,
+          phone: customer.phone || prev.customerInfo.phone,
+          email: customer.email || prev.customerInfo.email,
+        },
+      }));
+    }
+  }, [isAuthenticated, customer]);
 
   // Order result (from checkout API)
   const [orderResult, setOrderResult] = useState(null);

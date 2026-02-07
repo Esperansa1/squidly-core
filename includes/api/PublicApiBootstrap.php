@@ -47,6 +47,10 @@ class PublicApiBootstrap
         $cart_controller = new PublicCartRestController();
         $cart_controller->register_routes();
 
+        // Public Auth API (Google + Phone OTP)
+        $auth_controller = new PublicAuthRestController();
+        $auth_controller->register_routes();
+
         // Public config endpoint for customer app
         register_rest_route('squidly/v1/public', '/config', [
             'methods' => WP_REST_Server::READABLE,
@@ -100,6 +104,9 @@ class PublicApiBootstrap
             'features' => [
                 'guest_checkout' => (bool) get_option('squidly_allow_guest_checkout', true),
                 'online_ordering' => (bool) get_option('squidly_enable_online_ordering', true),
+            ],
+            'auth' => [
+                'google_client_id' => get_option('squidly_google_client_id', ''),
             ],
             'theme' => [
                 'primary_color' => '#D12525',

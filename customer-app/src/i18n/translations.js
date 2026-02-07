@@ -191,6 +191,7 @@ const translations = {
     // Branch Selection Modal
     branchModalTitle: 'Eaten with us before?',
     branchModalLogin: 'Login',
+    branchModalWelcomeBack: 'Welcome back',
     branchModalPickup: 'Pickup',
     branchModalDelivery: 'Delivery',
     branchModalCity: 'City',
@@ -389,6 +390,7 @@ const translations = {
     // Branch Selection Modal
     branchModalTitle: 'כבר אכלנו יחד?',
     branchModalLogin: 'התחבר',
+    branchModalWelcomeBack: 'ברוך שובך',
     branchModalPickup: 'איסוף עצמי',
     branchModalDelivery: 'משלוח',
     branchModalCity: 'עיר',
@@ -587,6 +589,7 @@ const translations = {
     // Branch Selection Modal
     branchModalTitle: 'أكلنا معًا من قبل؟',
     branchModalLogin: 'تسجيل الدخول',
+    branchModalWelcomeBack: 'مرحبًا بعودتك',
     branchModalPickup: 'الاستلام',
     branchModalDelivery: 'التوصيل',
     branchModalCity: 'المدينة',
