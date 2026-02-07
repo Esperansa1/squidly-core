@@ -29,6 +29,7 @@ const BranchModal = ({
     delivery_free_threshold: '',
     min_order_amount: '',
     banner_image_url: '',
+    cashback_rate: '',
   });
 
   const [customAccessibility, setCustomAccessibility] = useState('');
@@ -109,6 +110,7 @@ const BranchModal = ({
           delivery_free_threshold: editingBranch.delivery_free_threshold || '',
           min_order_amount: editingBranch.min_order_amount || '',
           banner_image_url: editingBranch.banner_image_url || '',
+          cashback_rate: editingBranch.cashback_rate ?? '',
         });
       } else {
         // Reset form for new branch
@@ -129,6 +131,7 @@ const BranchModal = ({
           delivery_free_threshold: '',
           min_order_amount: '',
           banner_image_url: '',
+          cashback_rate: '',
         });
       }
       setErrors({});
@@ -288,6 +291,7 @@ const BranchModal = ({
         delivery_base_fee: formData.delivery_base_fee !== '' ? parseFloat(formData.delivery_base_fee) : 0,
         delivery_free_threshold: formData.delivery_free_threshold !== '' ? parseFloat(formData.delivery_free_threshold) : 0,
         min_order_amount: formData.min_order_amount !== '' ? parseFloat(formData.min_order_amount) : 0,
+        cashback_rate: formData.cashback_rate !== '' ? parseFloat(formData.cashback_rate) : null,
       };
       onSave(payload);
     }
@@ -574,6 +578,30 @@ const BranchModal = ({
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Loyalty Configuration */}
+              <div className="border-t border-gray-200 pt-4 mt-2">
+                <h4 className="text-md font-semibold text-gray-900 mb-3">תוכנית נאמנות</h4>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    אחוז צבירת נקודות (%)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    value={formData.cashback_rate}
+                    onChange={(e) => handleInputChange('cashback_rate', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                    placeholder="ריק = ברירת מחדל גלובלית (2%)"
+                    style={{ direction: 'ltr', textAlign: 'left' }}
+                  />
+                  <p className="text-gray-500 text-xs mt-1">
+                    השאר ריק לשימוש בברירת מחדל. 1 נקודה = ₪1 הנחה.
+                  </p>
+                </div>
               </div>
             </div>
 
