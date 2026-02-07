@@ -127,8 +127,6 @@ const ProductModal = ({
     setAvailabilityWarnings(warnings);
   }, [formData.availability, formData.product_group_ids, productGroups, branches]);
 
-  if (!isOpen) return null;
-
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -340,6 +338,8 @@ const ProductModal = ({
   const title = isEditMode ?
     (strings.edit_product || 'ערוך מוצר') :
     (strings.create_product || 'צור מוצר חדש');
+
+  if (!isOpen) return null;
 
   return (
     <div
