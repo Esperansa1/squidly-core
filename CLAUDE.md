@@ -118,6 +118,31 @@ try {
 - Sanitization: `sanitize_text_field()`, `wp_kses_post()`, type casting
 - Business rules: Check dependencies, validate transitions, enforce integrity
 
+### Optimistic UI (Frontend)
+All user-facing actions must update the UI immediately without waiting for the server response. If the server later rejects the request, revert the UI change and show an error.
+
+**Pattern:**
+1. Update local state / UI instantly on user action
+2. Fire the API call in the background
+3. On server error: revert state and notify the user (e.g., toast)
+
+**Example — Logout:**
+```javascript
+const logout = useCallback(() => {
+  const oldToken = token;
+  // Optimistic: clear UI immediately
+  localStorage.removeItem(TOKEN_KEY);
+  setToken(null);
+  setCustomer(null);
+  // Fire server call in background — don't await
+  if (oldToken) {
+    authApi.logout(oldToken).catch(() => {});
+  }
+}, [token]);
+```
+
+**When to apply:** Any action where the expected outcome is known (logout, remove from cart, toggle, delete). Login/signup still needs to await the server since the response data (token, customer) is required.
+
 ### Testing
 ```
 tests/

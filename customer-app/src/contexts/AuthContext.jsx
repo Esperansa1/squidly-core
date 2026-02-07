@@ -88,19 +88,18 @@ export function AuthProvider({ children }) {
   }, [saveToken]);
 
   /**
-   * Logout — clear token on server and locally
+   * Logout — optimistic: clear UI immediately, server call in background
    */
-  const logout = useCallback(async () => {
-    if (token) {
-      try {
-        await authApi.logout(token);
-      } catch {
-        // Ignore server errors during logout
-      }
-    }
+  const logout = useCallback(() => {
+    const oldToken = token;
+    // Optimistic: clear state instantly so UI updates immediately
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setCustomer(null);
+    // Fire server invalidation in background — don't block UI
+    if (oldToken) {
+      authApi.logout(oldToken).catch(() => {});
+    }
   }, [token]);
 
   /**
@@ -113,7 +112,7 @@ export function AuthProvider({ children }) {
       setCustomer(data.customer);
     } catch {
       // Token may have expired
-      await logout();
+      logout();
     }
   }, [token, logout]);
 

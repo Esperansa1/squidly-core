@@ -25,9 +25,9 @@ export default function UserMenu({ onLoginClick }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [dropdownOpen]);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setDropdownOpen(false);
-    await logout();
+    logout();
   };
 
   // User avatar icon
