@@ -4,10 +4,12 @@ import { t, getCurrentLanguage } from '../../i18n/translations';
 import { useIsMobile, useIsTablet } from '../../hooks/useMediaQuery';
 import { useBranch } from '../../contexts/BranchContext';
 import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../contexts/AuthContext';
 import publicApi from '../../services/publicApi';
 import DeliveryAddressForm from './DeliveryAddressForm';
 import BranchPickupList from './BranchPickupList';
 import PickupTimeSelector from './PickupTimeSelector';
+import AuthModal from '../auth/AuthModal';
 import { TruckIcon, ShoppingBagIcon, ArrowRightIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 /**
@@ -26,6 +28,8 @@ export default function BranchSelectionModal({ isOpen }) {
   const isTablet = useIsTablet();
   const { branches, selectBranchForDelivery, selectBranchForPickup, loading: branchesLoading } = useBranch();
   const { showToast } = useToast();
+  const { isAuthenticated, customer } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Current step: 'initial' | 'delivery' | 'pickup' | 'pickup-time'
   const [step, setStep] = useState('initial');
@@ -199,6 +203,9 @@ export default function BranchSelectionModal({ isOpen }) {
               direction={direction}
               onDeliveryClick={() => setStep('delivery')}
               onPickupClick={() => setStep('pickup')}
+              onLoginClick={() => setAuthModalOpen(true)}
+              isAuthenticated={isAuthenticated}
+              customerName={customer?.first_name}
             />
           )}
 
@@ -234,6 +241,9 @@ export default function BranchSelectionModal({ isOpen }) {
           )}
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 }
@@ -241,7 +251,7 @@ export default function BranchSelectionModal({ isOpen }) {
 /**
  * Initial Step Component - Login button + Pickup/Delivery cards
  */
-function InitialStep({ direction, onDeliveryClick, onPickupClick }) {
+function InitialStep({ direction, onDeliveryClick, onPickupClick, onLoginClick, isAuthenticated, customerName }) {
   const isMobile = useIsMobile();
 
   return (
@@ -269,32 +279,47 @@ function InitialStep({ direction, onDeliveryClick, onPickupClick }) {
         {t('branchModalTitle')}
       </h2>
 
-      {/* Login Button */}
-      <button
-        onClick={() => {
-          // Login functionality - placeholder for now
-        }}
-        style={{
-          padding: isMobile ? `${theme.spacing.sm} ${theme.spacing.xl}` : `${theme.spacing.md} ${theme.spacing['2xl']}`,
-          backgroundColor: theme.colors.cardBg,
-          color: theme.colors.primary,
-          border: `2px solid ${theme.colors.primary}`,
-          borderRadius: theme.borderRadius.lg,
-          fontSize: isMobile ? '1rem' : '1.125rem',
-          fontWeight: '600',
-          cursor: 'pointer',
-          marginBottom: isMobile ? theme.spacing.xl : theme.spacing['2xl'],
-          transition: 'all 0.2s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.05)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = theme.colors.cardBg;
-        }}
-      >
-        {t('branchModalLogin')}
-      </button>
+      {/* Login / Greeting Button */}
+      {isAuthenticated ? (
+        <div
+          style={{
+            padding: isMobile ? `${theme.spacing.sm} ${theme.spacing.xl}` : `${theme.spacing.md} ${theme.spacing['2xl']}`,
+            backgroundColor: theme.colors.cardBg,
+            color: theme.colors.primary,
+            border: `2px solid ${theme.colors.primary}`,
+            borderRadius: theme.borderRadius.lg,
+            fontSize: isMobile ? '1rem' : '1.125rem',
+            fontWeight: '600',
+            marginBottom: isMobile ? theme.spacing.xl : theme.spacing['2xl'],
+          }}
+        >
+          {t('branchModalWelcomeBack')}, {customerName}
+        </div>
+      ) : (
+        <button
+          onClick={onLoginClick}
+          style={{
+            padding: isMobile ? `${theme.spacing.sm} ${theme.spacing.xl}` : `${theme.spacing.md} ${theme.spacing['2xl']}`,
+            backgroundColor: theme.colors.cardBg,
+            color: theme.colors.primary,
+            border: `2px solid ${theme.colors.primary}`,
+            borderRadius: theme.borderRadius.lg,
+            fontSize: isMobile ? '1rem' : '1.125rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            marginBottom: isMobile ? theme.spacing.xl : theme.spacing['2xl'],
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = theme.colors.cardBg;
+          }}
+        >
+          {t('branchModalLogin')}
+        </button>
+      )}
 
       {/* Pickup/Delivery Cards */}
       <div
