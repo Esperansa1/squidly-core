@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import publicApi from '../../services/publicApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { t } from '../../i18n/translations';
+import theme from '../../config/theme';
 
 /**
  * PaymentStep - Order creation and payment redirect
@@ -19,9 +20,9 @@ export default function PaymentStep({
   setError,
 }) {
   const { customer: authCustomer, isAuthenticated, refreshCustomer } = useAuth();
-  const [processingStage, setProcessingStage] = useState('idle'); // 'idle', 'creating_customer', 'creating_order', 'redirecting', 'complete'
+  const [processingStage, setProcessingStage] = useState('idle');
 
-  // Auto-initiate checkout when component mounts (if not already processed)
+  // Auto-initiate checkout when component mounts
   useEffect(() => {
     if (!orderResult && processingStage === 'idle') {
       handleCheckout();
@@ -36,11 +37,9 @@ export default function PaymentStep({
       // Step 1: Get or create customer
       let customerId;
       if (isAuthenticated && authCustomer) {
-        // Authenticated user — use existing customer ID
         customerId = authCustomer.id;
         setProcessingStage('creating_order');
       } else {
-        // Guest — create guest customer
         setProcessingStage('creating_customer');
         const customerResponse = await publicApi.createGuestCustomer({
           first_name: checkoutData.customerInfo.firstName,
@@ -58,7 +57,7 @@ export default function PaymentStep({
       const taxAmount = subtotal * taxRate;
       const totalAmount = subtotal + deliveryFee + taxAmount;
 
-      // Step 3: Checkout cart (creates order)
+      // Step 3: Checkout cart
       setProcessingStage('creating_order');
       const orderResponse = await publicApi.checkoutCart(cartData.token, {
         customer_id: customerId,
@@ -71,11 +70,9 @@ export default function PaymentStep({
         loyalty_points_to_use: checkoutData.loyaltyPointsToUse || 0,
       });
 
-      // Store order result
       setOrderResult(orderResponse);
 
-      // Step 4: Redirect to payment if payment URL provided
-      // Refresh customer data to sync loyalty points balance
+      // Refresh customer data to sync loyalty points
       if (isAuthenticated) {
         refreshCustomer().catch(() => {});
       }
@@ -83,20 +80,16 @@ export default function PaymentStep({
       if (orderResponse.payment_url) {
         setProcessingStage('redirecting');
 
-        // Save tracking token to sessionStorage for post-payment tracking
         sessionStorage.setItem('squidly_tracking_token', orderResponse.tracking_token);
         sessionStorage.setItem('squidly_order_id', orderResponse.order_id.toString());
 
-        // Small delay before redirect
         setTimeout(() => {
           window.location.href = orderResponse.payment_url;
         }, 1500);
       } else {
-        // No payment needed (cash on delivery, etc.)
         setProcessingStage('complete');
       }
     } catch (err) {
-      console.error('Checkout failed:', err);
       setError(err.message || t('checkoutFailed'));
       setProcessingStage('idle');
     } finally {
@@ -104,23 +97,69 @@ export default function PaymentStep({
     }
   };
 
+  const spinnerStyle = {
+    display: 'inline-block',
+    width: '48px',
+    height: '48px',
+    border: `4px solid ${theme.colors.border}`,
+    borderTopColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.full,
+    animation: 'spin 1s linear infinite',
+    marginBottom: theme.spacing.lg,
+  };
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-4">{t('payment')}</h2>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.lg }}>
+      <h2
+        style={{
+          fontSize: theme.typography.desktop.h2,
+          fontWeight: '700',
+          color: theme.colors.text.primary,
+          margin: 0,
+        }}
+      >
+        {t('payment')}
+      </h2>
 
       {/* Loading State */}
       {loading && (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
-          <div className="space-y-2">
+        <div
+          style={{
+            textAlign: 'center',
+            padding: `${theme.spacing['2xl']} 0`,
+          }}
+        >
+          <div style={spinnerStyle} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.xs }}>
             {processingStage === 'creating_customer' && (
-              <p className="text-lg">{t('creatingCustomer')}...</p>
+              <p
+                style={{
+                  fontSize: theme.typography.desktop.h3,
+                  color: theme.colors.text.secondary,
+                }}
+              >
+                {t('creatingCustomer')}...
+              </p>
             )}
             {processingStage === 'creating_order' && (
-              <p className="text-lg">{t('creatingOrder')}...</p>
+              <p
+                style={{
+                  fontSize: theme.typography.desktop.h3,
+                  color: theme.colors.text.secondary,
+                }}
+              >
+                {t('creatingOrder')}...
+              </p>
             )}
             {processingStage === 'redirecting' && (
-              <p className="text-lg">{t('redirectingToPayment')}...</p>
+              <p
+                style={{
+                  fontSize: theme.typography.desktop.h3,
+                  color: theme.colors.text.secondary,
+                }}
+              >
+                {t('redirectingToPayment')}...
+              </p>
             )}
           </div>
         </div>
@@ -128,12 +167,38 @@ export default function PaymentStep({
 
       {/* Error State */}
       {error && !loading && (
-        <div className="bg-red-100 border border-red-400 text-red-700 p-4">
-          <h3 className="font-bold mb-2">{t('error')}</h3>
-          <p>{error}</p>
+        <div
+          style={{
+            backgroundColor: '#FEF2F2',
+            border: `1px solid ${theme.colors.error}`,
+            borderRadius: theme.borderRadius.lg,
+            padding: theme.spacing.lg,
+            color: theme.colors.error,
+          }}
+        >
+          <h3
+            style={{
+              fontWeight: '700',
+              marginBottom: theme.spacing.sm,
+              fontSize: theme.typography.mobile.h3,
+            }}
+          >
+            {t('error')}
+          </h3>
+          <p style={{ margin: 0, marginBottom: theme.spacing.md }}>{error}</p>
           <button
             onClick={handleCheckout}
-            className="mt-4 px-6 py-2 bg-red-600 text-white hover:bg-red-700"
+            style={{
+              padding: `${theme.spacing.sm} ${theme.spacing.xl}`,
+              backgroundColor: theme.colors.error,
+              color: theme.colors.text.white,
+              border: 'none',
+              borderRadius: theme.borderRadius.lg,
+              fontWeight: '700',
+              fontSize: theme.typography.mobile.body,
+              cursor: 'pointer',
+              transition: 'opacity 0.2s ease',
+            }}
           >
             {t('tryAgain')}
           </button>
@@ -142,31 +207,94 @@ export default function PaymentStep({
 
       {/* Success State (No Payment URL) */}
       {orderResult && !orderResult.payment_url && processingStage === 'complete' && (
-        <div className="bg-green-100 border border-green-400 text-green-700 p-6">
-          <h3 className="text-2xl font-bold mb-4">{t('orderConfirmed')}!</h3>
-          <div className="space-y-2">
-            <p>
+        <div
+          style={{
+            backgroundColor: '#F0FDF4',
+            border: `1px solid ${theme.colors.success}`,
+            borderRadius: theme.borderRadius.lg,
+            padding: theme.spacing.xl,
+            color: '#166534',
+          }}
+        >
+          <h3
+            style={{
+              fontSize: theme.typography.desktop.h2,
+              fontWeight: '700',
+              marginBottom: theme.spacing.lg,
+            }}
+          >
+            {t('orderConfirmed')}!
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
+            <p style={{ margin: 0 }}>
               <strong>{t('orderNumber')}:</strong> #{orderResult.order_id}
             </p>
-            <p>
+            <p style={{ margin: 0 }}>
               <strong>{t('trackingToken')}:</strong>{' '}
-              <code className="bg-white px-2 py-1 border">{orderResult.tracking_token}</code>
+              <code
+                style={{
+                  backgroundColor: theme.colors.cardBg,
+                  padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                  borderRadius: theme.borderRadius.md,
+                  border: `1px solid ${theme.colors.border}`,
+                  fontSize: theme.typography.mobile.small,
+                }}
+              >
+                {orderResult.tracking_token}
+              </code>
             </p>
-            <p>
+            <p style={{ margin: 0 }}>
               <strong>{t('total')}:</strong> ₪{orderResult.total_price.toFixed(2)}
             </p>
             {orderResult.loyalty_discount > 0 && (
-              <p className="text-green-600">
+              <p style={{ margin: 0, color: theme.colors.success }}>
                 <strong>{t('pointsDiscount')}:</strong> -₪{orderResult.loyalty_discount.toFixed(2)} ({orderResult.loyalty_points_used} {t('pointsRedeemed')})
               </p>
             )}
           </div>
-          <div className="mt-6 bg-white border p-4">
-            <p className="font-bold mb-2">{t('trackYourOrder')}</p>
-            <p className="text-sm">{t('useTokenToTrack')}</p>
-            <p className="text-sm mt-2">{t('confirmationSentTo', { phone: checkoutData.customerInfo.phone })}</p>
+          <div
+            style={{
+              marginTop: theme.spacing.lg,
+              backgroundColor: theme.colors.cardBg,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: theme.borderRadius.lg,
+              padding: theme.spacing.md,
+              color: theme.colors.text.secondary,
+            }}
+          >
+            <p
+              style={{
+                fontWeight: '700',
+                marginBottom: theme.spacing.xs,
+                color: theme.colors.text.primary,
+              }}
+            >
+              {t('trackYourOrder')}
+            </p>
+            <p style={{ margin: 0, fontSize: theme.typography.mobile.small }}>
+              {t('useTokenToTrack')}
+            </p>
+            <p
+              style={{
+                margin: 0,
+                marginTop: theme.spacing.sm,
+                fontSize: theme.typography.mobile.small,
+              }}
+            >
+              {t('confirmationSentTo', { phone: checkoutData.customerInfo.phone })}
+            </p>
             {isAuthenticated && (
-              <p className="text-sm mt-2 text-amber-600 font-medium">{t('pointsWillBeAwarded')}</p>
+              <p
+                style={{
+                  margin: 0,
+                  marginTop: theme.spacing.sm,
+                  fontSize: theme.typography.mobile.small,
+                  color: theme.colors.warning,
+                  fontWeight: '600',
+                }}
+              >
+                {t('pointsWillBeAwarded')}
+              </p>
             )}
           </div>
         </div>
@@ -174,30 +302,98 @@ export default function PaymentStep({
 
       {/* Redirecting State */}
       {orderResult && orderResult.payment_url && processingStage === 'redirecting' && (
-        <div className="bg-blue-100 border border-blue-400 text-blue-700 p-6 text-center">
-          <div className="inline-block animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
-          <h3 className="text-xl font-bold mb-2">{t('redirectingToPayment')}...</h3>
-          <p>{t('doNotCloseWindow')}</p>
-          <div className="mt-6 bg-white border p-4 text-sm text-left">
-            <p>
-              <strong>{t('orderNumber')}:</strong> #{orderResult.order_id}
+        <div
+          style={{
+            backgroundColor: '#EFF6FF',
+            border: `1px solid ${theme.colors.info}`,
+            borderRadius: theme.borderRadius.lg,
+            padding: theme.spacing.xl,
+            textAlign: 'center',
+            color: '#1E40AF',
+          }}
+        >
+          <div style={spinnerStyle} />
+          <h3
+            style={{
+              fontSize: theme.typography.desktop.h3,
+              fontWeight: '700',
+              marginBottom: theme.spacing.sm,
+            }}
+          >
+            {t('redirectingToPayment')}...
+          </h3>
+          <p style={{ margin: 0, marginBottom: theme.spacing.lg }}>
+            {t('doNotCloseWindow')}
+          </p>
+          <div
+            style={{
+              backgroundColor: theme.colors.cardBg,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: theme.borderRadius.lg,
+              padding: theme.spacing.md,
+              textAlign: 'start',
+              fontSize: theme.typography.mobile.small,
+              color: theme.colors.text.secondary,
+            }}
+          >
+            <p style={{ margin: 0 }}>
+              <strong style={{ color: theme.colors.text.primary }}>{t('orderNumber')}:</strong> #{orderResult.order_id}
             </p>
-            <p className="mt-2">
-              <strong>{t('trackingToken')}:</strong>{' '}
-              <code className="bg-gray-100 px-2 py-1">{orderResult.tracking_token}</code>
+            <p style={{ margin: 0, marginTop: theme.spacing.sm }}>
+              <strong style={{ color: theme.colors.text.primary }}>{t('trackingToken')}:</strong>{' '}
+              <code
+                style={{
+                  backgroundColor: theme.colors.background,
+                  padding: `2px ${theme.spacing.xs}`,
+                  borderRadius: theme.borderRadius.sm,
+                }}
+              >
+                {orderResult.tracking_token}
+              </code>
             </p>
-            <p className="text-xs text-gray-600 mt-3">{t('saveTrackingToken')}</p>
+            <p
+              style={{
+                margin: 0,
+                marginTop: theme.spacing.md,
+                fontSize: '0.75rem',
+                color: theme.colors.text.muted,
+              }}
+            >
+              {t('saveTrackingToken')}
+            </p>
           </div>
         </div>
       )}
 
-      {/* Initial State (shouldn't normally see this due to auto-trigger) */}
+      {/* Initial State (fallback) */}
       {!loading && !error && !orderResult && processingStage === 'idle' && (
-        <div className="text-center py-12">
-          <p className="mb-4">{t('readyToComplete')}</p>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: `${theme.spacing['2xl']} 0`,
+          }}
+        >
+          <p
+            style={{
+              marginBottom: theme.spacing.lg,
+              color: theme.colors.text.secondary,
+            }}
+          >
+            {t('readyToComplete')}
+          </p>
           <button
             onClick={handleCheckout}
-            className="px-8 py-3 bg-blue-600 text-white text-lg font-bold hover:bg-blue-700"
+            style={{
+              padding: `${theme.spacing.md} ${theme.spacing['2xl']}`,
+              border: 'none',
+              borderRadius: theme.borderRadius.lg,
+              backgroundColor: theme.colors.primary,
+              color: theme.colors.text.white,
+              fontSize: theme.typography.desktop.h3,
+              fontWeight: '700',
+              cursor: 'pointer',
+              transition: 'opacity 0.2s ease',
+            }}
           >
             {t('completeOrder')}
           </button>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBranch } from '../../contexts/BranchContext';
 import { t } from '../../i18n/translations';
+import theme from '../../config/theme';
 
 /**
  * ReviewStep - Order summary and confirmation
@@ -21,99 +22,176 @@ export default function ReviewStep({ checkoutData, cartData, branchId, onEditSte
 
   // Loyalty points available
   const pointsBalance = isAuthenticated ? (customer?.loyalty_points_balance || 0) : 0;
-  const maxRedeemable = Math.min(pointsBalance, subtotal); // Can't discount more than subtotal
+  const maxRedeemable = Math.min(pointsBalance, subtotal);
   const cashbackRate = selectedBranch?.cashback_rate ?? 2.0;
   const pointsToEarn = subtotal * cashbackRate / 100;
 
-  return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-4">{t('reviewOrder')}</h2>
+  const sectionStyle = {
+    backgroundColor: theme.colors.cardBg,
+    border: `1px solid ${theme.colors.border}`,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+  };
 
-      <p className="text-gray-600">{t('reviewBeforePayment')}</p>
+  const sectionHeaderStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: theme.spacing.md,
+  };
+
+  const sectionTitleStyle = {
+    fontWeight: '700',
+    fontSize: theme.typography.mobile.h3,
+    color: theme.colors.text.primary,
+  };
+
+  const editBtnStyle = {
+    color: theme.colors.primary,
+    fontSize: theme.typography.mobile.small,
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontWeight: '600',
+    textDecoration: 'underline',
+  };
+
+  const rowStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: theme.typography.mobile.small,
+    color: theme.colors.text.secondary,
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.lg }}>
+      <div>
+        <h2
+          style={{
+            fontSize: theme.typography.desktop.h2,
+            fontWeight: '700',
+            color: theme.colors.text.primary,
+            margin: `0 0 ${theme.spacing.xs} 0`,
+          }}
+        >
+          {t('reviewOrder')}
+        </h2>
+        <p style={{ color: theme.colors.text.secondary, margin: 0 }}>
+          {t('reviewBeforePayment')}
+        </p>
+      </div>
 
       {/* Customer Information */}
-      <div className="border p-4">
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="font-bold text-lg">{t('customerInfo')}</h3>
-          <button
-            onClick={() => onEditStep(1)}
-            className="text-blue-600 text-sm hover:underline"
-          >
+      <div style={sectionStyle}>
+        <div style={sectionHeaderStyle}>
+          <h3 style={sectionTitleStyle}>{t('customerInfo')}</h3>
+          <button onClick={() => onEditStep(1)} style={editBtnStyle}>
             {t('edit')}
           </button>
         </div>
-        <div className="space-y-1 text-sm">
-          <div>
-            <strong>{t('name')}:</strong> {customerInfo.firstName} {customerInfo.lastName}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.xs }}>
+          <div style={rowStyle}>
+            <strong style={{ color: theme.colors.text.primary }}>{t('name')}:</strong>
+            <span>{customerInfo.firstName} {customerInfo.lastName}</span>
           </div>
-          <div>
-            <strong>{t('phone')}:</strong> {customerInfo.phone}
+          <div style={rowStyle}>
+            <strong style={{ color: theme.colors.text.primary }}>{t('phone')}:</strong>
+            <span>{customerInfo.phone}</span>
           </div>
           {customerInfo.email && (
-            <div>
-              <strong>{t('email')}:</strong> {customerInfo.email}
+            <div style={rowStyle}>
+              <strong style={{ color: theme.colors.text.primary }}>{t('email')}:</strong>
+              <span>{customerInfo.email}</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Delivery Information */}
-      <div className="border p-4">
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="font-bold text-lg">
+      <div style={sectionStyle}>
+        <div style={sectionHeaderStyle}>
+          <h3 style={sectionTitleStyle}>
             {deliveryType === 'delivery' ? t('delivery') : t('pickup')}
           </h3>
-          <button
-            onClick={() => onEditStep(2)}
-            className="text-blue-600 text-sm hover:underline"
-          >
+          <button onClick={() => onEditStep(2)} style={editBtnStyle}>
             {t('edit')}
           </button>
         </div>
-        <div className="space-y-1 text-sm">
-          <div>
-            <strong>{t('method')}:</strong>{' '}
-            {deliveryType === 'delivery' ? t('delivery') : t('pickup')}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.xs }}>
+          <div style={rowStyle}>
+            <strong style={{ color: theme.colors.text.primary }}>{t('method')}:</strong>
+            <span>{deliveryType === 'delivery' ? t('delivery') : t('pickup')}</span>
           </div>
           {deliveryType === 'delivery' && (
-            <div>
-              <strong>{t('address')}:</strong> {deliveryAddress}
+            <div style={rowStyle}>
+              <strong style={{ color: theme.colors.text.primary }}>{t('address')}:</strong>
+              <span>{deliveryAddress}</span>
             </div>
           )}
-          <div>
-            <strong>{t('time')}:</strong>{' '}
-            {new Date(deliveryTime).toLocaleString('he-IL', {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-            })}
+          <div style={rowStyle}>
+            <strong style={{ color: theme.colors.text.primary }}>{t('time')}:</strong>
+            <span>
+              {new Date(deliveryTime).toLocaleString('he-IL', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              })}
+            </span>
           </div>
           {deliveryType === 'delivery' && (
-            <div>
-              <strong>{t('deliveryFee')}:</strong>{' '}
-              {deliveryFee === 0 ? t('free') : `₪${deliveryFee.toFixed(2)}`}
+            <div style={rowStyle}>
+              <strong style={{ color: theme.colors.text.primary }}>{t('deliveryFee')}:</strong>
+              <span>{deliveryFee === 0 ? t('free') : `₪${deliveryFee.toFixed(2)}`}</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Order Items */}
-      <div className="border p-4">
-        <h3 className="font-bold text-lg mb-3">{t('orderItems')}</h3>
-        <div className="space-y-3">
+      <div style={sectionStyle}>
+        <h3 style={{ ...sectionTitleStyle, marginBottom: theme.spacing.md }}>
+          {t('orderItems')}
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
           {items.map((item) => {
             const price = item.final_price || item.unit_price;
             const itemTotal = price * item.quantity;
 
             return (
-              <div key={item.id} className="flex justify-between border-b pb-2">
-                <div className="flex-1">
-                  <div className="font-bold">{item.product_name}</div>
-                  <div className="text-sm text-gray-600">
+              <div
+                key={item.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  borderBottom: `1px solid ${theme.colors.border}`,
+                  paddingBottom: theme.spacing.sm,
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontWeight: '700',
+                      color: theme.colors.text.primary,
+                      fontSize: theme.typography.mobile.body,
+                    }}
+                  >
+                    {item.product_name}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: theme.typography.mobile.small,
+                      color: theme.colors.text.secondary,
+                    }}
+                  >
                     ₪{price.toFixed(2)} × {item.quantity}
                   </div>
-                  {/* Show customizations */}
                   {item.customizations && item.customizations.length > 0 && (
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div
+                      style={{
+                        fontSize: '0.75rem',
+                        color: theme.colors.text.muted,
+                        marginTop: theme.spacing.xs,
+                      }}
+                    >
                       {item.customizations.map((custom, idx) => (
                         <span key={idx}>
                           • {custom.name}
@@ -124,12 +202,26 @@ export default function ReviewStep({ checkoutData, cartData, branchId, onEditSte
                     </div>
                   )}
                   {item.special_instructions && (
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div
+                      style={{
+                        fontSize: '0.75rem',
+                        color: theme.colors.text.muted,
+                        marginTop: theme.spacing.xs,
+                      }}
+                    >
                       {t('notes')}: {item.special_instructions}
                     </div>
                   )}
                 </div>
-                <div className="font-bold">₪{itemTotal.toFixed(2)}</div>
+                <div
+                  style={{
+                    fontWeight: '700',
+                    color: theme.colors.text.primary,
+                    fontSize: theme.typography.mobile.body,
+                  }}
+                >
+                  ₪{itemTotal.toFixed(2)}
+                </div>
               </div>
             );
           })}
@@ -137,33 +229,71 @@ export default function ReviewStep({ checkoutData, cartData, branchId, onEditSte
       </div>
 
       {/* Price Breakdown */}
-      <div className="border p-4 bg-gray-50">
-        <h3 className="font-bold text-lg mb-3">{t('priceBreakdown')}</h3>
-        <div className="space-y-2">
-          <div className="flex justify-between">
+      <div
+        style={{
+          ...sectionStyle,
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <h3 style={{ ...sectionTitleStyle, marginBottom: theme.spacing.md }}>
+          {t('priceBreakdown')}
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
+          <div style={rowStyle}>
             <span>{t('subtotal')}:</span>
-            <span>₪{subtotal.toFixed(2)}</span>
+            <span style={{ color: theme.colors.text.primary }}>₪{subtotal.toFixed(2)}</span>
           </div>
           {deliveryFee > 0 && (
-            <div className="flex justify-between">
+            <div style={rowStyle}>
               <span>{t('deliveryFee')}:</span>
-              <span>₪{deliveryFee.toFixed(2)}</span>
+              <span style={{ color: theme.colors.text.primary }}>₪{deliveryFee.toFixed(2)}</span>
             </div>
           )}
-          <div className="flex justify-between text-sm text-gray-600">
+          <div
+            style={{
+              ...rowStyle,
+              fontSize: theme.typography.mobile.small,
+              color: theme.colors.text.muted,
+            }}
+          >
             <span>{t('tax')} (17%):</span>
             <span>₪{taxAmount.toFixed(2)}</span>
           </div>
 
           {/* Loyalty Points Redemption */}
           {isAuthenticated && pointsBalance > 0 && (
-            <div className="border-t pt-3 mt-2">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold text-amber-600">
+            <div
+              style={{
+                borderTop: `1px solid ${theme.colors.border}`,
+                paddingTop: theme.spacing.md,
+                marginTop: theme.spacing.xs,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: theme.spacing.sm,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: theme.typography.mobile.small,
+                    fontWeight: '700',
+                    color: theme.colors.warning,
+                  }}
+                >
                   {t('redeemPoints')} ({t('pointsBalance', { points: pointsBalance })})
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: theme.spacing.sm,
+                }}
+              >
                 <input
                   type="number"
                   min="0"
@@ -176,45 +306,102 @@ export default function ReviewStep({ checkoutData, cartData, branchId, onEditSte
                     onUpdateLoyaltyPoints(val);
                   }}
                   placeholder="0"
-                  className={`w-24 px-2 py-1 border rounded text-sm text-center ${
-                    loyaltyPointsToUse > maxRedeemable ? 'border-red-500 bg-red-50' : ''
-                  }`}
+                  style={{
+                    width: '80px',
+                    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                    border: `1px solid ${loyaltyPointsToUse > maxRedeemable ? theme.colors.error : theme.colors.border}`,
+                    borderRadius: theme.borderRadius.md,
+                    fontSize: theme.typography.mobile.small,
+                    textAlign: 'center',
+                    backgroundColor: loyaltyPointsToUse > maxRedeemable ? '#FEF2F2' : theme.colors.cardBg,
+                    outline: 'none',
+                  }}
                 />
                 <button
                   onClick={() => onUpdateLoyaltyPoints(maxRedeemable)}
-                  className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded hover:bg-amber-200"
+                  style={{
+                    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                    backgroundColor: '#FEF3C7',
+                    color: '#92400E',
+                    fontSize: '0.75rem',
+                    fontWeight: '700',
+                    borderRadius: theme.borderRadius.md,
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s ease',
+                  }}
                 >
                   {t('useAllPoints')}
                 </button>
                 {loyaltyPointsToUse > 0 && (
                   <button
                     onClick={() => onUpdateLoyaltyPoints(0)}
-                    className="px-2 py-1 text-gray-500 text-xs hover:text-red-500"
+                    style={{
+                      padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                      color: theme.colors.text.muted,
+                      fontSize: '0.75rem',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
                   >
                     ✕
                   </button>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1">{t('maxPointsAvailable', { points: maxRedeemable.toFixed(0) })}</p>
+              <p
+                style={{
+                  fontSize: '0.75rem',
+                  color: theme.colors.text.muted,
+                  marginTop: theme.spacing.xs,
+                }}
+              >
+                {t('maxPointsAvailable', { points: maxRedeemable.toFixed(0) })}
+              </p>
             </div>
           )}
 
           {/* Loyalty Discount Line */}
           {loyaltyDiscount > 0 && (
-            <div className="flex justify-between text-sm text-green-600 font-bold">
+            <div
+              style={{
+                ...rowStyle,
+                fontWeight: '700',
+                color: theme.colors.success,
+              }}
+            >
               <span>{t('pointsDiscount')}:</span>
               <span>-₪{loyaltyDiscount.toFixed(2)}</span>
             </div>
           )}
 
-          <div className="border-t pt-2 flex justify-between text-xl font-bold">
+          {/* Total */}
+          <div
+            style={{
+              borderTop: `1px solid ${theme.colors.border}`,
+              paddingTop: theme.spacing.sm,
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: theme.typography.desktop.h3,
+              fontWeight: '700',
+              color: theme.colors.text.primary,
+            }}
+          >
             <span>{t('total')}:</span>
             <span>₪{totalAmount.toFixed(2)}</span>
           </div>
 
           {/* Points you'll earn */}
           {isAuthenticated && pointsToEarn > 0 && (
-            <div className="flex justify-between text-xs text-amber-600 mt-1">
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '0.75rem',
+                color: theme.colors.warning,
+                marginTop: theme.spacing.xs,
+              }}
+            >
               <span>{t('pointsYouWillEarn')}:</span>
               <span>+{pointsToEarn.toFixed(1)}</span>
             </div>
@@ -223,9 +410,20 @@ export default function ReviewStep({ checkoutData, cartData, branchId, onEditSte
       </div>
 
       {/* Terms & Conditions Notice */}
-      <div className="bg-blue-50 border border-blue-200 p-4 text-sm">
-        <p className="font-bold mb-2">{t('beforeContinuing')}</p>
-        <p>{t('termsNotice')}</p>
+      <div
+        style={{
+          backgroundColor: '#EFF6FF',
+          border: `1px solid ${theme.colors.info}`,
+          borderRadius: theme.borderRadius.lg,
+          padding: theme.spacing.md,
+          fontSize: theme.typography.mobile.small,
+          color: theme.colors.text.secondary,
+        }}
+      >
+        <p style={{ fontWeight: '700', marginBottom: theme.spacing.xs, color: theme.colors.text.primary }}>
+          {t('beforeContinuing')}
+        </p>
+        <p style={{ margin: 0, lineHeight: '1.5' }}>{t('termsNotice')}</p>
       </div>
     </div>
   );

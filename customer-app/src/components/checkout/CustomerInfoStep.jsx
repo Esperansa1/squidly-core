@@ -1,5 +1,6 @@
 import React from 'react';
 import { t } from '../../i18n/translations';
+import theme from '../../config/theme';
 
 /**
  * CustomerInfoStep - Guest customer information form
@@ -21,85 +22,161 @@ export default function CustomerInfoStep({ data, onChange }) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = data.email ? emailRegex.test(data.email) : true;
 
+  const inputStyle = (hasError = false) => ({
+    width: '100%',
+    border: `1px solid ${hasError ? theme.colors.error : theme.colors.border}`,
+    borderRadius: theme.borderRadius.lg,
+    padding: `${theme.spacing.md} ${theme.spacing.md}`,
+    fontSize: theme.typography.mobile.body,
+    color: theme.colors.text.primary,
+    backgroundColor: theme.colors.cardBg,
+    outline: 'none',
+    transition: 'border-color 0.2s ease',
+    boxSizing: 'border-box',
+  });
+
+  const labelStyle = {
+    display: 'block',
+    fontWeight: '600',
+    fontSize: theme.typography.mobile.body,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.xs,
+  };
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-4">{t('customerInfo')}</h2>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.lg }}>
+      <h2
+        style={{
+          fontSize: theme.typography.desktop.h2,
+          fontWeight: '700',
+          color: theme.colors.text.primary,
+          margin: `0 0 ${theme.spacing.xs} 0`,
+        }}
+      >
+        {t('customerInfo')}
+      </h2>
 
-      <p className="text-gray-600">{t('enterYourDetails')}</p>
+      <p style={{ color: theme.colors.text.secondary, margin: 0 }}>
+        {t('enterYourDetails')}
+      </p>
 
-      {/* First Name */}
-      <div>
-        <label className="block font-bold mb-2">
-          {t('firstName')} <span className="text-red-600">*</span>
-        </label>
-        <input
-          type="text"
-          value={data.firstName}
-          onChange={(e) => handleChange('firstName', e.target.value)}
-          className="w-full border px-4 py-2 focus:outline-none focus:border-blue-500"
-          placeholder={t('enterFirstName')}
-          required
-        />
-      </div>
+      {/* Name Fields Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: theme.spacing.md }}>
+        {/* First Name */}
+        <div>
+          <label style={labelStyle}>
+            {t('firstName')} <span style={{ color: theme.colors.error }}>*</span>
+          </label>
+          <input
+            type="text"
+            value={data.firstName}
+            onChange={(e) => handleChange('firstName', e.target.value)}
+            style={inputStyle()}
+            placeholder={t('enterFirstName')}
+            required
+          />
+        </div>
 
-      {/* Last Name */}
-      <div>
-        <label className="block font-bold mb-2">
-          {t('lastName')} <span className="text-red-600">*</span>
-        </label>
-        <input
-          type="text"
-          value={data.lastName}
-          onChange={(e) => handleChange('lastName', e.target.value)}
-          className="w-full border px-4 py-2 focus:outline-none focus:border-blue-500"
-          placeholder={t('enterLastName')}
-          required
-        />
+        {/* Last Name */}
+        <div>
+          <label style={labelStyle}>
+            {t('lastName')} <span style={{ color: theme.colors.error }}>*</span>
+          </label>
+          <input
+            type="text"
+            value={data.lastName}
+            onChange={(e) => handleChange('lastName', e.target.value)}
+            style={inputStyle()}
+            placeholder={t('enterLastName')}
+            required
+          />
+        </div>
       </div>
 
       {/* Phone */}
       <div>
-        <label className="block font-bold mb-2">
-          {t('phone')} <span className="text-red-600">*</span>
+        <label style={labelStyle}>
+          {t('phone')} <span style={{ color: theme.colors.error }}>*</span>
         </label>
         <input
           type="tel"
           value={data.phone}
           onChange={(e) => handleChange('phone', e.target.value)}
-          className={`w-full border px-4 py-2 focus:outline-none ${
-            !isPhoneValid ? 'border-red-500' : 'focus:border-blue-500'
-          }`}
+          style={inputStyle(!isPhoneValid)}
           placeholder="+972501234567"
           required
         />
         {!isPhoneValid && (
-          <p className="text-red-600 text-sm mt-1">{t('invalidPhone')}</p>
+          <p
+            style={{
+              color: theme.colors.error,
+              fontSize: theme.typography.mobile.small,
+              marginTop: theme.spacing.xs,
+            }}
+          >
+            {t('invalidPhone')}
+          </p>
         )}
-        <p className="text-gray-500 text-sm mt-1">{t('phoneUsedForOrderUpdates')}</p>
+        <p
+          style={{
+            color: theme.colors.text.muted,
+            fontSize: theme.typography.mobile.small,
+            marginTop: theme.spacing.xs,
+          }}
+        >
+          {t('phoneUsedForOrderUpdates')}
+        </p>
       </div>
 
       {/* Email (Optional) */}
       <div>
-        <label className="block font-bold mb-2">{t('email')} ({t('optional')})</label>
+        <label style={labelStyle}>
+          {t('email')} ({t('optional')})
+        </label>
         <input
           type="email"
           value={data.email}
           onChange={(e) => handleChange('email', e.target.value)}
-          className={`w-full border px-4 py-2 focus:outline-none ${
-            !isEmailValid ? 'border-red-500' : 'focus:border-blue-500'
-          }`}
+          style={inputStyle(!isEmailValid)}
           placeholder="email@example.com"
         />
         {!isEmailValid && (
-          <p className="text-red-600 text-sm mt-1">{t('invalidEmail')}</p>
+          <p
+            style={{
+              color: theme.colors.error,
+              fontSize: theme.typography.mobile.small,
+              marginTop: theme.spacing.xs,
+            }}
+          >
+            {t('invalidEmail')}
+          </p>
         )}
-        <p className="text-gray-500 text-sm mt-1">{t('emailForReceipt')}</p>
+        <p
+          style={{
+            color: theme.colors.text.muted,
+            fontSize: theme.typography.mobile.small,
+            marginTop: theme.spacing.xs,
+          }}
+        >
+          {t('emailForReceipt')}
+        </p>
       </div>
 
       {/* Privacy Notice */}
-      <div className="bg-gray-50 border p-4 text-sm text-gray-700">
-        <p className="font-bold mb-2">{t('privacyNotice')}</p>
-        <p>{t('guestCheckoutInfo')}</p>
+      <div
+        style={{
+          backgroundColor: theme.colors.background,
+          border: `1px solid ${theme.colors.border}`,
+          borderRadius: theme.borderRadius.lg,
+          padding: theme.spacing.md,
+          fontSize: theme.typography.mobile.small,
+          color: theme.colors.text.secondary,
+        }}
+      >
+        <p style={{ fontWeight: '700', marginBottom: theme.spacing.xs }}>
+          {t('privacyNotice')}
+        </p>
+        <p style={{ margin: 0, lineHeight: '1.5' }}>{t('guestCheckoutInfo')}</p>
       </div>
     </div>
   );
