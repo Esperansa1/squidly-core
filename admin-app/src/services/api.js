@@ -425,6 +425,19 @@ class ApiService {
     });
   }
 
+  // ===== SYSTEM SETTINGS =====
+
+  async getAdminConfig() {
+    return await this.fetch('admin/config');
+  }
+
+  async updateSystemSettings(settings) {
+    return await this.fetch('admin/settings', {
+      method: 'POST',
+      body: JSON.stringify(settings),
+    });
+  }
+
   // ===== UTILITY METHODS =====
 
   getConfig() {

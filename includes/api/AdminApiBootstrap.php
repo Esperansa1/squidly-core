@@ -69,6 +69,13 @@ class AdminApiBootstrap
             'callback' => [self::class, 'get_admin_config'],
             'permission_callback' => [self::class, 'admin_permissions_check'],
         ]);
+
+        // Admin settings update endpoint
+        register_rest_route('squidly/v1', '/admin/settings', [
+            'methods' => \WP_REST_Server::CREATABLE,
+            'callback' => [self::class, 'update_admin_settings'],
+            'permission_callback' => [self::class, 'admin_permissions_check'],
+        ]);
     }
 
     public static function setup_cors(): void
@@ -139,6 +146,10 @@ class AdminApiBootstrap
                 'base_url' => rest_url('squidly/v1/'),
                 'nonce' => wp_create_nonce('wp_rest'),
             ],
+            'currency' => [
+                'code' => get_option('squidly_currency', 'ILS'),
+                'symbol' => get_option('squidly_currency_symbol', '₪'),
+            ],
             'taxes' => [
                 'vat_rate' => (float) get_option('squidly_tax_rate', 0.18), // 18% VAT by default (0 = prices include VAT)
             ],
@@ -164,6 +175,45 @@ class AdminApiBootstrap
             'features' => [
                 'rtl_support' => true,
                 'dark_mode' => false,
+            ]
+        ], 200);
+    }
+
+    /**
+     * Update admin settings
+     */
+    public static function update_admin_settings($request)
+    {
+        $settings = $request->get_json_params();
+
+        // Validate and update VAT rate
+        if (isset($settings['vat_rate'])) {
+            $vat_rate = (float) $settings['vat_rate'];
+            if ($vat_rate < 0 || $vat_rate > 1) {
+                return new \WP_REST_Response([
+                    'success' => false,
+                    'message' => 'Invalid VAT rate. Must be between 0 and 1.'
+                ], 400);
+            }
+            update_option('squidly_tax_rate', $vat_rate);
+        }
+
+        // Update currency settings
+        if (isset($settings['currency'])) {
+            update_option('squidly_currency', sanitize_text_field($settings['currency']));
+        }
+        if (isset($settings['currency_symbol'])) {
+            update_option('squidly_currency_symbol', sanitize_text_field($settings['currency_symbol']));
+        }
+
+        // Return updated config
+        return new \WP_REST_Response([
+            'success' => true,
+            'message' => 'Settings updated successfully',
+            'data' => [
+                'vat_rate' => (float) get_option('squidly_tax_rate', 0.18),
+                'currency' => get_option('squidly_currency', 'ILS'),
+                'currency_symbol' => get_option('squidly_currency_symbol', '₪'),
             ]
         ], 200);
     }
