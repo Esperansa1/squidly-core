@@ -300,6 +300,46 @@ export default function PaymentStep({
                 </span>
               </div>
 
+              {/* Delivery Fee Breakdown */}
+              {(orderResult.delivery_base_fee > 0 || orderResult.delivery_time_surcharge > 0 || orderResult.delivery_loyalty_discount > 0) && (
+                <>
+                  <div style={{ height: '1px', backgroundColor: theme.colors.border }} />
+                  <div
+                    style={{
+                      backgroundColor: '#F9FAFB',
+                      padding: theme.spacing.sm,
+                      borderRadius: theme.borderRadius.md,
+                    }}
+                  >
+                    <div style={{ fontSize: theme.typography.mobile.small, fontWeight: '700', color: theme.colors.text.primary, marginBottom: theme.spacing.xs }}>
+                      פירוט דמי משלוח
+                    </div>
+                    {orderResult.delivery_base_fee > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: theme.colors.text.secondary, marginBottom: '2px' }}>
+                        <span>דמי משלוח בסיס:</span>
+                        <span>₪{orderResult.delivery_base_fee.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {orderResult.delivery_time_surcharge > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#D97706', marginBottom: '2px' }}>
+                        <span>תוספת שעות שיא:</span>
+                        <span>+₪{orderResult.delivery_time_surcharge.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {orderResult.delivery_loyalty_discount > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: theme.colors.success, marginBottom: '2px' }}>
+                        <span>הנחת נאמנות:</span>
+                        <span>-₪{orderResult.delivery_loyalty_discount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: theme.typography.mobile.small, fontWeight: '700', color: theme.colors.text.primary, marginTop: theme.spacing.xs, paddingTop: theme.spacing.xs, borderTop: `1px solid ${theme.colors.border}` }}>
+                      <span>סה״כ משלוח:</span>
+                      <span>₪{(orderResult.delivery_fee || 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+
               {orderResult.loyalty_discount > 0 && (
                 <div
                   style={{
