@@ -51,7 +51,7 @@ export default function PaymentStep({
       }
 
       // Step 2: Calculate tax and total
-      const taxRate = 0.17;
+      const taxRate = publicApi.config?.taxes?.vat_rate ?? 0.18;
       const subtotal = cartData.subtotal;
       const deliveryFee = checkoutData.deliveryFee;
       const taxAmount = subtotal * taxRate;

@@ -207,7 +207,7 @@ class PublicOrderRestController extends WP_REST_Controller
             }
 
             // Step 6: Calculate totals
-            $tax_rate = (float) get_option('squidly_tax_rate', 0.17);
+            $tax_rate = (float) get_option('squidly_tax_rate', 0.18);
             $tax_amount = $subtotal * $tax_rate;
             $total_amount = $subtotal + $tax_amount + $delivery_fee;
 

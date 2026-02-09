@@ -101,6 +101,9 @@ class PublicApiBootstrap
                 'code' => get_option('squidly_currency', 'ILS'),
                 'symbol' => get_option('squidly_currency_symbol', '₪'),
             ],
+            'taxes' => [
+                'vat_rate' => (float) get_option('squidly_tax_rate', 0.18), // 18% VAT by default (0 = prices include VAT)
+            ],
             'features' => [
                 'guest_checkout' => (bool) get_option('squidly_allow_guest_checkout', true),
                 'online_ordering' => (bool) get_option('squidly_enable_online_ordering', true),

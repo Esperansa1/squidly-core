@@ -15,12 +15,13 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
   const { selectedBranch } = useBranch();
   const isEmpty = !cart || !cart.items || cart.items.length === 0;
 
-  const { subtotal, deliveryFee, vat, total } = useMemo(() => {
+  const { subtotal, deliveryFee, vat, vatRate, total } = useMemo(() => {
     const sub = cart?.subtotal || 0;
-    const delivery = cart?.deliveryFee || 25.0;
-    const vatAmount = sub * 0.17;
-    return { subtotal: sub, deliveryFee: delivery, vat: vatAmount, total: sub + delivery + vatAmount };
-  }, [cart?.subtotal, cart?.deliveryFee]);
+    const delivery = cart?.deliveryFee || 0;
+    const rate = cart?.vatRate ?? 0.18;
+    const vatAmount = sub * rate;
+    return { subtotal: sub, deliveryFee: delivery, vat: vatAmount, vatRate: rate, total: sub + delivery + vatAmount };
+  }, [cart?.subtotal, cart?.deliveryFee, cart?.vatRate]);
 
   const handleCancelOrder = useCallback(() => {
     if (window.confirm('האם אתם בטוחים שברצונכם לבטל את ההזמנה?')) {
@@ -193,11 +194,13 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
               <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>₪{subtotal.toFixed(2)}</span>
             </div>
 
-            {/* VAT */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>מע״מ (17%)</span>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>₪{vat.toFixed(2)}</span>
-            </div>
+            {/* VAT - only show if rate > 0 */}
+            {vatRate > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
+                <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>מע״מ ({(vatRate * 100).toFixed(0)}%)</span>
+                <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>₪{vat.toFixed(2)}</span>
+              </div>
+            )}
 
             {/* Delivery Fee Note */}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>

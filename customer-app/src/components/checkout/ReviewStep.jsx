@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useBranch } from '../../contexts/BranchContext';
 import { t } from '../../i18n/translations';
 import theme from '../../config/theme';
+import publicApi from '../../services/publicApi';
 
 /**
  * ReviewStep - Order summary and confirmation
@@ -14,8 +15,8 @@ export default function ReviewStep({ checkoutData, cartData, branchId, onEditSte
   const { customerInfo, deliveryType, deliveryAddress, deliveryTime, deliveryFee, loyaltyPointsToUse } = checkoutData;
   const { items, subtotal } = cartData;
 
-  // Calculate tax (17% VAT in Israel)
-  const taxRate = 0.17;
+  // Calculate tax using configured VAT rate
+  const taxRate = publicApi.config?.taxes?.vat_rate ?? 0.18;
   const taxAmount = subtotal * taxRate;
   const loyaltyDiscount = loyaltyPointsToUse || 0;
   const totalAmount = subtotal + deliveryFee + taxAmount - loyaltyDiscount;
@@ -249,16 +250,18 @@ export default function ReviewStep({ checkoutData, cartData, branchId, onEditSte
               <span style={{ color: theme.colors.text.primary }}>₪{deliveryFee.toFixed(2)}</span>
             </div>
           )}
-          <div
-            style={{
-              ...rowStyle,
-              fontSize: theme.typography.mobile.small,
-              color: theme.colors.text.muted,
-            }}
-          >
-            <span>{t('tax')} (17%):</span>
-            <span>₪{taxAmount.toFixed(2)}</span>
-          </div>
+          {taxRate > 0 && (
+            <div
+              style={{
+                ...rowStyle,
+                fontSize: theme.typography.mobile.small,
+                color: theme.colors.text.muted,
+              }}
+            >
+              <span>{t('tax')} ({(taxRate * 100).toFixed(0)}%):</span>
+              <span>₪{taxAmount.toFixed(2)}</span>
+            </div>
+          )}
 
           {/* Loyalty Points Redemption */}
           {isAuthenticated && pointsBalance > 0 && (

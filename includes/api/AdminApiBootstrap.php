@@ -139,6 +139,9 @@ class AdminApiBootstrap
                 'base_url' => rest_url('squidly/v1/'),
                 'nonce' => wp_create_nonce('wp_rest'),
             ],
+            'taxes' => [
+                'vat_rate' => (float) get_option('squidly_tax_rate', 0.18), // 18% VAT by default (0 = prices include VAT)
+            ],
             'strings' => [
                 'all_branches' => 'כל הסניפים',
                 'groups' => 'קבוצות',

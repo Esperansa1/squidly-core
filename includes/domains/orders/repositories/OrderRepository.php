@@ -806,7 +806,7 @@ class OrderRepository implements RepositoryInterface
         }
 
         $delivery_fee = (float)($cart_data['delivery_fee'] ?? 0.0);
-        $tax_rate = (float)get_option('squidly_tax_rate', 0.17);
+        $tax_rate = (float)get_option('squidly_tax_rate', 0.18);
         $tax_amount = $subtotal * $tax_rate;
         $total_amount = $subtotal + $tax_amount + $delivery_fee;
 

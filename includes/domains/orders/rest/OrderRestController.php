@@ -1177,7 +1177,7 @@ class OrderRestController extends \WP_REST_Controller
         }
 
         $delivery_fee = $data['delivery_fee'] ?? 0.0;
-        $tax_rate = (float)get_option('squidly_tax_rate', 0.17);
+        $tax_rate = (float)get_option('squidly_tax_rate', 0.18);
         $tax_amount = round($subtotal * $tax_rate, 2);
 
         $data['subtotal'] = round($subtotal, 2);

@@ -15,6 +15,11 @@ import { useCart } from '../../contexts/CartContext';
 import { useBranch } from '../../contexts/BranchContext';
 import AuthModal from '../auth/AuthModal';
 
+// Get VAT rate from API config
+const getVatRate = () => {
+  return publicApi.config?.taxes?.vat_rate ?? 0.18; // Default 18% if not loaded yet
+};
+
 /**
  * MenuLayout - Responsive layout for menu page
  * Mobile: Single column with bottom checkout bar
@@ -55,11 +60,12 @@ export default function MenuLayout({ branchId, onCheckout }) {
     }));
 
     const subtotal = getTotal();
-    const tax = subtotal * 0.17;
+    const vatRate = getVatRate();
+    const tax = subtotal * vatRate;
     // Delivery fee will be calculated at checkout based on address
     const deliveryFee = 0;
 
-    return { items, subtotal, tax, deliveryFee };
+    return { items, subtotal, tax, deliveryFee, vatRate };
   }, [contextCart, getTotal]);
 
   const [products, setProducts] = useState([]);
