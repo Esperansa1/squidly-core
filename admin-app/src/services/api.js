@@ -438,6 +438,82 @@ class ApiService {
     });
   }
 
+  // ===== DELIVERY PRICING API =====
+
+  async getDeliveryTiers(branch_id = null) {
+    const endpoint = branch_id ? `delivery-tiers?branch_id=${branch_id}` : 'delivery-tiers';
+    return await this.fetch(endpoint);
+  }
+
+  async createDeliveryTier(data) {
+    return await this.fetch('delivery-tiers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateDeliveryTier(id, data) {
+    return await this.fetch(`delivery-tiers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteDeliveryTier(id) {
+    return await this.fetch(`delivery-tiers/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getDeliveryTimeSurcharges(branch_id = null) {
+    const endpoint = branch_id ? `delivery-time-surcharges?branch_id=${branch_id}` : 'delivery-time-surcharges';
+    return await this.fetch(endpoint);
+  }
+
+  async createDeliveryTimeSurcharge(data) {
+    return await this.fetch('delivery-time-surcharges', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateDeliveryTimeSurcharge(id, data) {
+    return await this.fetch(`delivery-time-surcharges/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteDeliveryTimeSurcharge(id) {
+    return await this.fetch(`delivery-time-surcharges/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getDeliveryLoyaltyDiscounts() {
+    return await this.fetch('delivery-loyalty-discounts');
+  }
+
+  async createDeliveryLoyaltyDiscount(data) {
+    return await this.fetch('delivery-loyalty-discounts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateDeliveryLoyaltyDiscount(id, data) {
+    return await this.fetch(`delivery-loyalty-discounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteDeliveryLoyaltyDiscount(id) {
+    return await this.fetch(`delivery-loyalty-discounts/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // ===== UTILITY METHODS =====
 
   getConfig() {

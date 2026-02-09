@@ -1,0 +1,546 @@
+import React, { useState, useEffect } from 'react';
+import { PlusIcon, TrashIcon, PencilIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import api from '../../services/api.js';
+
+/**
+ * DeliveryPricingSection - Manage advanced delivery pricing for a branch
+ * Handles tiers, time surcharges, and loyalty discounts
+ */
+const DeliveryPricingSection = ({ branchId, isOpen }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [activeTab, setActiveTab] = useState('tiers'); // 'tiers', 'surcharges', 'discounts'
+
+  // State for each pricing type
+  const [tiers, setTiers] = useState([]);
+  const [surcharges, setSurcharges] = useState([]);
+  const [discounts, setDiscounts] = useState([]);
+
+  // Loading states
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Form states for adding new items
+  const [newTier, setNewTier] = useState({ min_order_value: '', delivery_fee: '' });
+  const [newSurcharge, setNewSurcharge] = useState({
+    day_of_week: 0,
+    start_time: '',
+    end_time: '',
+    surcharge_amount: '',
+    surcharge_type: 'fixed',
+    is_active: true,
+  });
+  const [newDiscount, setNewDiscount] = useState({
+    min_loyalty_points: '',
+    discount_amount: '',
+    discount_type: 'fixed',
+    is_active: true,
+  });
+
+  const daysOfWeek = [
+    { value: 0, label: 'ראשון' },
+    { value: 1, label: 'שני' },
+    { value: 2, label: 'שלישי' },
+    { value: 3, label: 'רביעי' },
+    { value: 4, label: 'חמישי' },
+    { value: 5, label: 'שישי' },
+    { value: 6, label: 'שבת' },
+  ];
+
+  // Load data when branch is selected and section is expanded
+  useEffect(() => {
+    if (branchId && isOpen && expanded) {
+      loadAll();
+    }
+  }, [branchId, isOpen, expanded]);
+
+  const loadAll = async () => {
+    setLoading(true);
+    try {
+      const [tiersData, surchargesData, discountsData] = await Promise.all([
+        api.getDeliveryTiers(branchId),
+        api.getDeliveryTimeSurcharges(branchId),
+        api.getDeliveryLoyaltyDiscounts(),
+      ]);
+      setTiers(tiersData || []);
+      setSurcharges(surchargesData || []);
+      setDiscounts(discountsData || []);
+    } catch (error) {
+      console.error('Error loading delivery pricing:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // === TIERS ===
+  const handleAddTier = async () => {
+    if (!newTier.min_order_value || !newTier.delivery_fee) return;
+    setSaving(true);
+    try {
+      await api.createDeliveryTier({
+        branch_id: branchId,
+        min_order_value: parseFloat(newTier.min_order_value),
+        delivery_fee: parseFloat(newTier.delivery_fee),
+      });
+      setNewTier({ min_order_value: '', delivery_fee: '' });
+      await loadAll();
+    } catch (error) {
+      console.error('Error creating tier:', error);
+      alert('שגיאה ביצירת דרגת תמחור');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteTier = async (id) => {
+    if (!confirm('למחוק דרגה זו?')) return;
+    setSaving(true);
+    try {
+      await api.deleteDeliveryTier(id);
+      await loadAll();
+    } catch (error) {
+      console.error('Error deleting tier:', error);
+      alert('שגיאה במחיקת דרגה');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // === SURCHARGES ===
+  const handleAddSurcharge = async () => {
+    if (!newSurcharge.start_time || !newSurcharge.end_time || !newSurcharge.surcharge_amount) return;
+    setSaving(true);
+    try {
+      await api.createDeliveryTimeSurcharge({
+        branch_id: branchId,
+        day_of_week: parseInt(newSurcharge.day_of_week),
+        start_time: newSurcharge.start_time + ':00',
+        end_time: newSurcharge.end_time + ':00',
+        surcharge_amount: parseFloat(newSurcharge.surcharge_amount),
+        surcharge_type: newSurcharge.surcharge_type,
+        is_active: newSurcharge.is_active,
+      });
+      setNewSurcharge({
+        day_of_week: 0,
+        start_time: '',
+        end_time: '',
+        surcharge_amount: '',
+        surcharge_type: 'fixed',
+        is_active: true,
+      });
+      await loadAll();
+    } catch (error) {
+      console.error('Error creating surcharge:', error);
+      alert('שגיאה ביצירת תוספת');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteSurcharge = async (id) => {
+    if (!confirm('למחוק תוספת זו?')) return;
+    setSaving(true);
+    try {
+      await api.deleteDeliveryTimeSurcharge(id);
+      await loadAll();
+    } catch (error) {
+      console.error('Error deleting surcharge:', error);
+      alert('שגיאה במחיקת תוספת');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // === DISCOUNTS ===
+  const handleAddDiscount = async () => {
+    if (!newDiscount.min_loyalty_points || !newDiscount.discount_amount) return;
+    setSaving(true);
+    try {
+      await api.createDeliveryLoyaltyDiscount({
+        min_loyalty_points: parseInt(newDiscount.min_loyalty_points),
+        discount_amount: parseFloat(newDiscount.discount_amount),
+        discount_type: newDiscount.discount_type,
+        is_active: newDiscount.is_active,
+      });
+      setNewDiscount({
+        min_loyalty_points: '',
+        discount_amount: '',
+        discount_type: 'fixed',
+        is_active: true,
+      });
+      await loadAll();
+    } catch (error) {
+      console.error('Error creating discount:', error);
+      alert('שגיאה ביצירת הנחה');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteDiscount = async (id) => {
+    if (!confirm('למחוק הנחה זו?')) return;
+    setSaving(true);
+    try {
+      await api.deleteDeliveryLoyaltyDiscount(id);
+      await loadAll();
+    } catch (error) {
+      console.error('Error deleting discount:', error);
+      alert('שגיאה במחיקת הנחה');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!branchId) {
+    return (
+      <div className="border-t border-gray-200 pt-4 mt-2">
+        <p className="text-sm text-gray-500">שמור סניף תחילה כדי לנהל תמחור משלוחים מתקדם</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-gray-200 pt-4 mt-2">
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between text-md font-semibold text-gray-900 mb-3 hover:text-gray-700"
+      >
+        <span>תמחור משלוחים מתקדם (אופציונלי)</span>
+        {expanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
+      </button>
+
+      {expanded && (
+        <div className="space-y-4">
+          {/* Tabs */}
+          <div className="flex gap-2 border-b border-gray-200">
+            <button
+              type="button"
+              onClick={() => setActiveTab('tiers')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'tiers'
+                  ? 'border-red-500 text-red-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              דרגות לפי ערך
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('surcharges')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'surcharges'
+                  ? 'border-red-500 text-red-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              תוספות שעות שיא
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('discounts')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'discounts'
+                  ? 'border-red-500 text-red-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              הנחות נאמנות
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-4 text-sm text-gray-500">טוען...</div>
+          ) : (
+            <>
+              {/* TIERS TAB */}
+              {activeTab === 'tiers' && (
+                <div className="space-y-3">
+                  <p className="text-xs text-gray-600">
+                    הגדר מחירי משלוח לפי ערך ההזמנה. למשל: משלוח חינם מעל ₪100
+                  </p>
+
+                  {/* Existing Tiers */}
+                  {tiers.length > 0 && (
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-700">מעל (₪)</th>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-700">דמי משלוח (₪)</th>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-700"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {tiers.map((tier) => (
+                            <tr key={tier.id}>
+                              <td className="px-3 py-2 text-sm">{tier.min_order_value}</td>
+                              <td className="px-3 py-2 text-sm">{tier.delivery_fee}</td>
+                              <td className="px-3 py-2 text-sm">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteTier(tier.id)}
+                                  disabled={saving}
+                                  className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                                >
+                                  <TrashIcon className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Add New Tier */}
+                  <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">מעל (₪)</label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={newTier.min_order_value}
+                          onChange={(e) => setNewTier({ ...newTier, min_order_value: e.target.value })}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                          placeholder="50"
+                          style={{ direction: 'ltr', textAlign: 'left' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">דמי משלוח (₪)</label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          value={newTier.delivery_fee}
+                          onChange={(e) => setNewTier({ ...newTier, delivery_fee: e.target.value })}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                          placeholder="15"
+                          style={{ direction: 'ltr', textAlign: 'left' }}
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddTier}
+                      disabled={saving || !newTier.min_order_value || !newTier.delivery_fee}
+                      className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <PlusIcon className="w-4 h-4" />
+                      הוסף דרגה
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* SURCHARGES TAB */}
+              {activeTab === 'surcharges' && (
+                <div className="space-y-3">
+                  <p className="text-xs text-gray-600">
+                    הגדר תוספות מחיר לשעות שיא. למשל: +₪10 בימי שישי 18:00-23:00
+                  </p>
+
+                  {/* Existing Surcharges */}
+                  {surcharges.length > 0 && (
+                    <div className="space-y-2">
+                      {surcharges.map((surcharge) => (
+                        <div key={surcharge.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200">
+                          <div className="text-sm">
+                            <span className="font-medium">
+                              {daysOfWeek.find((d) => d.value === surcharge.day_of_week)?.label}
+                            </span>
+                            {' '}
+                            {surcharge.start_time.slice(0, 5)} - {surcharge.end_time.slice(0, 5)}
+                            {' | '}
+                            {surcharge.surcharge_type === 'fixed' ? '₪' : ''}
+                            {surcharge.surcharge_amount}
+                            {surcharge.surcharge_type === 'percentage' ? '%' : ''}
+                            {!surcharge.is_active && ' (לא פעיל)'}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSurcharge(surcharge.id)}
+                            disabled={saving}
+                            className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add New Surcharge */}
+                  <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">יום</label>
+                        <select
+                          value={newSurcharge.day_of_week}
+                          onChange={(e) => setNewSurcharge({ ...newSurcharge, day_of_week: e.target.value })}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                        >
+                          {daysOfWeek.map((day) => (
+                            <option key={day.value} value={day.value}>
+                              {day.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">התחלה</label>
+                          <input
+                            type="time"
+                            value={newSurcharge.start_time}
+                            onChange={(e) => setNewSurcharge({ ...newSurcharge, start_time: e.target.value })}
+                            className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">סיום</label>
+                          <input
+                            type="time"
+                            value={newSurcharge.end_time}
+                            onChange={(e) => setNewSurcharge({ ...newSurcharge, end_time: e.target.value })}
+                            className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">סכום</label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          value={newSurcharge.surcharge_amount}
+                          onChange={(e) => setNewSurcharge({ ...newSurcharge, surcharge_amount: e.target.value })}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                          placeholder="10"
+                          style={{ direction: 'ltr', textAlign: 'left' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">סוג</label>
+                        <select
+                          value={newSurcharge.surcharge_type}
+                          onChange={(e) => setNewSurcharge({ ...newSurcharge, surcharge_type: e.target.value })}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                        >
+                          <option value="fixed">סכום קבוע (₪)</option>
+                          <option value="percentage">אחוז (%)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddSurcharge}
+                      disabled={saving || !newSurcharge.start_time || !newSurcharge.end_time || !newSurcharge.surcharge_amount}
+                      className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <PlusIcon className="w-4 h-4" />
+                      הוסף תוספת
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* DISCOUNTS TAB */}
+              {activeTab === 'discounts' && (
+                <div className="space-y-3">
+                  <p className="text-xs text-gray-600">
+                    הגדר הנחות משלוח ללקוחות עם נקודות נאמנות. למשל: ₪5 הנחה עם 100+ נקודות
+                  </p>
+
+                  {/* Existing Discounts */}
+                  {discounts.length > 0 && (
+                    <div className="space-y-2">
+                      {discounts.map((discount) => (
+                        <div key={discount.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200">
+                          <div className="text-sm">
+                            <span className="font-medium">{discount.min_loyalty_points}+ נקודות</span>
+                            {' → '}
+                            {discount.discount_type === 'fixed' ? '₪' : ''}
+                            {discount.discount_amount}
+                            {discount.discount_type === 'percentage' ? '%' : ''} הנחה
+                            {!discount.is_active && ' (לא פעיל)'}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteDiscount(discount.id)}
+                            disabled={saving}
+                            className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add New Discount */}
+                  <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">נקודות מינימום</label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={newDiscount.min_loyalty_points}
+                          onChange={(e) => setNewDiscount({ ...newDiscount, min_loyalty_points: e.target.value })}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                          placeholder="100"
+                          style={{ direction: 'ltr', textAlign: 'left' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">סכום הנחה</label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          value={newDiscount.discount_amount}
+                          onChange={(e) => setNewDiscount({ ...newDiscount, discount_amount: e.target.value })}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                          placeholder="5"
+                          style={{ direction: 'ltr', textAlign: 'left' }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">סוג הנחה</label>
+                      <select
+                        value={newDiscount.discount_type}
+                        onChange={(e) => setNewDiscount({ ...newDiscount, discount_type: e.target.value })}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                      >
+                        <option value="fixed">סכום קבוע (₪)</option>
+                        <option value="percentage">אחוז (%)</option>
+                      </select>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddDiscount}
+                      disabled={saving || !newDiscount.min_loyalty_points || !newDiscount.discount_amount}
+                      className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <PlusIcon className="w-4 h-4" />
+                      הוסף הנחה
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default DeliveryPricingSection;

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { XMarkIcon, PlusIcon, TrashIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { DEFAULT_THEME } from '../../config/theme.js';
 import DropdownButton from './DropdownButton.jsx';
+import DeliveryPricingSection from './DeliveryPricingSection.jsx';
 
 const BranchModal = ({
   isOpen,
@@ -603,6 +604,9 @@ const BranchModal = ({
                   </p>
                 </div>
               </div>
+
+              {/* Advanced Delivery Pricing */}
+              <DeliveryPricingSection branchId={editingBranch?.id} isOpen={isOpen} />
             </div>
 
             {/* Activity Times & Accessibility */}
