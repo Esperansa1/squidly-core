@@ -168,6 +168,9 @@ require_once __DIR__ . '/includes/domains/orders/services/CartService.php';
 require_once __DIR__ . '/includes/domains/orders/services/DeliveryFeeService.php';
 require_once __DIR__ . '/includes/domains/orders/rest/PublicCartRestController.php';
 
+// Delivery pricing activation
+require_once __DIR__ . '/includes/domains/orders/activation/DeliveryPricingActivation.php';
+
 require_once __DIR__ . '/includes/api/PublicApiBootstrap.php';
 
 // Initialize Payment Gateway System immediately after classes are loaded
@@ -225,8 +228,9 @@ register_deactivation_hook(__FILE__, function() {
 
 // Plugin activation hook updates
 register_activation_hook(__FILE__, function() {
-    // Create necessary database tables (if needed in future)
-    
+    // Create delivery pricing database tables
+    DeliveryPricingActivation::createTables();
+
     // Set default options
     add_option('squidly_currency', 'ILS');
     add_option('squidly_currency_symbol', '₪');
