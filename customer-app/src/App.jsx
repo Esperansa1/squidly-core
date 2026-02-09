@@ -58,27 +58,43 @@ function AppContent() {
 
       {/* Main Content */}
       <main>
-        {currentView === 'menu' && (
-          <MenuLayout
+        <MenuLayout
+          branchId={selectedBranch?.id}
+          onCheckout={handleCheckout}
+        />
+
+        {/* Checkout Modal Overlay - renders on top of menu */}
+        {currentView === 'checkout' && (
+          <CheckoutFlow
+            onBack={() => setCurrentView('menu')}
             branchId={selectedBranch?.id}
-            onCheckout={handleCheckout}
           />
         )}
 
-        {currentView === 'checkout' && (
-          <div className="container mx-auto px-4 py-8">
-            <CheckoutFlow
-              onBack={() => setCurrentView('menu')}
-              branchId={selectedBranch?.id}
-            />
-          </div>
-        )}
-
+        {/* Order Tracking Modal - render on top */}
         {currentView === 'tracking' && (
-          <div className="container mx-auto px-4 py-8">
-            <OrderTracker
-              onBack={() => setCurrentView('menu')}
-            />
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2rem',
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '1rem',
+              maxWidth: '800px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+            }}>
+              <OrderTracker
+                onBack={() => setCurrentView('menu')}
+              />
+            </div>
           </div>
         )}
       </main>

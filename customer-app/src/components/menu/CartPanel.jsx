@@ -187,22 +187,22 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
 
           {/* Price lines */}
           <div style={{ padding: theme.spacing.md }}>
-            {/* Delivery Fee */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>דמי משלוח</span>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>₪{deliveryFee.toFixed(2)}</span>
-            </div>
-
             {/* Subtotal */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
-              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>סכום כולל</span>
+              <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>סכום ביניים</span>
               <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>₪{subtotal.toFixed(2)}</span>
             </div>
 
             {/* VAT */}
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: theme.spacing.xs }}>
               <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>מע״מ (17%)</span>
               <span style={{ fontSize: '0.9375rem', color: theme.colors.text.primary }}>₪{vat.toFixed(2)}</span>
+            </div>
+
+            {/* Delivery Fee Note */}
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.8125rem', color: theme.colors.text.muted, fontStyle: 'italic' }}>דמי משלוח</span>
+              <span style={{ fontSize: '0.8125rem', color: theme.colors.text.muted, fontStyle: 'italic' }}>יחושב בתשלום</span>
             </div>
 
             {/* Loyalty Points Line */}

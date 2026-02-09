@@ -56,7 +56,8 @@ export default function MenuLayout({ branchId, onCheckout }) {
 
     const subtotal = getTotal();
     const tax = subtotal * 0.17;
-    const deliveryFee = 25.0;
+    // Delivery fee will be calculated at checkout based on address
+    const deliveryFee = 0;
 
     return { items, subtotal, tax, deliveryFee };
   }, [contextCart, getTotal]);

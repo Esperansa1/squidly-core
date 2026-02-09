@@ -207,160 +207,233 @@ export default function PaymentStep({
 
       {/* Success State (No Payment URL) */}
       {orderResult && !orderResult.payment_url && processingStage === 'complete' && (
-        <div
-          style={{
-            backgroundColor: '#F0FDF4',
-            border: `1px solid ${theme.colors.success}`,
-            borderRadius: theme.borderRadius.lg,
-            padding: theme.spacing.xl,
-            color: '#166534',
-          }}
-        >
-          <h3
-            style={{
-              fontSize: theme.typography.desktop.h2,
-              fontWeight: '700',
-              marginBottom: theme.spacing.lg,
-            }}
-          >
-            {t('orderConfirmed')}!
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
-            <p style={{ margin: 0 }}>
-              <strong>{t('orderNumber')}:</strong> #{orderResult.order_id}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.lg }}>
+          {/* Success Icon & Message */}
+          <div style={{ textAlign: 'center' }}>
+            <div
+              style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: theme.borderRadius.full,
+                backgroundColor: '#F0FDF4',
+                border: `3px solid ${theme.colors.success}`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={theme.colors.success} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <h3
+              style={{
+                fontSize: theme.typography.desktop.h2,
+                fontWeight: '700',
+                color: theme.colors.success,
+                margin: `0 0 ${theme.spacing.xs} 0`,
+              }}
+            >
+              {t('orderConfirmed')}!
+            </h3>
+            <p style={{ color: theme.colors.text.secondary, margin: 0 }}>
+              הזמנתך התקבלה בהצלחה ותתחיל להתכונן בקרוב
             </p>
-            <p style={{ margin: 0 }}>
-              <strong>{t('trackingToken')}:</strong>{' '}
-              <code
-                style={{
-                  backgroundColor: theme.colors.cardBg,
-                  padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                  borderRadius: theme.borderRadius.md,
-                  border: `1px solid ${theme.colors.border}`,
-                  fontSize: theme.typography.mobile.small,
-                }}
-              >
-                {orderResult.tracking_token}
-              </code>
-            </p>
-            <p style={{ margin: 0 }}>
-              <strong>{t('total')}:</strong> ₪{orderResult.total_price.toFixed(2)}
-            </p>
-            {orderResult.loyalty_discount > 0 && (
-              <p style={{ margin: 0, color: theme.colors.success }}>
-                <strong>{t('pointsDiscount')}:</strong> -₪{orderResult.loyalty_discount.toFixed(2)} ({orderResult.loyalty_points_used} {t('pointsRedeemed')})
-              </p>
-            )}
           </div>
+
+          {/* Order Details Card */}
           <div
             style={{
-              marginTop: theme.spacing.lg,
               backgroundColor: theme.colors.cardBg,
               border: `1px solid ${theme.colors.border}`,
-              borderRadius: theme.borderRadius.lg,
-              padding: theme.spacing.md,
-              color: theme.colors.text.secondary,
+              borderRadius: theme.borderRadius.xl,
+              padding: theme.spacing.lg,
+              boxShadow: theme.shadows.card,
             }}
           >
-            <p
-              style={{
-                fontWeight: '700',
-                marginBottom: theme.spacing.xs,
-                color: theme.colors.text.primary,
-              }}
-            >
-              {t('trackYourOrder')}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: theme.typography.mobile.small, color: theme.colors.text.secondary }}>
+                  {t('orderNumber')}
+                </span>
+                <span style={{ fontSize: theme.typography.mobile.h3, fontWeight: '700', color: theme.colors.text.primary }}>
+                  #{orderResult.order_id}
+                </span>
+              </div>
+
+              <div style={{ height: '1px', backgroundColor: theme.colors.border }} />
+
+              <div>
+                <div style={{ fontSize: theme.typography.mobile.small, color: theme.colors.text.secondary, marginBottom: theme.spacing.xs }}>
+                  {t('trackingToken')}
+                </div>
+                <div
+                  style={{
+                    backgroundColor: theme.colors.background,
+                    padding: theme.spacing.md,
+                    borderRadius: theme.borderRadius.lg,
+                    border: `2px dashed ${theme.colors.border}`,
+                    fontFamily: 'monospace',
+                    fontSize: theme.typography.mobile.body,
+                    fontWeight: '700',
+                    color: theme.colors.text.primary,
+                    textAlign: 'center',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {orderResult.tracking_token}
+                </div>
+                <p style={{ fontSize: '0.75rem', color: theme.colors.text.muted, margin: `${theme.spacing.xs} 0 0 0`, textAlign: 'center' }}>
+                  שמור את הקוד לעקוב אחר ההזמנה
+                </p>
+              </div>
+
+              <div style={{ height: '1px', backgroundColor: theme.colors.border }} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span style={{ fontSize: theme.typography.mobile.body, color: theme.colors.text.secondary }}>
+                  {t('total')}
+                </span>
+                <span style={{ fontSize: theme.typography.desktop.h3, fontWeight: '700', color: theme.colors.text.primary }}>
+                  ₪{orderResult.total_price.toFixed(2)}
+                </span>
+              </div>
+
+              {orderResult.loyalty_discount > 0 && (
+                <div
+                  style={{
+                    backgroundColor: '#FEF3C7',
+                    padding: theme.spacing.sm,
+                    borderRadius: theme.borderRadius.md,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span style={{ fontSize: theme.typography.mobile.small, color: '#92400E', fontWeight: '600' }}>
+                    {t('pointsDiscount')}
+                  </span>
+                  <span style={{ fontSize: theme.typography.mobile.body, color: '#92400E', fontWeight: '700' }}>
+                    -₪{orderResult.loyalty_discount.toFixed(2)} ({orderResult.loyalty_points_used} נק')
+                  </span>
+                </div>
+              )}
+
+              {isAuthenticated && (
+                <div
+                  style={{
+                    backgroundColor: '#FEF3C7',
+                    padding: theme.spacing.md,
+                    borderRadius: theme.borderRadius.lg,
+                    textAlign: 'center',
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#F59E0B" stroke="none" style={{ marginBottom: theme.spacing.xs }}>
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                  <p style={{ fontSize: theme.typography.mobile.small, color: '#92400E', fontWeight: '600', margin: 0 }}>
+                    הנקודות שלך יזוכו לאחר השלמת ההזמנה
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Contact Info */}
+          <div
+            style={{
+              backgroundColor: '#EFF6FF',
+              border: `1px solid ${theme.colors.info}`,
+              borderRadius: theme.borderRadius.lg,
+              padding: theme.spacing.md,
+              fontSize: theme.typography.mobile.small,
+              color: '#1E40AF',
+            }}
+          >
+            <p style={{ margin: 0, fontWeight: '600' }}>
+              📱 {t('confirmationSentTo', { phone: checkoutData.customerInfo.phone })}
             </p>
-            <p style={{ margin: 0, fontSize: theme.typography.mobile.small }}>
-              {t('useTokenToTrack')}
-            </p>
-            <p
-              style={{
-                margin: 0,
-                marginTop: theme.spacing.sm,
-                fontSize: theme.typography.mobile.small,
-              }}
-            >
-              {t('confirmationSentTo', { phone: checkoutData.customerInfo.phone })}
-            </p>
-            {isAuthenticated && (
-              <p
-                style={{
-                  margin: 0,
-                  marginTop: theme.spacing.sm,
-                  fontSize: theme.typography.mobile.small,
-                  color: theme.colors.warning,
-                  fontWeight: '600',
-                }}
-              >
-                {t('pointsWillBeAwarded')}
-              </p>
-            )}
           </div>
         </div>
       )}
 
       {/* Redirecting State */}
       {orderResult && orderResult.payment_url && processingStage === 'redirecting' && (
-        <div
-          style={{
-            backgroundColor: '#EFF6FF',
-            border: `1px solid ${theme.colors.info}`,
-            borderRadius: theme.borderRadius.lg,
-            padding: theme.spacing.xl,
-            textAlign: 'center',
-            color: '#1E40AF',
-          }}
-        >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.lg, alignItems: 'center', textAlign: 'center' }}>
           <div style={spinnerStyle} />
-          <h3
-            style={{
-              fontSize: theme.typography.desktop.h3,
-              fontWeight: '700',
-              marginBottom: theme.spacing.sm,
-            }}
-          >
-            {t('redirectingToPayment')}...
-          </h3>
-          <p style={{ margin: 0, marginBottom: theme.spacing.lg }}>
-            {t('doNotCloseWindow')}
-          </p>
+
+          <div>
+            <h3
+              style={{
+                fontSize: theme.typography.desktop.h2,
+                fontWeight: '700',
+                margin: `0 0 ${theme.spacing.sm} 0`,
+                color: theme.colors.info,
+              }}
+            >
+              {t('redirectingToPayment')}...
+            </h3>
+            <p style={{ margin: 0, color: theme.colors.text.secondary, fontSize: theme.typography.mobile.body }}>
+              {t('doNotCloseWindow')}
+            </p>
+          </div>
+
           <div
             style={{
               backgroundColor: theme.colors.cardBg,
               border: `1px solid ${theme.colors.border}`,
-              borderRadius: theme.borderRadius.lg,
-              padding: theme.spacing.md,
-              textAlign: 'start',
-              fontSize: theme.typography.mobile.small,
-              color: theme.colors.text.secondary,
+              borderRadius: theme.borderRadius.xl,
+              padding: theme.spacing.lg,
+              boxShadow: theme.shadows.card,
+              width: '100%',
+              maxWidth: '400px',
             }}
           >
-            <p style={{ margin: 0 }}>
-              <strong style={{ color: theme.colors.text.primary }}>{t('orderNumber')}:</strong> #{orderResult.order_id}
-            </p>
-            <p style={{ margin: 0, marginTop: theme.spacing.sm }}>
-              <strong style={{ color: theme.colors.text.primary }}>{t('trackingToken')}:</strong>{' '}
-              <code
-                style={{
-                  backgroundColor: theme.colors.background,
-                  padding: `2px ${theme.spacing.xs}`,
-                  borderRadius: theme.borderRadius.sm,
-                }}
-              >
-                {orderResult.tracking_token}
-              </code>
-            </p>
-            <p
-              style={{
-                margin: 0,
-                marginTop: theme.spacing.md,
-                fontSize: '0.75rem',
-                color: theme.colors.text.muted,
-              }}
-            >
-              {t('saveTrackingToken')}
-            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md, textAlign: 'start' }}>
+              <div>
+                <div style={{ fontSize: theme.typography.mobile.small, color: theme.colors.text.secondary, marginBottom: theme.spacing.xs }}>
+                  {t('orderNumber')}
+                </div>
+                <div style={{ fontSize: theme.typography.mobile.h3, fontWeight: '700', color: theme.colors.text.primary }}>
+                  #{orderResult.order_id}
+                </div>
+              </div>
+
+              <div style={{ height: '1px', backgroundColor: theme.colors.border }} />
+
+              <div>
+                <div style={{ fontSize: theme.typography.mobile.small, color: theme.colors.text.secondary, marginBottom: theme.spacing.xs }}>
+                  {t('trackingToken')}
+                </div>
+                <div
+                  style={{
+                    backgroundColor: theme.colors.background,
+                    padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+                    borderRadius: theme.borderRadius.md,
+                    border: `1px solid ${theme.colors.border}`,
+                    fontFamily: 'monospace',
+                    fontSize: theme.typography.mobile.body,
+                    fontWeight: '700',
+                    color: theme.colors.text.primary,
+                    textAlign: 'center',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {orderResult.tracking_token}
+                </div>
+                <p
+                  style={{
+                    margin: `${theme.spacing.xs} 0 0 0`,
+                    fontSize: '0.75rem',
+                    color: theme.colors.text.muted,
+                    textAlign: 'center',
+                  }}
+                >
+                  {t('saveTrackingToken')}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
