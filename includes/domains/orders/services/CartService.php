@@ -269,16 +269,30 @@ class CartService
             $subtotal += $cart_item->total_price;
         }
 
-        // Calculate delivery fee (if delivery)
+        // Calculate delivery fee with detailed breakdown (if delivery)
         $delivery_fee = 0.0;
+        $delivery_base_fee = 0.0;
+        $delivery_time_surcharge = 0.0;
+        $delivery_loyalty_discount = 0.0;
         $delivery_address = $checkout_data['delivery_address'] ?? null;
+
         if (($checkout_data['delivery_type'] ?? 'pickup') === 'delivery') {
             try {
-                $delivery_fee = $this->deliveryFeeService->calculateFee(
+                $customer_id = $checkout_data['customer_id'] ?? null;
+                $delivery_time = $checkout_data['delivery_time'] ?? null;
+
+                $fee_breakdown = $this->deliveryFeeService->calculateDetailedFee(
                     $cart->branch_id,
-                    $delivery_address,
-                    $subtotal
+                    $subtotal,
+                    $delivery_time,
+                    $customer_id,
+                    $delivery_address
                 );
+
+                $delivery_fee = $fee_breakdown['final_fee'];
+                $delivery_base_fee = $fee_breakdown['base_fee'];
+                $delivery_time_surcharge = $fee_breakdown['time_surcharge'];
+                $delivery_loyalty_discount = $fee_breakdown['loyalty_discount'];
             } catch (InvalidArgumentException $e) {
                 throw new InvalidArgumentException('Delivery fee calculation failed: ' . $e->getMessage());
             }
@@ -330,23 +344,26 @@ class CartService
 
         // Prepare order data
         return [
-            'customer_id'          => $cart->customer_id ?? $checkout_data['customer_id'],
-            'branch_id'            => $cart->branch_id,
-            'status'               => Order::STATUS_PENDING,
-            'subtotal'             => $subtotal,
-            'tax_amount'           => $tax_amount,
-            'delivery_fee'         => $delivery_fee,
-            'total_amount'         => $total_amount,
-            'payment_status'       => Order::PAYMENT_PENDING,
-            'payment_method'       => $checkout_data['payment_method'] ?? 'online',
-            'delivery_type'        => $checkout_data['delivery_type'] ?? 'pickup',
-            'delivery_address'     => $checkout_data['delivery_address'] ?? null,
-            'pickup_time'          => $checkout_data['delivery_time'] ?? null,
-            'notes'                => sanitize_textarea_field($checkout_data['notes'] ?? ''),
-            'special_instructions' => sanitize_textarea_field($checkout_data['notes'] ?? ''),
-            'tracking_token'       => $tracking_token,
-            'order_items'          => $order_items,
-            'loyalty_points_used'  => $loyalty_points_used,
+            'customer_id'                 => $cart->customer_id ?? $checkout_data['customer_id'],
+            'branch_id'                   => $cart->branch_id,
+            'status'                      => Order::STATUS_PENDING,
+            'subtotal'                    => $subtotal,
+            'tax_amount'                  => $tax_amount,
+            'delivery_fee'                => $delivery_fee,
+            'delivery_base_fee'           => $delivery_base_fee,
+            'delivery_time_surcharge'     => $delivery_time_surcharge,
+            'delivery_loyalty_discount'   => $delivery_loyalty_discount,
+            'total_amount'                => $total_amount,
+            'payment_status'              => Order::PAYMENT_PENDING,
+            'payment_method'              => $checkout_data['payment_method'] ?? 'online',
+            'delivery_type'               => $checkout_data['delivery_type'] ?? 'pickup',
+            'delivery_address'            => $checkout_data['delivery_address'] ?? null,
+            'pickup_time'                 => $checkout_data['delivery_time'] ?? null,
+            'notes'                       => sanitize_textarea_field($checkout_data['notes'] ?? ''),
+            'special_instructions'        => sanitize_textarea_field($checkout_data['notes'] ?? ''),
+            'tracking_token'              => $tracking_token,
+            'order_items'                 => $order_items,
+            'loyalty_points_used'         => $loyalty_points_used,
             'loyalty_discount'     => $loyalty_discount,
             'loyalty_points_earned'=> 0.0,
         ];

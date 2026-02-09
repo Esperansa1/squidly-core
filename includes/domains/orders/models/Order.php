@@ -18,6 +18,9 @@ class Order
     public float $subtotal;
     public float $tax_amount;
     public float $delivery_fee;
+    public float $delivery_base_fee = 0.0;
+    public float $delivery_time_surcharge = 0.0;
+    public float $delivery_loyalty_discount = 0.0;
     public string $payment_status;
     public string $payment_method;
     public string $notes;
@@ -70,6 +73,9 @@ class Order
         $order->subtotal = (float) get_post_meta($post->ID, '_subtotal', true);
         $order->tax_amount = (float) get_post_meta($post->ID, '_tax_amount', true);
         $order->delivery_fee = (float) get_post_meta($post->ID, '_delivery_fee', true);
+        $order->delivery_base_fee = (float) get_post_meta($post->ID, '_delivery_base_fee', true);
+        $order->delivery_time_surcharge = (float) get_post_meta($post->ID, '_delivery_time_surcharge', true);
+        $order->delivery_loyalty_discount = (float) get_post_meta($post->ID, '_delivery_loyalty_discount', true);
         $order->payment_status = get_post_meta($post->ID, '_payment_status', true) ?: self::PAYMENT_PENDING;
         $order->payment_method = get_post_meta($post->ID, '_payment_method', true) ?: self::PAYMENT_CASH;
         $order->notes = get_post_meta($post->ID, '_notes', true) ?: '';
@@ -187,6 +193,9 @@ class Order
             'subtotal' => $this->subtotal,
             'tax_amount' => $this->tax_amount,
             'delivery_fee' => $this->delivery_fee,
+            'delivery_base_fee' => $this->delivery_base_fee,
+            'delivery_time_surcharge' => $this->delivery_time_surcharge,
+            'delivery_loyalty_discount' => $this->delivery_loyalty_discount,
             'payment_status' => $this->payment_status,
             'payment_method' => $this->payment_method,
             'gateway_transaction_id' => $this->gateway_transaction_id,
