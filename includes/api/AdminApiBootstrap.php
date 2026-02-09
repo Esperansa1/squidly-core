@@ -56,6 +56,16 @@ class AdminApiBootstrap
         $admin_users_controller = new \SquidlyCore\Api\Controllers\AdminUserRestController();
         $admin_users_controller->register_routes();
 
+        // Delivery Pricing API
+        $delivery_tiers_controller = new DeliveryTierRestController();
+        $delivery_tiers_controller->register_routes();
+
+        $delivery_surcharges_controller = new DeliveryTimeSurchargeRestController();
+        $delivery_surcharges_controller->register_routes();
+
+        $delivery_discounts_controller = new DeliveryLoyaltyDiscountRestController();
+        $delivery_discounts_controller->register_routes();
+
         // Auth check endpoint for admin
         register_rest_route('squidly/v1', '/auth/check', [
             'methods' => \WP_REST_Server::READABLE,

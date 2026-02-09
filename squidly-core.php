@@ -150,6 +150,9 @@ require_once __DIR__ . '/includes/domains/products/rest/IngredientGroupRestContr
 require_once __DIR__ . '/includes/domains/stores/rest/StoreBranchRestController.php';
 require_once __DIR__ . '/includes/domains/orders/rest/OrderRestController.php';
 require_once __DIR__ . '/includes/domains/orders/rest/DashboardAnalyticsController.php';
+require_once __DIR__ . '/includes/domains/orders/rest/DeliveryTierRestController.php';
+require_once __DIR__ . '/includes/domains/orders/rest/DeliveryTimeSurchargeRestController.php';
+require_once __DIR__ . '/includes/domains/orders/rest/DeliveryLoyaltyDiscountRestController.php';
 require_once __DIR__ . '/includes/domains/customers/rest/CustomerRestController.php';
 require_once __DIR__ . '/includes/api/AdminApiBootstrap.php';
 
