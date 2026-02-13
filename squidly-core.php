@@ -124,20 +124,17 @@ require_once __DIR__ . '/includes/admin/RoleManager.php';
 \SquidlyCore\Admin\RoleManager::init();
 
 // Register settings
-// Consolidated admin initialization
+// Initialize admin page handlers (needed for frontend admin pages)
+add_action('init', function() {
+    AdminPageHandler::init();
+    CustomerPageHandler::init();
+}, 10);
+
+// Register settings in admin_init
 add_action('admin_init', function() {
-    // Register settings
     register_setting('squidly_settings', 'squidly_currency');
     register_setting('squidly_settings', 'squidly_allow_guest_checkout');
     register_setting('squidly_settings', 'squidly_guest_cleanup_days');
-
-    // Initialize admin handlers if in admin context
-    if (function_exists('AdminPageHandler::init')) {
-        AdminPageHandler::init();
-    }
-    if (function_exists('CustomerPageHandler::init')) {
-        CustomerPageHandler::init();
-    }
 });
 
 // Add cleanup cron job
@@ -215,10 +212,14 @@ add_action('init', function() {
     }
 }, 15);
 
-// Load admin-specific components only in admin context
+// Load admin page handlers (needed for frontend admin pages)
+require_once __DIR__ . '/includes/admin/AdminPageHandler.php';
+require_once __DIR__ . '/includes/admin/CustomerPageHandler.php';
+
+// Initialize handlers in consolidated admin_init hook (already defined above)
+
+// Load payment admin actions only in WordPress admin backend
 if (is_admin()) {
-    require_once __DIR__ . '/includes/admin/AdminPageHandler.php';
-    require_once __DIR__ . '/includes/admin/CustomerPageHandler.php';
     require_once __DIR__ . '/includes/domains/payments/admin/PaymentAdminActions.php';
 }
 
