@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { UserCircleIcon } from '@heroicons/react/24/outline';
+import UserCircleIcon from '@heroicons/react/24/outline/UserCircleIcon';
 import { Card, FormField, Button, Toast } from '../ui/index';
 import { DEFAULT_THEME } from '../../config/theme.js';
 import api from '../../services/api.js';

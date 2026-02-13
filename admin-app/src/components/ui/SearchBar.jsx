@@ -1,5 +1,5 @@
 import React from 'react';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon';
 import { DEFAULT_THEME } from '../../config/theme.js';
 
 const SearchBar = ({ 

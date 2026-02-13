@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import PlusIcon from '@heroicons/react/24/outline/PlusIcon';
+import PencilIcon from '@heroicons/react/24/outline/PencilIcon';
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import { Card, SearchBar, DataTable, ConfirmationModal, Toast } from './index';
 import { ActionButton } from './molecules';
 import usePagination from '../../hooks/usePagination.js';

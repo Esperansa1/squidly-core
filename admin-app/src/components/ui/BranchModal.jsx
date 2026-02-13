@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { XMarkIcon, PlusIcon, TrashIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
+import PlusIcon from '@heroicons/react/24/outline/PlusIcon';
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+import MapPinIcon from '@heroicons/react/24/outline/MapPinIcon';
 import { DEFAULT_THEME } from '../../config/theme.js';
 import DropdownButton from './DropdownButton.jsx';
 import DeliveryPricingSection from './DeliveryPricingSection.jsx';

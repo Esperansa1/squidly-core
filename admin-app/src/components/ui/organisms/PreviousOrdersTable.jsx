@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import {
-  CheckCircleIcon,
-  XCircleIcon,
-  ArrowPathIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
-  TruckIcon,
-  ShoppingBagIcon,
-} from '@heroicons/react/24/outline';
+import CheckCircleIcon from '@heroicons/react/24/outline/CheckCircleIcon';
+import XCircleIcon from '@heroicons/react/24/outline/XCircleIcon';
+import ArrowPathIcon from '@heroicons/react/24/outline/ArrowPathIcon';
+import ChevronUpIcon from '@heroicons/react/24/outline/ChevronUpIcon';
+import ChevronDownIcon from '@heroicons/react/24/outline/ChevronDownIcon';
+import TruckIcon from '@heroicons/react/24/outline/TruckIcon';
+import ShoppingBagIcon from '@heroicons/react/24/outline/ShoppingBagIcon';
 import Card from '../atoms/Card';
 import Pagination from '../molecules/Pagination';
 

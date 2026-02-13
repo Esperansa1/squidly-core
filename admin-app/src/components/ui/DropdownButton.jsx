@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import ChevronDownIcon from '@heroicons/react/24/outline/ChevronDownIcon';
 import { DEFAULT_THEME } from '../../config/theme.js';
 
 const DropdownButton = ({

@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { ChevronDownIcon, ChevronUpIcon, TruckIcon, ShoppingBagIcon } from '@heroicons/react/24/outline';
+import ChevronDownIcon from '@heroicons/react/24/outline/ChevronDownIcon';
+import ChevronUpIcon from '@heroicons/react/24/outline/ChevronUpIcon';
+import TruckIcon from '@heroicons/react/24/outline/TruckIcon';
+import ShoppingBagIcon from '@heroicons/react/24/outline/ShoppingBagIcon';
 import { Card, Button } from './atoms';
 import { TimeIndicator, OrderItemsList } from './molecules';
 

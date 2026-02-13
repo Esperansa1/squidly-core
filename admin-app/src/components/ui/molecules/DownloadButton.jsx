@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import ArrowDownTrayIcon from '@heroicons/react/24/outline/ArrowDownTrayIcon';
 import Button from '../atoms/Button';
 
 /**

@@ -1,14 +1,12 @@
 import Modal from './Modal';
-import {
-  UserIcon,
-  PhoneIcon,
-  MapPinIcon,
-  CreditCardIcon,
-  BanknotesIcon,
-  ClockIcon,
-  TruckIcon,
-  ShoppingBagIcon,
-} from '@heroicons/react/24/outline';
+import UserIcon from '@heroicons/react/24/outline/UserIcon';
+import PhoneIcon from '@heroicons/react/24/outline/PhoneIcon';
+import MapPinIcon from '@heroicons/react/24/outline/MapPinIcon';
+import CreditCardIcon from '@heroicons/react/24/outline/CreditCardIcon';
+import BanknotesIcon from '@heroicons/react/24/outline/BanknotesIcon';
+import ClockIcon from '@heroicons/react/24/outline/ClockIcon';
+import TruckIcon from '@heroicons/react/24/outline/TruckIcon';
+import ShoppingBagIcon from '@heroicons/react/24/outline/ShoppingBagIcon';
 
 /**
  * Order Details Modal Component

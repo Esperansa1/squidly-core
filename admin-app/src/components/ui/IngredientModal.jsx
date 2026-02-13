@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import PlusIcon from '@heroicons/react/24/outline/PlusIcon';
+import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
 import { DEFAULT_THEME } from '../../config/theme.js';
 
 const IngredientModal = ({

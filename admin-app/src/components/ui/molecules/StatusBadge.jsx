@@ -6,12 +6,10 @@
 
 import React from 'react';
 import { Badge } from '../atoms';
-import {
-  CheckCircleIcon,
-  XCircleIcon,
-  ExclamationTriangleIcon,
-  InformationCircleIcon
-} from '@heroicons/react/24/solid';
+import CheckCircleIcon from '@heroicons/react/24/solid/CheckCircleIcon';
+import XCircleIcon from '@heroicons/react/24/solid/XCircleIcon';
+import ExclamationTriangleIcon from '@heroicons/react/24/solid/ExclamationTriangleIcon';
+import InformationCircleIcon from '@heroicons/react/24/solid/InformationCircleIcon';
 
 const StatusBadge = ({
   status = 'default',

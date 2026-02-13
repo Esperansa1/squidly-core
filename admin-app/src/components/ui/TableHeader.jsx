@@ -1,5 +1,7 @@
 import React from 'react';
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import PlusIcon from '@heroicons/react/24/outline/PlusIcon';
+import PencilIcon from '@heroicons/react/24/outline/PencilIcon';
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import { DEFAULT_THEME } from '../../config/theme.js';
 
 const ActionButton = ({ icon: Icon, variant, onClick, disabled = false, title }) => {

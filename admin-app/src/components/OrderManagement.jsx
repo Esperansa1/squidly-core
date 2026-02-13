@@ -6,7 +6,7 @@ import StatisticsCards from './ui/organisms/StatisticsCards.jsx';
 import PreviousOrdersTable from './ui/organisms/PreviousOrdersTable.jsx';
 import OrderDetailsModal from './ui/organisms/OrderDetailsModal.jsx';
 import DownloadButton from './ui/molecules/DownloadButton.jsx';
-import { CalendarIcon } from '@heroicons/react/24/outline';
+import CalendarIcon from '@heroicons/react/24/outline/CalendarIcon';
 import { getDateRange } from '../utils/dateRangeCalculator.js';
 
 const OrderManagement = () => {

@@ -1,4 +1,5 @@
-import { ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline';
+import ArrowTrendingUpIcon from '@heroicons/react/24/outline/ArrowTrendingUpIcon';
+import ArrowTrendingDownIcon from '@heroicons/react/24/outline/ArrowTrendingDownIcon';
 import Card from '../atoms/Card';
 
 /**

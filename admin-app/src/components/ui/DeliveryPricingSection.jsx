@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import PlusIcon from '@heroicons/react/24/outline/PlusIcon';
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+import ChevronDownIcon from '@heroicons/react/24/outline/ChevronDownIcon';
+import ChevronUpIcon from '@heroicons/react/24/outline/ChevronUpIcon';
 import api from '../../services/api.js';
 import { FormField, Button, IconButton, Select, Divider } from './index';
 

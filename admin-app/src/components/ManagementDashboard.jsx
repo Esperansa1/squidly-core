@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button } from './ui/atoms';
 import TabSelector from './ui/TabSelector';
-import {
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-  CalendarIcon,
-  ShoppingCartIcon,
-  UserPlusIcon,
-  BanknotesIcon,
-} from '@heroicons/react/24/outline';
+import ArrowTrendingUpIcon from '@heroicons/react/24/outline/ArrowTrendingUpIcon';
+import ArrowTrendingDownIcon from '@heroicons/react/24/outline/ArrowTrendingDownIcon';
+import CalendarIcon from '@heroicons/react/24/outline/CalendarIcon';
+import ShoppingCartIcon from '@heroicons/react/24/outline/ShoppingCartIcon';
+import UserPlusIcon from '@heroicons/react/24/outline/UserPlusIcon';
+import BanknotesIcon from '@heroicons/react/24/outline/BanknotesIcon';
 import {
   BarChart,
   Bar,

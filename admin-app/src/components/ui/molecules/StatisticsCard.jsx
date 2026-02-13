@@ -1,5 +1,6 @@
 import React from 'react';
-import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
+import ArrowUpIcon from '@heroicons/react/24/outline/ArrowUpIcon';
+import ArrowDownIcon from '@heroicons/react/24/outline/ArrowDownIcon';
 import { Card } from '../atoms';
 
 const StatisticsCard = ({

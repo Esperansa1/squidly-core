@@ -1,20 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  Bars3Icon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  MagnifyingGlassIcon,
-  Squares2X2Icon,
-  ClipboardDocumentListIcon,
-  CalendarIcon,
-  ListBulletIcon,
-  UserGroupIcon,
-  InformationCircleIcon,
-  CogIcon,
-  ChevronDownIcon,
-  BuildingStorefrontIcon,
-  ArrowRightOnRectangleIcon,
-} from '@heroicons/react/24/outline';
+import Bars3Icon from '@heroicons/react/24/outline/Bars3Icon';
+import ChevronLeftIcon from '@heroicons/react/24/outline/ChevronLeftIcon';
+import ChevronRightIcon from '@heroicons/react/24/outline/ChevronRightIcon';
+import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon';
+import Squares2X2Icon from '@heroicons/react/24/outline/Squares2X2Icon';
+import ClipboardDocumentListIcon from '@heroicons/react/24/outline/ClipboardDocumentListIcon';
+import CalendarIcon from '@heroicons/react/24/outline/CalendarIcon';
+import ListBulletIcon from '@heroicons/react/24/outline/ListBulletIcon';
+import UserGroupIcon from '@heroicons/react/24/outline/UserGroupIcon';
+import InformationCircleIcon from '@heroicons/react/24/outline/InformationCircleIcon';
+import CogIcon from '@heroicons/react/24/outline/CogIcon';
+import ChevronDownIcon from '@heroicons/react/24/outline/ChevronDownIcon';
+import BuildingStorefrontIcon from '@heroicons/react/24/outline/BuildingStorefrontIcon';
+import ArrowRightOnRectangleIcon from '@heroicons/react/24/outline/ArrowRightOnRectangleIcon';
 import { useRouter } from '../router.jsx';
 import { DEFAULT_THEME } from '../config/theme.js';
 

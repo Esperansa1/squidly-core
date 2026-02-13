@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import ExclamationTriangleIcon from '@heroicons/react/24/outline/ExclamationTriangleIcon';
 import { Button } from '../atoms';
 import { DEFAULT_THEME } from '../../../config/theme.js';
 

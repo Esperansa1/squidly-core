@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { XMarkIcon, ExclamationTriangleIcon, CheckCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
+import ExclamationTriangleIcon from '@heroicons/react/24/outline/ExclamationTriangleIcon';
+import CheckCircleIcon from '@heroicons/react/24/outline/CheckCircleIcon';
+import InformationCircleIcon from '@heroicons/react/24/outline/InformationCircleIcon';
 import { DEFAULT_THEME } from '../../config/theme.js';
 
 const Toast = ({

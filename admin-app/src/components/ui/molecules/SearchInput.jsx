@@ -5,7 +5,8 @@
  */
 
 import React from 'react';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon';
+import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
 import { Input, IconButton } from '../atoms';
 
 const SearchInput = ({

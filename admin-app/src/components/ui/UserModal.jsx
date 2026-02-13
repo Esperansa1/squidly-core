@@ -5,7 +5,8 @@
  */
 
 import { useState, useRef } from 'react';
-import { UserCircleIcon, KeyIcon } from '@heroicons/react/24/outline';
+import UserCircleIcon from '@heroicons/react/24/outline/UserCircleIcon';
+import KeyIcon from '@heroicons/react/24/outline/KeyIcon';
 import { FormField, Button, Modal, IconButton } from './index';
 import DropdownButton from './DropdownButton.jsx';
 import { DEFAULT_THEME } from '../../config/theme.js';
