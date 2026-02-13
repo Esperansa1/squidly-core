@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { PlusIcon, TrashIcon, PencilIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import api from '../../services/api.js';
+import { FormField, Button, IconButton, Select, Divider } from './index';
 
 /**
  * DeliveryPricingSection - Manage advanced delivery pricing for a branch
  * Handles tiers, time surcharges, and loyalty discounts
+ * Uses pre-created themed components for consistency
  */
 const DeliveryPricingSection = ({ branchId, isOpen }) => {
   const [expanded, setExpanded] = useState(false);
@@ -22,28 +24,36 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
   // Form states for adding new items
   const [newTier, setNewTier] = useState({ min_order_value: '', delivery_fee: '' });
   const [newSurcharge, setNewSurcharge] = useState({
-    day_of_week: 0,
+    day_of_week: '0',
     start_time: '',
     end_time: '',
     surcharge_amount: '',
     surcharge_type: 'fixed',
-    is_active: true,
   });
   const [newDiscount, setNewDiscount] = useState({
     min_loyalty_points: '',
     discount_amount: '',
     discount_type: 'fixed',
-    is_active: true,
   });
 
   const daysOfWeek = [
-    { value: 0, label: 'ראשון' },
-    { value: 1, label: 'שני' },
-    { value: 2, label: 'שלישי' },
-    { value: 3, label: 'רביעי' },
-    { value: 4, label: 'חמישי' },
-    { value: 5, label: 'שישי' },
-    { value: 6, label: 'שבת' },
+    { value: '0', label: 'ראשון' },
+    { value: '1', label: 'שני' },
+    { value: '2', label: 'שלישי' },
+    { value: '3', label: 'רביעי' },
+    { value: '4', label: 'חמישי' },
+    { value: '5', label: 'שישי' },
+    { value: '6', label: 'שבת' },
+  ];
+
+  const surchargeTypeOptions = [
+    { value: 'fixed', label: 'סכום קבוע (₪)' },
+    { value: 'percentage', label: 'אחוז (%)' },
+  ];
+
+  const discountTypeOptions = [
+    { value: 'fixed', label: 'סכום קבוע (₪)' },
+    { value: 'percentage', label: 'אחוז (%)' },
   ];
 
   // Load data when branch is selected and section is expanded
@@ -117,15 +127,14 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
         end_time: newSurcharge.end_time + ':00',
         surcharge_amount: parseFloat(newSurcharge.surcharge_amount),
         surcharge_type: newSurcharge.surcharge_type,
-        is_active: newSurcharge.is_active,
+        is_active: true,
       });
       setNewSurcharge({
-        day_of_week: 0,
+        day_of_week: '0',
         start_time: '',
         end_time: '',
         surcharge_amount: '',
         surcharge_type: 'fixed',
-        is_active: true,
       });
       await loadAll();
     } catch (error) {
@@ -159,13 +168,12 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
         min_loyalty_points: parseInt(newDiscount.min_loyalty_points),
         discount_amount: parseFloat(newDiscount.discount_amount),
         discount_type: newDiscount.discount_type,
-        is_active: newDiscount.is_active,
+        is_active: true,
       });
       setNewDiscount({
         min_loyalty_points: '',
         discount_amount: '',
         discount_type: 'fixed',
-        is_active: true,
       });
       await loadAll();
     } catch (error) {
@@ -200,52 +208,56 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
 
   return (
     <div className="border-t border-gray-200 pt-4 mt-2">
-      <button
-        type="button"
+      <Button
+        variant="ghost"
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between text-md font-semibold text-gray-900 mb-3 hover:text-gray-700"
+        fullWidth
+        className="justify-between"
       >
-        <span>תמחור משלוחים מתקדם (אופציונלי)</span>
+        <span className="text-md font-semibold text-gray-900">תמחור משלוחים מתקדם (אופציונלי)</span>
         {expanded ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
-      </button>
+      </Button>
 
       {expanded && (
-        <div className="space-y-4">
+        <div className="space-y-4 mt-4">
           {/* Tabs */}
           <div className="flex gap-2 border-b border-gray-200">
-            <button
-              type="button"
+            <Button
+              variant={activeTab === 'tiers' ? 'primary' : 'ghost'}
               onClick={() => setActiveTab('tiers')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'tiers'
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              size="sm"
+              className="border-b-2"
+              style={{
+                borderBottomColor: activeTab === 'tiers' ? 'rgb(239, 68, 68)' : 'transparent',
+                borderRadius: '0',
+              }}
             >
               דרגות לפי ערך
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant={activeTab === 'surcharges' ? 'primary' : 'ghost'}
               onClick={() => setActiveTab('surcharges')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'surcharges'
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              size="sm"
+              className="border-b-2"
+              style={{
+                borderBottomColor: activeTab === 'surcharges' ? 'rgb(239, 68, 68)' : 'transparent',
+                borderRadius: '0',
+              }}
             >
               תוספות שעות שיא
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant={activeTab === 'discounts' ? 'primary' : 'ghost'}
               onClick={() => setActiveTab('discounts')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'discounts'
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              size="sm"
+              className="border-b-2"
+              style={{
+                borderBottomColor: activeTab === 'discounts' ? 'rgb(239, 68, 68)' : 'transparent',
+                borderRadius: '0',
+              }}
             >
               הנחות נאמנות
-            </button>
+            </Button>
           </div>
 
           {loading ? (
@@ -276,14 +288,14 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
                               <td className="px-3 py-2 text-sm">{tier.min_order_value}</td>
                               <td className="px-3 py-2 text-sm">{tier.delivery_fee}</td>
                               <td className="px-3 py-2 text-sm">
-                                <button
-                                  type="button"
+                                <IconButton
                                   onClick={() => handleDeleteTier(tier.id)}
                                   disabled={saving}
-                                  className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                                >
-                                  <TrashIcon className="w-4 h-4" />
-                                </button>
+                                  variant="danger"
+                                  size="sm"
+                                  icon={TrashIcon}
+                                  aria-label="מחק דרגה"
+                                />
                               </td>
                             </tr>
                           ))}
@@ -295,42 +307,38 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
                   {/* Add New Tier */}
                   <div className="bg-gray-50 p-3 rounded-lg space-y-2">
                     <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">מעל (₪)</label>
-                        <input
-                          type="number"
-                          step="1"
-                          min="0"
-                          value={newTier.min_order_value}
-                          onChange={(e) => setNewTier({ ...newTier, min_order_value: e.target.value })}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
-                          placeholder="50"
-                          style={{ direction: 'ltr', textAlign: 'left' }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">דמי משלוח (₪)</label>
-                        <input
-                          type="number"
-                          step="0.5"
-                          min="0"
-                          value={newTier.delivery_fee}
-                          onChange={(e) => setNewTier({ ...newTier, delivery_fee: e.target.value })}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
-                          placeholder="15"
-                          style={{ direction: 'ltr', textAlign: 'left' }}
-                        />
-                      </div>
+                      <FormField
+                        label="מעל (₪)"
+                        fieldType="input"
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={newTier.min_order_value}
+                        onChange={(e) => setNewTier({ ...newTier, min_order_value: e.target.value })}
+                        placeholder="50"
+                        size="sm"
+                      />
+                      <FormField
+                        label="דמי משלוח (₪)"
+                        fieldType="input"
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={newTier.delivery_fee}
+                        onChange={(e) => setNewTier({ ...newTier, delivery_fee: e.target.value })}
+                        placeholder="15"
+                        size="sm"
+                      />
                     </div>
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={handleAddTier}
                       disabled={saving || !newTier.min_order_value || !newTier.delivery_fee}
-                      className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                      icon={PlusIcon}
                     >
-                      <PlusIcon className="w-4 h-4" />
                       הוסף דרגה
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -349,7 +357,7 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
                         <div key={surcharge.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200">
                           <div className="text-sm">
                             <span className="font-medium">
-                              {daysOfWeek.find((d) => d.value === surcharge.day_of_week)?.label}
+                              {daysOfWeek.find((d) => d.value === String(surcharge.day_of_week))?.label}
                             </span>
                             {' '}
                             {surcharge.start_time.slice(0, 5)} - {surcharge.end_time.slice(0, 5)}
@@ -359,14 +367,14 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
                             {surcharge.surcharge_type === 'percentage' ? '%' : ''}
                             {!surcharge.is_active && ' (לא פעיל)'}
                           </div>
-                          <button
-                            type="button"
+                          <IconButton
                             onClick={() => handleDeleteSurcharge(surcharge.id)}
                             disabled={saving}
-                            className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
+                            variant="danger"
+                            size="sm"
+                            icon={TrashIcon}
+                            aria-label="מחק תוספת"
+                          />
                         </div>
                       ))}
                     </div>
@@ -375,76 +383,73 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
                   {/* Add New Surcharge */}
                   <div className="bg-gray-50 p-3 rounded-lg space-y-2">
                     <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">יום</label>
-                        <select
-                          value={newSurcharge.day_of_week}
-                          onChange={(e) => setNewSurcharge({ ...newSurcharge, day_of_week: e.target.value })}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
-                        >
-                          {daysOfWeek.map((day) => (
-                            <option key={day.value} value={day.value}>
-                              {day.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      <FormField
+                        label="יום"
+                        fieldType="select"
+                        value={newSurcharge.day_of_week}
+                        onChange={(e) => setNewSurcharge({ ...newSurcharge, day_of_week: e.target.value })}
+                        size="sm"
+                      >
+                        {daysOfWeek.map((day) => (
+                          <option key={day.value} value={day.value}>
+                            {day.label}
+                          </option>
+                        ))}
+                      </FormField>
                       <div className="grid grid-cols-2 gap-1">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">התחלה</label>
-                          <input
-                            type="time"
-                            value={newSurcharge.start_time}
-                            onChange={(e) => setNewSurcharge({ ...newSurcharge, start_time: e.target.value })}
-                            className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">סיום</label>
-                          <input
-                            type="time"
-                            value={newSurcharge.end_time}
-                            onChange={(e) => setNewSurcharge({ ...newSurcharge, end_time: e.target.value })}
-                            className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
-                          />
-                        </div>
+                        <FormField
+                          label="התחלה"
+                          fieldType="input"
+                          type="time"
+                          value={newSurcharge.start_time}
+                          onChange={(e) => setNewSurcharge({ ...newSurcharge, start_time: e.target.value })}
+                          size="sm"
+                        />
+                        <FormField
+                          label="סיום"
+                          fieldType="input"
+                          type="time"
+                          value={newSurcharge.end_time}
+                          onChange={(e) => setNewSurcharge({ ...newSurcharge, end_time: e.target.value })}
+                          size="sm"
+                        />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">סכום</label>
-                        <input
-                          type="number"
-                          step="0.5"
-                          min="0"
-                          value={newSurcharge.surcharge_amount}
-                          onChange={(e) => setNewSurcharge({ ...newSurcharge, surcharge_amount: e.target.value })}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
-                          placeholder="10"
-                          style={{ direction: 'ltr', textAlign: 'left' }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">סוג</label>
-                        <select
-                          value={newSurcharge.surcharge_type}
-                          onChange={(e) => setNewSurcharge({ ...newSurcharge, surcharge_type: e.target.value })}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
-                        >
-                          <option value="fixed">סכום קבוע (₪)</option>
-                          <option value="percentage">אחוז (%)</option>
-                        </select>
-                      </div>
+                      <FormField
+                        label="סכום"
+                        fieldType="input"
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={newSurcharge.surcharge_amount}
+                        onChange={(e) => setNewSurcharge({ ...newSurcharge, surcharge_amount: e.target.value })}
+                        placeholder="10"
+                        size="sm"
+                      />
+                      <FormField
+                        label="סוג"
+                        fieldType="select"
+                        value={newSurcharge.surcharge_type}
+                        onChange={(e) => setNewSurcharge({ ...newSurcharge, surcharge_type: e.target.value })}
+                        size="sm"
+                      >
+                        {surchargeTypeOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </FormField>
                     </div>
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={handleAddSurcharge}
                       disabled={saving || !newSurcharge.start_time || !newSurcharge.end_time || !newSurcharge.surcharge_amount}
-                      className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                      icon={PlusIcon}
                     >
-                      <PlusIcon className="w-4 h-4" />
                       הוסף תוספת
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -469,14 +474,14 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
                             {discount.discount_type === 'percentage' ? '%' : ''} הנחה
                             {!discount.is_active && ' (לא פעיל)'}
                           </div>
-                          <button
-                            type="button"
+                          <IconButton
                             onClick={() => handleDeleteDiscount(discount.id)}
                             disabled={saving}
-                            className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
+                            variant="danger"
+                            size="sm"
+                            icon={TrashIcon}
+                            aria-label="מחק הנחה"
+                          />
                         </div>
                       ))}
                     </div>
@@ -485,53 +490,52 @@ const DeliveryPricingSection = ({ branchId, isOpen }) => {
                   {/* Add New Discount */}
                   <div className="bg-gray-50 p-3 rounded-lg space-y-2">
                     <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">נקודות מינימום</label>
-                        <input
-                          type="number"
-                          step="1"
-                          min="0"
-                          value={newDiscount.min_loyalty_points}
-                          onChange={(e) => setNewDiscount({ ...newDiscount, min_loyalty_points: e.target.value })}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
-                          placeholder="100"
-                          style={{ direction: 'ltr', textAlign: 'left' }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">סכום הנחה</label>
-                        <input
-                          type="number"
-                          step="0.5"
-                          min="0"
-                          value={newDiscount.discount_amount}
-                          onChange={(e) => setNewDiscount({ ...newDiscount, discount_amount: e.target.value })}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
-                          placeholder="5"
-                          style={{ direction: 'ltr', textAlign: 'left' }}
-                        />
-                      </div>
+                      <FormField
+                        label="נקודות מינימום"
+                        fieldType="input"
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={newDiscount.min_loyalty_points}
+                        onChange={(e) => setNewDiscount({ ...newDiscount, min_loyalty_points: e.target.value })}
+                        placeholder="100"
+                        size="sm"
+                      />
+                      <FormField
+                        label="סכום הנחה"
+                        fieldType="input"
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={newDiscount.discount_amount}
+                        onChange={(e) => setNewDiscount({ ...newDiscount, discount_amount: e.target.value })}
+                        placeholder="5"
+                        size="sm"
+                      />
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">סוג הנחה</label>
-                      <select
-                        value={newDiscount.discount_type}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, discount_type: e.target.value })}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
-                      >
-                        <option value="fixed">סכום קבוע (₪)</option>
-                        <option value="percentage">אחוז (%)</option>
-                      </select>
-                    </div>
-                    <button
-                      type="button"
+                    <FormField
+                      label="סוג הנחה"
+                      fieldType="select"
+                      value={newDiscount.discount_type}
+                      onChange={(e) => setNewDiscount({ ...newDiscount, discount_type: e.target.value })}
+                      size="sm"
+                      fullWidth
+                    >
+                      {discountTypeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </FormField>
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={handleAddDiscount}
                       disabled={saving || !newDiscount.min_loyalty_points || !newDiscount.discount_amount}
-                      className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                      icon={PlusIcon}
                     >
-                      <PlusIcon className="w-4 h-4" />
                       הוסף הנחה
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
