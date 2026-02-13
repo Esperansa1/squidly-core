@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { RouterProvider, useRouter } from './router.jsx';
 import AppLayout from './components/AppLayout.jsx';
 import './styles/admin.css';
@@ -17,11 +17,13 @@ const AppContent = () => {
   
   return (
     <div className="squidly-admin-app">
-      <AppLayout 
+      <AppLayout
         activeNavItem={currentRoute || 'menu-management'}
         onNavigate={handleNavigation}
       >
-        <CurrentComponent />
+        <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="text-primary-600">טוען...</div></div>}>
+          <CurrentComponent />
+        </Suspense>
       </AppLayout>
     </div>
   );

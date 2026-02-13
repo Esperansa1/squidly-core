@@ -14,6 +14,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 300,
     rollupOptions: {
       input: './src/main.jsx',
       output: {
@@ -24,6 +25,11 @@ export default defineConfig({
             return 'assets/main-[hash].css';
           }
           return 'assets/[name]-[hash].[ext]';
+        },
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          recharts: ['recharts'],
+          icons: ['@heroicons/react']
         }
       }
     },

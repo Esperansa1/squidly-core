@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, lazy } from 'react';
 
-// Import content components for SPA behavior
-import MenuManagement from './components/MenuManagement.jsx';
-import BranchManagement from './components/BranchManagement.jsx';
-import CustomerManagement from './components/CustomerManagement.jsx';
-import OrderManagement from './components/OrderManagement.jsx';
-import ManagementDashboard from './components/ManagementDashboard.jsx';
-import Settings from './components/Settings.jsx';
+// Lazy-load content components for better performance
+const MenuManagement = lazy(() => import('./components/MenuManagement.jsx'));
+const BranchManagement = lazy(() => import('./components/BranchManagement.jsx'));
+const CustomerManagement = lazy(() => import('./components/CustomerManagement.jsx'));
+const OrderManagement = lazy(() => import('./components/OrderManagement.jsx'));
+const ManagementDashboard = lazy(() => import('./components/ManagementDashboard.jsx'));
+const Settings = lazy(() => import('./components/Settings.jsx'));
 
 // Route configuration
 const routes = {
