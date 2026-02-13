@@ -169,6 +169,9 @@ require_once __DIR__ . '/includes/domains/orders/services/CartService.php';
 require_once __DIR__ . '/includes/domains/orders/services/DeliveryFeeService.php';
 require_once __DIR__ . '/includes/domains/orders/activation/DeliveryPricingActivation.php';
 
+// Database index management
+require_once __DIR__ . '/includes/db-indexes.php';
+
 // Load REST API controllers only when REST API is being initialized
 add_action('rest_api_init', function() {
     // Admin REST API Controllers
@@ -221,6 +224,9 @@ if (is_admin()) {
 
 // Payment system activation hooks
 register_activation_hook(__FILE__, function() {
+    // Verify and create database indexes for optimal performance
+    squidly_verify_database_indexes();
+
     // Ensure WooCommerce is loaded before creating payment product
     if (class_exists('WooCommerce')) {
         if (class_exists('Squidly\Domains\Payments\Activation\PaymentProductActivation')) {
