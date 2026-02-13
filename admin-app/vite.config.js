@@ -6,6 +6,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  base: './', // Use relative paths for assets
   resolve: {
     alias: {
       '@shared-ui': path.resolve(__dirname, '../shared-ui')

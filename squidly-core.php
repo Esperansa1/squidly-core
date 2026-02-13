@@ -169,36 +169,33 @@ require_once __DIR__ . '/includes/domains/orders/activation/DeliveryPricingActiv
 // Database index management
 require_once __DIR__ . '/includes/db-indexes.php';
 
-// Load REST API controllers only when REST API is being initialized
-add_action('rest_api_init', function() {
-    // Admin REST API Controllers
-    require_once __DIR__ . '/includes/domains/products/rest/ProductGroupRestController.php';
-    require_once __DIR__ . '/includes/domains/products/rest/IngredientRestController.php';
-    require_once __DIR__ . '/includes/domains/products/rest/IngredientGroupRestController.php';
-    require_once __DIR__ . '/includes/domains/stores/rest/StoreBranchRestController.php';
-    require_once __DIR__ . '/includes/domains/orders/rest/OrderRestController.php';
-    require_once __DIR__ . '/includes/domains/orders/rest/DashboardAnalyticsController.php';
-    require_once __DIR__ . '/includes/domains/orders/rest/DeliveryTierRestController.php';
-    require_once __DIR__ . '/includes/domains/orders/rest/DeliveryTimeSurchargeRestController.php';
-    require_once __DIR__ . '/includes/domains/orders/rest/DeliveryLoyaltyDiscountRestController.php';
-    require_once __DIR__ . '/includes/domains/customers/rest/CustomerRestController.php';
-    require_once __DIR__ . '/includes/domains/payments/rest/PaymentRestController.php';
+// Load REST API controller files early (they'll register routes in rest_api_init)
+require_once __DIR__ . '/includes/domains/products/rest/ProductGroupRestController.php';
+require_once __DIR__ . '/includes/domains/products/rest/IngredientRestController.php';
+require_once __DIR__ . '/includes/domains/products/rest/IngredientGroupRestController.php';
+require_once __DIR__ . '/includes/domains/stores/rest/StoreBranchRestController.php';
+require_once __DIR__ . '/includes/domains/orders/rest/OrderRestController.php';
+require_once __DIR__ . '/includes/domains/orders/rest/DashboardAnalyticsController.php';
+require_once __DIR__ . '/includes/domains/orders/rest/DeliveryTierRestController.php';
+require_once __DIR__ . '/includes/domains/orders/rest/DeliveryTimeSurchargeRestController.php';
+require_once __DIR__ . '/includes/domains/orders/rest/DeliveryLoyaltyDiscountRestController.php';
+require_once __DIR__ . '/includes/domains/customers/rest/CustomerRestController.php';
+require_once __DIR__ . '/includes/domains/payments/rest/PaymentRestController.php';
 
-    // Public REST API Controllers (no authentication required)
-    require_once __DIR__ . '/includes/api/PublicRestController.php';
-    require_once __DIR__ . '/includes/domains/stores/rest/PublicBranchRestController.php';
-    require_once __DIR__ . '/includes/domains/products/rest/PublicProductRestController.php';
-    require_once __DIR__ . '/includes/domains/orders/rest/PublicOrderRestController.php';
-    require_once __DIR__ . '/includes/domains/customers/rest/PublicCustomerRestController.php';
-    require_once __DIR__ . '/includes/domains/customers/rest/PublicAuthRestController.php';
-    require_once __DIR__ . '/includes/domains/orders/rest/PublicCartRestController.php';
+// Public REST API Controllers (no authentication required)
+require_once __DIR__ . '/includes/api/PublicRestController.php';
+require_once __DIR__ . '/includes/domains/stores/rest/PublicBranchRestController.php';
+require_once __DIR__ . '/includes/domains/products/rest/PublicProductRestController.php';
+require_once __DIR__ . '/includes/domains/orders/rest/PublicOrderRestController.php';
+require_once __DIR__ . '/includes/domains/customers/rest/PublicCustomerRestController.php';
+require_once __DIR__ . '/includes/domains/customers/rest/PublicAuthRestController.php';
+require_once __DIR__ . '/includes/domains/orders/rest/PublicCartRestController.php';
 
-    // Initialize API bootstraps
-    require_once __DIR__ . '/includes/api/AdminApiBootstrap.php';
-    require_once __DIR__ . '/includes/api/PublicApiBootstrap.php';
-    AdminApiBootstrap::init();
-    PublicApiBootstrap::init();
-}, 5);
+// Initialize API bootstraps (they will hook into rest_api_init themselves)
+require_once __DIR__ . '/includes/api/AdminApiBootstrap.php';
+require_once __DIR__ . '/includes/api/PublicApiBootstrap.php';
+AdminApiBootstrap::init();
+PublicApiBootstrap::init();
 
 // Initialize Payment Gateway System immediately after classes are loaded
 if (class_exists('Squidly\Domains\Payments\Bootstrap\PaymentBootstrap')) {
