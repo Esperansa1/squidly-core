@@ -4,11 +4,13 @@ customer-app/node_modules/
 node_modules/
 vendor/
 
-# Build outputs (admin)
+# Build outputs (all dist directories)
 admin-app/dist/
+customer-app/dist/
 admin-app/assets/
 assets/main.js
 assets/main.css
+dist/
 
 # Claude / AI tooling
 CLAUDE.md
