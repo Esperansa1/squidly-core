@@ -524,25 +524,27 @@ class CustomerRepository implements RepositoryInterface
             $last_name = $name_parts[1] ?? '';
         }
         
-        // Get all meta data
-        $email = get_post_meta($post->ID, '_email', true) ?: '';
-        $phone = get_post_meta($post->ID, '_phone', true) ?: '';
-        $auth_provider = get_post_meta($post->ID, '_auth_provider', true) ?: '';
-        $google_id = get_post_meta($post->ID, '_google_id', true);
-        $phone_verified_at = get_post_meta($post->ID, '_phone_verified_at', true);
-        $addresses = get_post_meta($post->ID, '_addresses', true);
-        $allow_sms = get_post_meta($post->ID, '_allow_sms_notifications', true);
-        $allow_email = get_post_meta($post->ID, '_allow_email_notifications', true);
-        $order_ids = get_post_meta($post->ID, '_order_ids', true);
-        $total_orders = get_post_meta($post->ID, '_total_orders', true);
-        $total_spent = get_post_meta($post->ID, '_total_spent', true);
-        $last_order_date = get_post_meta($post->ID, '_last_order_date', true);
-        $loyalty_balance = get_post_meta($post->ID, '_loyalty_points_balance', true);
-        $lifetime_points = get_post_meta($post->ID, '_lifetime_points_earned', true);
-        $staff_labels = get_post_meta($post->ID, '_staff_labels', true);
-        $is_active = get_post_meta($post->ID, '_is_active', true);
-        $registration_date = get_post_meta($post->ID, '_registration_date', true);
-        $is_guest = get_post_meta($post->ID, '_is_guest', true);
+        // Batch load all meta data in a single query
+        $meta = get_post_meta($post->ID);
+
+        $email = isset($meta['_email'][0]) && $meta['_email'][0] ? $meta['_email'][0] : '';
+        $phone = isset($meta['_phone'][0]) && $meta['_phone'][0] ? $meta['_phone'][0] : '';
+        $auth_provider = isset($meta['_auth_provider'][0]) && $meta['_auth_provider'][0] ? $meta['_auth_provider'][0] : '';
+        $google_id = isset($meta['_google_id'][0]) ? $meta['_google_id'][0] : null;
+        $phone_verified_at = isset($meta['_phone_verified_at'][0]) ? $meta['_phone_verified_at'][0] : null;
+        $addresses = isset($meta['_addresses'][0]) ? maybe_unserialize($meta['_addresses'][0]) : [];
+        $allow_sms = isset($meta['_allow_sms_notifications'][0]) ? $meta['_allow_sms_notifications'][0] : false;
+        $allow_email = isset($meta['_allow_email_notifications'][0]) ? $meta['_allow_email_notifications'][0] : false;
+        $order_ids = isset($meta['_order_ids'][0]) ? maybe_unserialize($meta['_order_ids'][0]) : [];
+        $total_orders = isset($meta['_total_orders'][0]) ? $meta['_total_orders'][0] : 0;
+        $total_spent = isset($meta['_total_spent'][0]) ? $meta['_total_spent'][0] : 0;
+        $last_order_date = isset($meta['_last_order_date'][0]) ? $meta['_last_order_date'][0] : null;
+        $loyalty_balance = isset($meta['_loyalty_points_balance'][0]) ? $meta['_loyalty_points_balance'][0] : 0;
+        $lifetime_points = isset($meta['_lifetime_points_earned'][0]) ? $meta['_lifetime_points_earned'][0] : 0;
+        $staff_labels = isset($meta['_staff_labels'][0]) ? maybe_unserialize($meta['_staff_labels'][0]) : [];
+        $is_active = isset($meta['_is_active'][0]) ? $meta['_is_active'][0] : true;
+        $registration_date = isset($meta['_registration_date'][0]) ? $meta['_registration_date'][0] : null;
+        $is_guest = isset($meta['_is_guest'][0]) ? $meta['_is_guest'][0] : false;
         
         // Build the data array with proper defaults and type conversions
         $data = [

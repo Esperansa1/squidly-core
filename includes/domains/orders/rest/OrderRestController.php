@@ -211,6 +211,38 @@ class OrderRestController extends \WP_REST_Controller
             $offset = isset($params['offset']) ? (int) $params['offset'] : 0;
             $orders = $this->repository->findBy($filters, $per_page, $offset);
 
+            // Batch load related entities to avoid N+1 queries
+            $customer_ids = array_unique(array_filter(array_column($orders, 'customer_id')));
+            $branch_ids = array_unique(array_filter(array_column($orders, 'branch_id')));
+
+            // Load all customers in batch
+            $customers_map = [];
+            if (!empty($customer_ids)) {
+                $customer_repo = new \CustomerRepository();
+                foreach ($customer_ids as $cid) {
+                    $customer = $customer_repo->get($cid);
+                    if ($customer) {
+                        $customers_map[$cid] = $customer;
+                    }
+                }
+            }
+
+            // Load all branches in batch
+            $branches_map = [];
+            if (!empty($branch_ids)) {
+                $branch_repo = new \StoreBranchRepository();
+                foreach ($branch_ids as $bid) {
+                    $branch = $branch_repo->get($bid);
+                    if ($branch) {
+                        $branches_map[$bid] = $branch;
+                    }
+                }
+            }
+
+            // Store maps in request for use in prepare methods
+            $request['_customers_cache'] = $customers_map;
+            $request['_branches_cache'] = $branches_map;
+
             // Prepare response data
             $data = [];
             foreach ($orders as $order) {
@@ -1081,9 +1113,16 @@ class OrderRestController extends \WP_REST_Controller
             'loyalty_discount' => $order->loyalty_discount,
         ];
 
-        // Include customer data inline to avoid separate API calls
-        $customer_repo = new \CustomerRepository();
-        $customer = $customer_repo->get($order->customer_id);
+        // Get customer from cache if available (batch loaded), otherwise fetch individually
+        $customers_cache = $request['_customers_cache'] ?? [];
+        $customer = $customers_cache[$order->customer_id] ?? null;
+
+        // Fallback to individual fetch if not in cache
+        if (!$customer && $order->customer_id) {
+            $customer_repo = new \CustomerRepository();
+            $customer = $customer_repo->get($order->customer_id);
+        }
+
         if ($customer) {
             $data['customer'] = [
                 'id' => $customer->id,

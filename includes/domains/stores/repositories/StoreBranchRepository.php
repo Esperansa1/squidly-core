@@ -97,38 +97,57 @@ class StoreBranchRepository implements RepositoryInterface
         if ( ! $post || $post->post_type !== StoreBranchPostType::POST_TYPE) {
             return null;
         }
-        
+
+        // Batch load all meta fields in a single query
+        $meta = get_post_meta($id);
+
         $prodRepo = new ProductRepository();
         $ingRepo  = new IngredientRepository();
 
-        $productIds = get_post_meta($id, '_products', true) ?: [];
-        $ingredientIds = get_post_meta($id, '_ingredients', true) ?: [];
+        $productIds = isset($meta['_products'][0]) ? maybe_unserialize($meta['_products'][0]) : [];
+        $productIds = is_array($productIds) ? $productIds : [];
+        $ingredientIds = isset($meta['_ingredients'][0]) ? maybe_unserialize($meta['_ingredients'][0]) : [];
+        $ingredientIds = is_array($ingredientIds) ? $ingredientIds : [];
 
+        $activityTimes = isset($meta['_activity_times'][0]) ? maybe_unserialize($meta['_activity_times'][0]) : [];
+        $activityTimes = is_array($activityTimes) ? $activityTimes : [];
+
+        $accessibilityList = isset($meta['_accessibility_list'][0]) ? maybe_unserialize($meta['_accessibility_list'][0]) : [];
+        $accessibilityList = is_array($accessibilityList) ? $accessibilityList : [];
+
+        $productAvailability = isset($meta['_product_availability'][0]) ? maybe_unserialize($meta['_product_availability'][0]) : [];
+        $productAvailability = is_array($productAvailability) ? $productAvailability : [];
+
+        $ingredientAvailability = isset($meta['_ingredient_availability'][0]) ? maybe_unserialize($meta['_ingredient_availability'][0]) : [];
+        $ingredientAvailability = is_array($ingredientAvailability) ? $ingredientAvailability : [];
+
+        $deliveryZones = isset($meta['_delivery_zones'][0]) ? maybe_unserialize($meta['_delivery_zones'][0]) : [];
+        $deliveryZones = is_array($deliveryZones) ? $deliveryZones : [];
 
         return new StoreBranch([
             'id'                     => $id,
             'name'                   => $post->post_title,
-            'phone'                  => (string) get_post_meta($id, '_phone', true),
-            'city'                   => (string) get_post_meta($id, '_city', true),
-            'address'                => (string) get_post_meta($id, '_address', true),
-            'latitude'               => get_post_meta($id, '_latitude', true) ?: null,
-            'longitude'              => get_post_meta($id, '_longitude', true) ?: null,
-            'is_open'                => (bool)   get_post_meta($id, '_is_open', true),
-            'activity_times'         => get_post_meta($id, '_activity_times', true)      ?: [],
-            'kosher_type'            => (string) get_post_meta($id, '_kosher_type', true),
-            'accessibility_list'     => get_post_meta($id, '_accessibility_list', true)  ?: [],
+            'phone'                  => isset($meta['_phone'][0]) ? (string) $meta['_phone'][0] : '',
+            'city'                   => isset($meta['_city'][0]) ? (string) $meta['_city'][0] : '',
+            'address'                => isset($meta['_address'][0]) ? (string) $meta['_address'][0] : '',
+            'latitude'               => isset($meta['_latitude'][0]) && $meta['_latitude'][0] ? $meta['_latitude'][0] : null,
+            'longitude'              => isset($meta['_longitude'][0]) && $meta['_longitude'][0] ? $meta['_longitude'][0] : null,
+            'is_open'                => isset($meta['_is_open'][0]) ? (bool) $meta['_is_open'][0] : false,
+            'activity_times'         => $activityTimes,
+            'kosher_type'            => isset($meta['_kosher_type'][0]) ? (string) $meta['_kosher_type'][0] : '',
+            'accessibility_list'     => $accessibilityList,
             'products'               => array_map(fn($pid)=> $prodRepo->get((int)$pid), $productIds),
             'ingredients'            => array_map(fn($iid)=> $ingRepo->get((int)$iid),  $ingredientIds),
-            'product_availability'   => get_post_meta($id, '_product_availability', true)    ?: [],
-            'ingredient_availability'=> get_post_meta($id, '_ingredient_availability', true) ?: [],
-            'delivery_enabled'       => (bool)   get_post_meta($id, '_delivery_enabled', true),
-            'delivery_base_fee'      => (float)  get_post_meta($id, '_delivery_base_fee', true),
-            'delivery_free_threshold'=> (float)  get_post_meta($id, '_delivery_free_threshold', true),
-            'delivery_max_distance'  => (float)  get_post_meta($id, '_delivery_max_distance', true),
-            'min_order_amount'       => (float)  get_post_meta($id, '_min_order_amount', true),
-            'delivery_zones'         => get_post_meta($id, '_delivery_zones', true) ?: [],
-            'banner_image_url'       => get_post_meta($id, '_banner_image_url', true) ?: null,
-            'cashback_rate'          => get_post_meta($id, '_cashback_rate', true) !== '' ? (float) get_post_meta($id, '_cashback_rate', true) : null,
+            'product_availability'   => $productAvailability,
+            'ingredient_availability'=> $ingredientAvailability,
+            'delivery_enabled'       => isset($meta['_delivery_enabled'][0]) ? (bool) $meta['_delivery_enabled'][0] : false,
+            'delivery_base_fee'      => isset($meta['_delivery_base_fee'][0]) ? (float) $meta['_delivery_base_fee'][0] : 0.0,
+            'delivery_free_threshold'=> isset($meta['_delivery_free_threshold'][0]) ? (float) $meta['_delivery_free_threshold'][0] : 0.0,
+            'delivery_max_distance'  => isset($meta['_delivery_max_distance'][0]) ? (float) $meta['_delivery_max_distance'][0] : 0.0,
+            'min_order_amount'       => isset($meta['_min_order_amount'][0]) ? (float) $meta['_min_order_amount'][0] : 0.0,
+            'delivery_zones'         => $deliveryZones,
+            'banner_image_url'       => isset($meta['_banner_image_url'][0]) && $meta['_banner_image_url'][0] ? $meta['_banner_image_url'][0] : null,
+            'cashback_rate'          => isset($meta['_cashback_rate'][0]) && $meta['_cashback_rate'][0] !== '' ? (float) $meta['_cashback_rate'][0] : null,
         ]);
     }
 

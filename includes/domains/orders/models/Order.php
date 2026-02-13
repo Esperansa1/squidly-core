@@ -63,36 +63,40 @@ class Order
      */
     public static function fromWordPress(\WP_Post $post): self
     {
+        // Batch load all meta fields in a single query
+        $meta = get_post_meta($post->ID);
+
         $order = new self();
         $order->id = $post->ID;
-        $order->customer_id = (int) get_post_meta($post->ID, '_customer_id', true);
-        $order->branch_id = get_post_meta($post->ID, '_branch_id', true) ? (int) get_post_meta($post->ID, '_branch_id', true) : null;
-        $order->status = get_post_meta($post->ID, '_status', true) ?: self::STATUS_PENDING;
+        $order->customer_id = isset($meta['_customer_id'][0]) ? (int) $meta['_customer_id'][0] : 0;
+        $order->branch_id = isset($meta['_branch_id'][0]) && $meta['_branch_id'][0] ? (int) $meta['_branch_id'][0] : null;
+        $order->status = isset($meta['_status'][0]) ? $meta['_status'][0] : self::STATUS_PENDING;
         $order->order_date = $post->post_date;
-        $order->total_amount = (float) get_post_meta($post->ID, '_total_amount', true);
-        $order->subtotal = (float) get_post_meta($post->ID, '_subtotal', true);
-        $order->tax_amount = (float) get_post_meta($post->ID, '_tax_amount', true);
-        $order->delivery_fee = (float) get_post_meta($post->ID, '_delivery_fee', true);
-        $order->delivery_base_fee = (float) get_post_meta($post->ID, '_delivery_base_fee', true);
-        $order->delivery_time_surcharge = (float) get_post_meta($post->ID, '_delivery_time_surcharge', true);
-        $order->delivery_loyalty_discount = (float) get_post_meta($post->ID, '_delivery_loyalty_discount', true);
-        $order->payment_status = get_post_meta($post->ID, '_payment_status', true) ?: self::PAYMENT_PENDING;
-        $order->payment_method = get_post_meta($post->ID, '_payment_method', true) ?: self::PAYMENT_CASH;
-        $order->notes = get_post_meta($post->ID, '_notes', true) ?: '';
-        $order->delivery_address = get_post_meta($post->ID, '_delivery_address', true) ?: null;
-        $order->delivery_type = get_post_meta($post->ID, '_delivery_type', true) ?: null;
-        $order->tracking_token = get_post_meta($post->ID, '_tracking_token', true) ?: null;
-        $order->gateway_transaction_id = get_post_meta($post->ID, '_gateway_transaction_id', true) ?: null;
-        $order->pickup_time = get_post_meta($post->ID, '_pickup_time', true) ?: null;
-        $order->special_instructions = get_post_meta($post->ID, '_special_instructions', true) ?: null;
+        $order->total_amount = isset($meta['_total_amount'][0]) ? (float) $meta['_total_amount'][0] : 0.0;
+        $order->subtotal = isset($meta['_subtotal'][0]) ? (float) $meta['_subtotal'][0] : 0.0;
+        $order->tax_amount = isset($meta['_tax_amount'][0]) ? (float) $meta['_tax_amount'][0] : 0.0;
+        $order->delivery_fee = isset($meta['_delivery_fee'][0]) ? (float) $meta['_delivery_fee'][0] : 0.0;
+        $order->delivery_base_fee = isset($meta['_delivery_base_fee'][0]) ? (float) $meta['_delivery_base_fee'][0] : 0.0;
+        $order->delivery_time_surcharge = isset($meta['_delivery_time_surcharge'][0]) ? (float) $meta['_delivery_time_surcharge'][0] : 0.0;
+        $order->delivery_loyalty_discount = isset($meta['_delivery_loyalty_discount'][0]) ? (float) $meta['_delivery_loyalty_discount'][0] : 0.0;
+        $order->payment_status = isset($meta['_payment_status'][0]) ? $meta['_payment_status'][0] : self::PAYMENT_PENDING;
+        $order->payment_method = isset($meta['_payment_method'][0]) ? $meta['_payment_method'][0] : self::PAYMENT_CASH;
+        $order->notes = isset($meta['_notes'][0]) ? $meta['_notes'][0] : '';
+        $order->delivery_address = isset($meta['_delivery_address'][0]) ? $meta['_delivery_address'][0] : null;
+        $order->delivery_type = isset($meta['_delivery_type'][0]) ? $meta['_delivery_type'][0] : null;
+        $order->tracking_token = isset($meta['_tracking_token'][0]) ? $meta['_tracking_token'][0] : null;
+        $order->gateway_transaction_id = isset($meta['_gateway_transaction_id'][0]) ? $meta['_gateway_transaction_id'][0] : null;
+        $order->pickup_time = isset($meta['_pickup_time'][0]) ? $meta['_pickup_time'][0] : null;
+        $order->special_instructions = isset($meta['_special_instructions'][0]) ? $meta['_special_instructions'][0] : null;
 
         // Loyalty
-        $order->loyalty_points_earned = (float) get_post_meta($post->ID, '_loyalty_points_earned', true);
-        $order->loyalty_points_used = (float) get_post_meta($post->ID, '_loyalty_points_used', true);
-        $order->loyalty_discount = (float) get_post_meta($post->ID, '_loyalty_discount', true);
+        $order->loyalty_points_earned = isset($meta['_loyalty_points_earned'][0]) ? (float) $meta['_loyalty_points_earned'][0] : 0.0;
+        $order->loyalty_points_used = isset($meta['_loyalty_points_used'][0]) ? (float) $meta['_loyalty_points_used'][0] : 0.0;
+        $order->loyalty_discount = isset($meta['_loyalty_discount'][0]) ? (float) $meta['_loyalty_discount'][0] : 0.0;
 
         // Load order items
-        $items_data = get_post_meta($post->ID, '_order_items', true) ?: [];
+        $items_data = isset($meta['_order_items'][0]) ? maybe_unserialize($meta['_order_items'][0]) : [];
+        $items_data = is_array($items_data) ? $items_data : [];
         $order->order_items = array_map([OrderItem::class, 'fromArray'], $items_data);
 
         return $order;
