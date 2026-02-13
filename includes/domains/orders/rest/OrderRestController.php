@@ -203,6 +203,14 @@ class OrderRestController extends \WP_REST_Controller
     {
         try {
             $params = $request->get_params();
+
+            // Check cache first
+            $cache_key = 'squidly_orders_' . md5(wp_json_encode($params));
+            $cached = get_transient($cache_key);
+            if ($cached !== false) {
+                return rest_ensure_response($cached);
+            }
+
             $filters = $this->sanitize_collection_filters($params);
 
             // Get orders with efficient lookup
@@ -251,6 +259,10 @@ class OrderRestController extends \WP_REST_Controller
 
             // Add pagination headers
             $total_orders = $this->repository->countBy($filters);
+
+            // Cache the response for 60 seconds
+            set_transient($cache_key, $data, 60);
+
             $response = rest_ensure_response($data);
             $response->header('X-WP-Total', (string) $total_orders);
             $response->header('X-WP-TotalPages', (string) ceil($total_orders / ($params['per_page'] ?? 10)));
@@ -301,6 +313,9 @@ class OrderRestController extends \WP_REST_Controller
             $order_id = $this->repository->create($data);
             $order = $this->repository->get($order_id);
 
+            // Clear orders cache after creation
+            $this->clear_orders_cache();
+
             $response = rest_ensure_response($this->prepare_order_for_response($order, $request));
             $response->set_status(201);
             $response->header('Location', rest_url(sprintf('%s/%s/%d', $this->namespace, $this->rest_base, $order_id)));
@@ -337,6 +352,9 @@ class OrderRestController extends \WP_REST_Controller
             }
 
             $success = $this->repository->update($id, $data);
+
+            // Clear orders cache after update
+            $this->clear_orders_cache();
 
             if (!$success) {
                 return new \WP_Error(
@@ -383,6 +401,9 @@ class OrderRestController extends \WP_REST_Controller
             }
 
             $success = $this->repository->delete($id, $force);
+
+            // Clear orders cache after deletion
+            $this->clear_orders_cache();
 
             if (!$success) {
                 return new \WP_Error(
@@ -1677,5 +1698,26 @@ class OrderRestController extends \WP_REST_Controller
                 'default'     => 'csv',
             ],
         ]);
+    }
+
+    /**
+     * Clear all orders cache
+     */
+    private function clear_orders_cache(): void
+    {
+        global $wpdb;
+        // Delete all transients starting with 'squidly_orders_'
+        $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+                $wpdb->esc_like('_transient_squidly_orders_') . '%'
+            )
+        );
+        $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+                $wpdb->esc_like('_transient_timeout_squidly_orders_') . '%'
+            )
+        );
     }
 }

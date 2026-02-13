@@ -76,6 +76,13 @@ class PublicBranchRestController extends PublicRestController
         }
 
         try {
+            // Check cache first
+            $cache_key = 'squidly_branches_' . md5(wp_json_encode($request->get_params()));
+            $cached = get_transient($cache_key);
+            if ($cached !== false) {
+                return new WP_REST_Response($cached, 200);
+            }
+
             $pagination = $this->get_pagination_params($request);
             $filters = [];
 
@@ -125,6 +132,9 @@ class PublicBranchRestController extends PublicRestController
             $data = array_map(function($branch) {
                 return $branch->toArray();
             }, $branches);
+
+            // Cache the data for 60 seconds
+            set_transient($cache_key, $data, 60);
 
             $response = new WP_REST_Response($data, 200);
             $response->header('X-WP-Total', (string)$total);
