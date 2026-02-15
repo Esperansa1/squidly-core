@@ -4,6 +4,34 @@ declare(strict_types=1);
 
 class ProductRepository implements RepositoryInterface
 {
+    /**
+     * Build meta query to exclude system products
+     *
+     * @return array Meta query conditions or empty array
+     */
+    private function buildSystemProductExclusionQuery(): array
+    {
+        // Check if payment product exists
+        $payment_product_id = get_option('squidly_wc_payment_product_id');
+
+        if (!$payment_product_id) {
+            return [];
+        }
+
+        // Exclude products with _squidly_system_product meta
+        return [
+            'relation' => 'OR',
+            [
+                'key' => '_squidly_system_product',
+                'compare' => 'NOT EXISTS'
+            ],
+            [
+                'key' => '_squidly_system_product',
+                'value' => 'yes',
+                'compare' => '!='
+            ]
+        ];
+    }
 
     /* ======================================================================
      *  CREATE
@@ -122,7 +150,7 @@ class ProductRepository implements RepositoryInterface
     /* ======================================================================
      *  GETALL
      * ====================================================================*/
-    public function getAll(array $filters = []): array
+    public function getAll(array $filters = [], bool $include_system_products = false): array
     {
         try {
             $query_args = [
@@ -135,6 +163,14 @@ class ProductRepository implements RepositoryInterface
 
             // Add meta query for filters
             $meta_query = [];
+
+            // Exclude system products by default
+            if (!$include_system_products) {
+                $system_exclusion = $this->buildSystemProductExclusionQuery();
+                if (!empty($system_exclusion)) {
+                    $meta_query[] = $system_exclusion;
+                }
+            }
 
             // Filter by price range
             if (!empty($filters['price_min']) || !empty($filters['price_max'])) {
@@ -167,6 +203,10 @@ class ProductRepository implements RepositoryInterface
             }
 
             if (!empty($meta_query)) {
+                // Set relation if multiple conditions
+                if (count($meta_query) > 1) {
+                    $meta_query['relation'] = 'AND';
+                }
                 $query_args['meta_query'] = $meta_query;
             }
 
@@ -673,11 +713,19 @@ class ProductRepository implements RepositoryInterface
         return is_array($posts) ? array_map('intval', $posts) : [];
     }
 
-    public function findBy(array $criteria, ?int $limit = null, int $offset = 0): array
+    public function findBy(array $criteria, ?int $limit = null, int $offset = 0, bool $include_system_products = false): array
     {
         $meta_query = ['relation' => 'AND'];
         $search_query = [];
         $tax_query = [];
+
+        // Exclude system products by default
+        if (!$include_system_products) {
+            $system_exclusion = $this->buildSystemProductExclusionQuery();
+            if (!empty($system_exclusion)) {
+                $meta_query[] = $system_exclusion;
+            }
+        }
 
         // Build meta query from criteria
         foreach ($criteria as $key => $value) {
@@ -833,60 +881,60 @@ class ProductRepository implements RepositoryInterface
     /**
      * Find products by category
      */
-    public function findByCategory(string $category): array
+    public function findByCategory(string $category, bool $include_system_products = false): array
     {
-        return $this->findBy(['category' => $category]);
+        return $this->findBy(['category' => $category], null, 0, $include_system_products);
     }
 
     /**
      * Find available products
      */
-    public function findAvailable(): array
+    public function findAvailable(bool $include_system_products = false): array
     {
-        return $this->findBy(['is_available' => true]);
+        return $this->findBy(['is_available' => true], null, 0, $include_system_products);
     }
 
     /**
      * Find featured products
      */
-    public function findFeatured(): array
+    public function findFeatured(bool $include_system_products = false): array
     {
-        return $this->findBy(['is_featured' => true]);
+        return $this->findBy(['is_featured' => true], null, 0, $include_system_products);
     }
 
     /**
      * Find products on sale
      */
-    public function findOnSale(): array
+    public function findOnSale(bool $include_system_products = false): array
     {
-        return $this->findBy(['on_sale' => true]);
+        return $this->findBy(['on_sale' => true], null, 0, $include_system_products);
     }
 
     /**
      * Find products in price range
      */
-    public function findInPriceRange(float $min_price, float $max_price): array
+    public function findInPriceRange(float $min_price, float $max_price, bool $include_system_products = false): array
     {
         return $this->findBy([
             'min_price' => $min_price,
             'max_price' => $max_price
-        ]);
+        ], null, 0, $include_system_products);
     }
 
     /**
      * Find products with specific product group
      */
-    public function findWithProductGroup(int $group_id): array
+    public function findWithProductGroup(int $group_id, bool $include_system_products = false): array
     {
-        return $this->findBy(['has_product_group' => $group_id]);
+        return $this->findBy(['has_product_group' => $group_id], null, 0, $include_system_products);
     }
 
     /**
      * Find products ordered by sort order
      */
-    public function findOrderedBySort(string $order = 'ASC'): array
+    public function findOrderedBySort(string $order = 'ASC', bool $include_system_products = false): array
     {
-        return $this->findBy(['orderby' => 'sort_order', 'order' => $order]);
+        return $this->findBy(['orderby' => 'sort_order', 'order' => $order], null, 0, $include_system_products);
     }
 
     /**

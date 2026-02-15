@@ -10,10 +10,14 @@ class PaymentAdminActions {
     public function __construct() {
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_scripts']);
         add_filter('post_row_actions', [$this, 'add_payment_row_actions'], 10, 2);
-        
+
         // Add AJAX handlers for payment actions
         add_action('wp_ajax_squidly_start_payment', [$this, 'handle_start_payment']);
         add_action('wp_ajax_squidly_refund_payment', [$this, 'handle_refund_payment']);
+
+        // Hide system payment product from admin product list
+        add_filter('pre_get_posts', [$this, 'hide_payment_product_from_admin']);
+        add_filter('views_edit-product', [$this, 'adjust_product_count']);
     }
     
     public function enqueue_admin_scripts($hook): void {
@@ -147,5 +151,68 @@ class PaymentAdminActions {
         } catch (Exception $e) {
             wp_send_json_error('Refund failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Hide the system payment product from the admin product list
+     */
+    public function hide_payment_product_from_admin($query): void {
+        if (!is_admin() || !$query->is_main_query()) {
+            return;
+        }
+
+        $screen = get_current_screen();
+        if (!$screen || $screen->post_type !== 'product') {
+            return;
+        }
+
+        // Get the payment product ID
+        $payment_product_id = get_option('squidly_wc_payment_product_id');
+        if (!$payment_product_id) {
+            return;
+        }
+
+        // Exclude the payment product from the query
+        $post__not_in = $query->get('post__not_in', []);
+        $post__not_in[] = $payment_product_id;
+        $query->set('post__not_in', $post__not_in);
+    }
+
+    /**
+     * Adjust product count in admin to exclude hidden payment product
+     */
+    public function adjust_product_count($views) {
+        $payment_product_id = get_option('squidly_wc_payment_product_id');
+        if (!$payment_product_id) {
+            return $views;
+        }
+
+        // Get the product to check its status
+        $product = wc_get_product($payment_product_id);
+        if (!$product) {
+            return $views;
+        }
+
+        // Adjust the 'All' count
+        if (isset($views['all'])) {
+            preg_match('/\(([0-9,]+)\)/', $views['all'], $matches);
+            if (isset($matches[1])) {
+                $count = intval(str_replace(',', '', $matches[1]));
+                $new_count = max(0, $count - 1);
+                $views['all'] = preg_replace('/\([0-9,]+\)/', '(' . number_format_i18n($new_count) . ')', $views['all']);
+            }
+        }
+
+        // Adjust the 'Published' count if product is published
+        if ($product->get_status() === 'publish' && isset($views['publish'])) {
+            preg_match('/\(([0-9,]+)\)/', $views['publish'], $matches);
+            if (isset($matches[1])) {
+                $count = intval(str_replace(',', '', $matches[1]));
+                $new_count = max(0, $count - 1);
+                $views['publish'] = preg_replace('/\([0-9,]+\)/', '(' . number_format_i18n($new_count) . ')', $views['publish']);
+            }
+        }
+
+        return $views;
     }
 }

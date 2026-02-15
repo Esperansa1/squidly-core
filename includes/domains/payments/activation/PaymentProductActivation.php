@@ -16,12 +16,17 @@ class PaymentProductActivation {
         }
         
         $product = new \WC_Product_Simple();
-        $product->set_name('Squidly Payment');
+        $product->set_name('[System] Payment Processor - Do Not Delete');
+        $product->set_description('Internal product used for payment processing. Required for Squidly orders. Do not modify or delete.');
         $product->set_status('publish');  // Must be 'publish' for orders to be payable
         $product->set_virtual(true);
         $product->set_sold_individually(true);
         $product->set_price(0);
         $product->set_catalog_visibility('hidden');  // Hidden from catalog but still purchasable
+
+        // Add meta to identify as system product
+        $product->add_meta_data('_squidly_system_product', 'yes', true);
+        $product->add_meta_data('_squidly_product_type', 'payment_processor', true);
         
         $product_id = $product->save();
         
