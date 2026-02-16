@@ -43,8 +43,12 @@ class PublicApiService {
       const response = await fetch(url, config);
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Request failed' }));
-        throw new Error(error.message || `HTTP ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message
+          || (errorData.data?.params && Object.values(errorData.data.params).join(', '))
+          || errorData.error
+          || `HTTP ${response.status}`;
+        throw new Error(errorMessage);
       }
 
       // Handle pagination headers if requested

@@ -173,7 +173,7 @@ class PublicCustomerRestController extends WP_REST_Controller
         }
 
         // Validate phone format (will be validated by CustomerRepository too, but check early)
-        $phone = trim((string) $data['phone']);
+        $phone = preg_replace('/[^\d+]/', '', trim((string) $data['phone']));
         if (!preg_match('/^(\+972|0)[2-9]\d{7,8}$/', $phone)) {
             throw new InvalidArgumentException('Phone number must be a valid Israeli phone number');
         }
@@ -264,9 +264,16 @@ class PublicCustomerRestController extends WP_REST_Controller
                 'type'              => 'string',
                 'required'          => true,
                 'validate_callback' => function($param) {
-                    return is_string($param) && preg_match('/^(\+972|0)[2-9]\d{7,8}$/', trim($param));
+                    if (!is_string($param)) return false;
+                    // Strip dashes, spaces, dots before validation
+                    $clean = preg_replace('/[^\d+]/', '', trim($param));
+                    return preg_match('/^(\+972|0)[2-9]\d{7,8}$/', $clean);
                 },
-                'sanitize_callback' => 'sanitize_text_field',
+                'sanitize_callback' => function($param) {
+                    // Strip non-digit chars (except +) and sanitize
+                    $clean = preg_replace('/[^\d+]/', '', trim($param));
+                    return sanitize_text_field($clean);
+                },
             ],
             'email' => [
                 'description'       => 'Customer email address (optional)',

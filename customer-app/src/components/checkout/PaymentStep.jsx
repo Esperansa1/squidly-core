@@ -42,10 +42,10 @@ export default function PaymentStep({
       } else {
         setProcessingStage('creating_customer');
         const customerResponse = await publicApi.createGuestCustomer({
-          first_name: checkoutData.customerInfo.firstName,
-          last_name: checkoutData.customerInfo.lastName,
-          phone: checkoutData.customerInfo.phone,
-          email: checkoutData.customerInfo.email || '',
+          first_name: checkoutData.customerInfo.firstName.trim(),
+          last_name: checkoutData.customerInfo.lastName.trim(),
+          phone: checkoutData.customerInfo.phone.replace(/[-\s]/g, '').trim(),
+          email: checkoutData.customerInfo.email?.trim() || null,
         });
         customerId = customerResponse.customer_id;
       }
