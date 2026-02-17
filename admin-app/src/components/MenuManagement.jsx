@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../services/api.js';
 import { TabContent, BranchSelector, TabSelector } from './ui';
 import { useSorting } from '../hooks/useSorting.js';
@@ -7,56 +7,44 @@ const MenuManagement = () => {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  
   // State
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState({ id: 0, name: 'כל הסניפים' });
   const [activeTab, setActiveTab] = useState('קבוצות');
-
+  
   // Data state
   const [productGroups, setProductGroups] = useState([]);
   const [ingredientGroups, setIngredientGroups] = useState([]);
   const [selectedProductGroup, setSelectedProductGroup] = useState(null);
   const [selectedIngredientGroup, setSelectedIngredientGroup] = useState(null);
-
+  
   // Sorting hooks
   const productSorting = useSorting(productGroups);
   const ingredientSorting = useSorting(ingredientGroups);
 
-  // Track whether initial load is complete
-  const initialLoadDone = useRef(false);
-
-  // Initialize API and load all data in parallel
+  // Initialize API and load data
   useEffect(() => {
     initializeApp();
   }, []);
 
-  // Reload data only when branch selection changes (after initial load)
+  // Load data when branch changes
   useEffect(() => {
-    if (initialLoadDone.current && config) {
+    if (config) {
       loadData();
     }
-  }, [selectedBranch.id]);
+  }, [selectedBranch.id, config]);
 
   const initializeApp = async () => {
     try {
       setLoading(true);
-
-      // api.init() must complete first (verifies auth, loads config)
       const appConfig = await api.init();
       setConfig(appConfig);
-
-      // Then load all data in parallel
-      const [branchesData, productGroupsData, ingredientGroupsData] = await Promise.all([
-        api.getBranches(),
-        api.getProductGroups(),
-        api.getIngredientGroups(),
-      ]);
-
+      
+      // Load branches
+      const branchesData = await api.getBranches();
       setBranches(branchesData);
-      setProductGroups(productGroupsData);
-      setIngredientGroups(ingredientGroupsData);
-      initialLoadDone.current = true;
+      
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -73,6 +61,7 @@ const MenuManagement = () => {
         api.getIngredientGroups(filters)
       ]);
 
+      // API now consistently returns data directly
       setProductGroups(productGroupsResponse);
       setIngredientGroups(ingredientGroupsResponse);
     } catch (err) {

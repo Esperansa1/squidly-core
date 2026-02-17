@@ -100,18 +100,6 @@ class ProductGroupRestController extends \WP_REST_Controller
             $groups = $this->repository->findBy($filters, $per_page, $offset);
             $total = $this->repository->countBy($filters);
 
-            // Pre-load all GroupItem meta to avoid N+1 queries in prepare_item_for_response
-            $all_group_item_ids = [];
-            foreach ($groups as $group) {
-                if (!empty($group->group_item_ids)) {
-                    $all_group_item_ids = array_merge($all_group_item_ids, $group->group_item_ids);
-                }
-            }
-            $all_group_item_ids = array_unique(array_filter(array_map('intval', $all_group_item_ids)));
-            if (!empty($all_group_item_ids)) {
-                update_meta_cache('post', $all_group_item_ids);
-            }
-
             $data = array_map(function($group) {
                 return $this->prepare_item_for_response($group, new \WP_REST_Request())->get_data();
             }, $groups);

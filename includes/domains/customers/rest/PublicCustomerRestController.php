@@ -264,9 +264,7 @@ class PublicCustomerRestController extends WP_REST_Controller
                 'type'              => 'string',
                 'required'          => true,
                 'validate_callback' => function($param) {
-                    if (!is_string($param)) {
-                        return false;
-                    }
+                    if (!is_string($param)) return false;
                     // Strip dashes, spaces, dots before validation
                     $clean = preg_replace('/[^\d+]/', '', trim($param));
                     return preg_match('/^(\+972|0)[2-9]\d{7,8}$/', $clean);
@@ -279,9 +277,9 @@ class PublicCustomerRestController extends WP_REST_Controller
             ],
             'email' => [
                 'description'       => 'Customer email address (optional)',
-                'type'              => 'string',
+                'type'              => ['string', 'null'],  // Allow both string and null
                 'required'          => false,
-                'default'           => '',
+                'default'           => null,  // Default to null if not provided
                 'validate_callback' => function($param, $request, $key) {
                     // Allow null, empty string, or missing param (optional field)
                     if (is_null($param) || $param === '' || !isset($param)) {

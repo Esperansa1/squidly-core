@@ -159,11 +159,6 @@ class ProductGroupRepository implements RepositoryInterface
             'nopaging'    => true,
         ]);
 
-        // Prime the meta cache for all posts at once (1 query instead of N)
-        if (!empty($ids)) {
-            update_meta_cache('post', $ids);
-        }
-
         return array_values(
             array_filter(
                 array_map(fn($pid) => $this->get((int)$pid), $ids)
@@ -201,11 +196,6 @@ class ProductGroupRepository implements RepositoryInterface
             ],
             'meta_query_relation' => 'AND'
         ]);
-
-        // Prime the meta cache for all posts at once (1 query instead of N)
-        if (!empty($ids)) {
-            update_meta_cache('post', $ids);
-        }
 
         return array_values(
             array_filter(
@@ -336,11 +326,6 @@ class ProductGroupRepository implements RepositoryInterface
         }
 
         $query = new WP_Query($query_args);
-
-        // Prime the meta cache for all posts at once (1 query instead of N)
-        if (!empty($query->posts)) {
-            update_meta_cache('post', $query->posts);
-        }
 
         $groups = [];
         foreach ($query->posts as $post_id) {
