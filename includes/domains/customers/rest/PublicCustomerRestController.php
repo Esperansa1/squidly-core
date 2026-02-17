@@ -270,9 +270,9 @@ class PublicCustomerRestController extends WP_REST_Controller
             ],
             'email' => [
                 'description'       => 'Customer email address (optional)',
-                'type'              => ['string', 'null'],  // Allow both string and null
+                'type'              => 'string',
                 'required'          => false,
-                'default'           => null,  // Default to null if not provided
+                'default'           => '',
                 'validate_callback' => function($param, $request, $key) {
                     // Allow null, empty string, or missing param (optional field)
                     if (is_null($param) || $param === '' || !isset($param)) {

@@ -59,9 +59,11 @@ const DataSection = ({
       return;
     }
 
-    if (data.length > 0 && !apiService) {
-      // Use provided data only if no apiService is available
+    // Use parent-provided data for initial load (avoids duplicate API calls)
+    // Only fetch from apiService on force refresh (after CRUD operations)
+    if (data.length > 0 && !forceRefresh) {
       setApiData(data);
+      branchDataCache.current.set(selectedBranchId, data);
       setLastFetchedBranchId(selectedBranchId);
       return;
     }
