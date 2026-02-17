@@ -14,19 +14,14 @@ function AppContent() {
   const [apiStatus, setApiStatus] = useState({ initialized: false, error: null, config: null });
   const { selectedBranch } = useBranch();
 
-  // Initialize API on mount
+  // Initialize API on mount (non-blocking — public endpoints work without config)
   useEffect(() => {
-    const initApi = async () => {
-      try {
-        const config = await publicApi.init();
-        setApiStatus({ initialized: true, error: null, config });
-      } catch (error) {
+    publicApi.init()
+      .then(config => setApiStatus({ initialized: true, error: null, config }))
+      .catch(error => {
         setApiStatus({ initialized: false, error: error.message, config: null });
         console.error('Failed to initialize API:', error);
-      }
-    };
-
-    initApi();
+      });
   }, []);
 
   // Detect payment return and auto-load order tracking

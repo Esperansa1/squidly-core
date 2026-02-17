@@ -34,13 +34,14 @@ export function BranchProvider({ children }) {
   // Pickup time for pickup orders
   const [pickupTime, setPickupTime] = useState(null);
 
-  // Load branches on mount
+  // Load branches on mount (in parallel with API init)
   useEffect(() => {
     const loadBranches = async () => {
       try {
         setLoading(true);
         setError(null);
 
+        // Fetch branches without waiting for init — public endpoints don't need auth
         const data = await publicApi.getBranches();
         setBranches(data);
 

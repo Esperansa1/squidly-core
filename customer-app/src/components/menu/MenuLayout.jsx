@@ -76,17 +76,21 @@ export default function MenuLayout({ branchId, onCheckout }) {
   const [sortOption, setSortOption] = useState('default');
   const [recentSearches, setRecentSearches] = useState([]);
 
-  // Load products and categories
+  // Load products and categories when branch is selected
   useEffect(() => {
-    loadMenuData();
+    if (branchId) {
+      loadMenuData();
+    }
   }, [branchId]);
 
   const loadMenuData = async () => {
+    if (!branchId) return; // Don't fetch without a branch (modal is shown instead)
+
     try {
       setLoading(true);
 
       // Fetch products for this branch
-      const filters = branchId ? { branch_id: branchId } : {};
+      const filters = { branch_id: branchId };
 
       const productsData = await publicApi.getProducts(filters);
 

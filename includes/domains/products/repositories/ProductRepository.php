@@ -182,6 +182,11 @@ class ProductRepository implements RepositoryInterface
                 return [];
             }
 
+            // Prime the meta cache for all posts at once (1 query instead of N)
+            if (!empty($query->posts)) {
+                update_meta_cache('post', $query->posts);
+            }
+
             $products = [];
             foreach ($query->posts as $post_id) {
                 if (is_numeric($post_id) && $post_id > 0) {
@@ -796,6 +801,11 @@ class ProductRepository implements RepositoryInterface
         }
 
         $query = new WP_Query($query_args);
+
+        // Prime the meta cache for all posts at once (1 query instead of N)
+        if (!empty($query->posts)) {
+            update_meta_cache('post', $query->posts);
+        }
 
         $products = [];
         foreach ($query->posts as $post_id) {

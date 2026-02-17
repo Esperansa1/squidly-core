@@ -8,21 +8,31 @@ class PublicApiService {
     // API configuration from WordPress
     this.baseUrl = window.wpConfig?.publicApiUrl || '/wp-json/squidly/v1/public/';
     this.config = null;
+    this._initPromise = null;
   }
 
   /**
    * Initialize the API service
-   * Fetches public configuration
+   * Fetches public configuration (deduplicated — safe to call multiple times)
    */
   async init() {
-    try {
-      // Load public configuration (no auth required)
-      this.config = await this.fetch('config');
-      return this.config;
-    } catch (error) {
-      console.error('Failed to initialize public API:', error);
-      throw error;
+    // Return existing promise if already initializing/initialized
+    if (this._initPromise) {
+      return this._initPromise;
     }
+
+    this._initPromise = (async () => {
+      try {
+        this.config = await this.fetch('config');
+        return this.config;
+      } catch (error) {
+        this._initPromise = null; // Allow retry on failure
+        console.error('Failed to initialize public API:', error);
+        throw error;
+      }
+    })();
+
+    return this._initPromise;
   }
 
   /**
