@@ -213,6 +213,7 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
 
         {/* Order Now Button */}
         <button
+          type="button"
           onClick={onCheckout}
           disabled={isEmpty}
           style={{

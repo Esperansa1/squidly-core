@@ -111,6 +111,7 @@ export default function MobileCheckoutBar({ cart, onOpenCart, onCheckout }) {
 
       {/* Row 2: Checkout button - Full width */}
       <button
+        type="button"
         onClick={(e) => {
           e.stopPropagation(); // Don't trigger cart open
           if (!isEmpty) {
