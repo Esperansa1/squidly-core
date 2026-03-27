@@ -34,7 +34,9 @@ const ProductGroupModal = ({
   const theme = DEFAULT_THEME;
 
   // Load available items when modal opens or type changes
+  // Also clear stale success message here so it resets whenever isOpen changes
   useEffect(() => {
+    setSuccessMessage('');
     if (isOpen) {
       loadAvailableItems();
     }
@@ -42,9 +44,6 @@ const ProductGroupModal = ({
 
   // Populate form when editing existing group
   useEffect(() => {
-    // Clear any stale success message from a previous save session
-    setSuccessMessage('');
-
     if (group) {
       const availability = group.availability || {};
       setFormData({
