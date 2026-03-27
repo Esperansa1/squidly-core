@@ -325,7 +325,7 @@ const BranchManagement = () => {
               data={filteredBranches}
               selectedId={selectedBranchId}
               onSelectionChange={handleSelectionChange}
-              loading={tableLoading}
+              loading={loading || tableLoading}
               error={error}
               emptyMessage="אין סניפים להצגה"
               showPagination={true}
