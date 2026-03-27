@@ -383,7 +383,7 @@ const DataSection = ({
       />
 
       {/* Create/Edit Modal */}
-      {Modal && (
+      {Modal && showItemModal && (
         <Modal
           isOpen={showItemModal}
           onClose={handleItemModalClose}
