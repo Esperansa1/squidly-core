@@ -127,8 +127,6 @@ const ProductModal = ({
     setAvailabilityWarnings(warnings);
   }, [formData.availability, formData.product_group_ids, productGroups, branches]);
 
-  if (!isOpen) return null;
-
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -335,6 +333,8 @@ const ProductModal = ({
 
     await onSave(submitData);
   };
+
+  if (!isOpen) return null;
 
   const isEditMode = !!product;
   const title = isEditMode ?
