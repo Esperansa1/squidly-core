@@ -42,6 +42,9 @@ const ProductGroupModal = ({
 
   // Populate form when editing existing group
   useEffect(() => {
+    // Clear any stale success message from a previous save session
+    setSuccessMessage('');
+
     if (group) {
       const availability = group.availability || {};
       setFormData({
