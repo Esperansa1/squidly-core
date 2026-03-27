@@ -35,12 +35,16 @@ const ProductGroupModal = ({
 
   // Load available items when modal opens or type changes
   // Also clear stale success message here so it resets whenever isOpen changes
+  // Use `group` prop to determine correct type on open instead of relying on
+  // formData.type (which may be stale from a previous session), avoiding the
+  // race where Effect2 changes formData.type and causes this effect to re-fire.
   useEffect(() => {
     setSuccessMessage('');
     if (isOpen) {
-      loadAvailableItems();
+      const typeToLoad = group ? (group.type || 'ingredient') : 'ingredient';
+      loadAvailableItems(typeToLoad);
     }
-  }, [isOpen, formData.type]);
+  }, [isOpen]);
 
   // Populate form when editing existing group
   // Guard on isOpen: never populate from a stale group prop when the modal is in create mode
@@ -113,10 +117,12 @@ const ProductGroupModal = ({
     }
   }, [group, availableItems, formData.type]);
 
-  const loadAvailableItems = async () => {
+  const loadAvailableItems = async (type) => {
+    // `type` is always passed explicitly to avoid stale closure issues.
+    const itemType = type !== undefined ? type : formData.type;
     try {
       setIsLoading(true);
-      const response = formData.type === 'ingredient'
+      const response = itemType === 'ingredient'
         ? await api.getIngredients()
         : await api.getProducts();
 
@@ -155,6 +161,9 @@ const ProductGroupModal = ({
       type: value,
       group_item_ids: []
     }));
+    // Reload items directly with the new type so we don't need formData.type
+    // in Effect 1's dependency array (which caused the double-load race condition).
+    loadAvailableItems(value);
   }, []);
 
   const handleItemSelect = useCallback((itemId) => {
@@ -179,7 +188,6 @@ const ProductGroupModal = ({
   }, [selectedItems]);
 
   const handleSubmit = async (e) => {
-    console.log('[PGM handleSubmit] called');
     e.preventDefault();
 
     if (!formData.name.trim()) {
