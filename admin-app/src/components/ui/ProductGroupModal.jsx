@@ -43,7 +43,9 @@ const ProductGroupModal = ({
   }, [isOpen, formData.type]);
 
   // Populate form when editing existing group
+  // Guard on isOpen: never populate from a stale group prop when the modal is in create mode
   useEffect(() => {
+    if (!isOpen) return;
     if (group) {
       const availability = group.availability || {};
       setFormData({
@@ -88,7 +90,7 @@ const ProductGroupModal = ({
       setSelectedItems([]);
       setSelectAllBranches(true);
     }
-  }, [group, branches]);
+  }, [isOpen, group, branches]);
 
   // Resolve selected items when editing and available items are loaded
   useEffect(() => {
@@ -177,6 +179,7 @@ const ProductGroupModal = ({
   }, [selectedItems]);
 
   const handleSubmit = async (e) => {
+    console.log('[PGM handleSubmit] called');
     e.preventDefault();
 
     if (!formData.name.trim()) {

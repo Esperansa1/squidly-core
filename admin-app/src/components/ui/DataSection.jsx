@@ -243,6 +243,11 @@ const DataSection = ({
         await apiService.create(formData);
       }
 
+      // Close modal immediately after save succeeds (before async refresh)
+      // so the user can interact with the UI while data reloads
+      setShowItemModal(false);
+      setEditingItem(null);
+
       // Clear cache and refetch data
       branchDataCache.current.clear();
       setLastFetchedBranchId(null);
@@ -250,10 +255,6 @@ const DataSection = ({
 
       // Call change handler
       onItemChange();
-
-      // Close modal
-      setShowItemModal(false);
-      setEditingItem(null);
     } catch (error) {
       console.error(`Failed to save ${title.toLowerCase()}:`, error);
       // Show toast for save errors
