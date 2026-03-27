@@ -25,7 +25,8 @@ const ProductGroupModal = ({
 
   const [availableItems, setAvailableItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isItemsLoading, setIsItemsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [selectAllBranches, setSelectAllBranches] = useState(false);
@@ -121,7 +122,7 @@ const ProductGroupModal = ({
     // `type` is always passed explicitly to avoid stale closure issues.
     const itemType = type !== undefined ? type : formData.type;
     try {
-      setIsLoading(true);
+      setIsItemsLoading(true);
       const response = itemType === 'ingredient'
         ? await api.getIngredients()
         : await api.getProducts();
@@ -138,10 +139,9 @@ const ProductGroupModal = ({
       }
 
       setError(errorMessage);
-      // Ensure availableItems is always an array even on error
       setAvailableItems([]);
     } finally {
-      setIsLoading(false);
+      setIsItemsLoading(false);
     }
   };
 
@@ -219,7 +219,7 @@ const ProductGroupModal = ({
     }
 
     try {
-      setIsLoading(true);
+      setIsSaving(true);
       setError('');
       setSuccessMessage('');
 
@@ -273,7 +273,7 @@ const ProductGroupModal = ({
 
       setError(errorMessage);
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -481,7 +481,7 @@ const ProductGroupModal = ({
                   onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${theme.primary_color}40`}
                   onBlur={(e) => e.target.style.boxShadow = 'none'}
                   placeholder={strings.group_name_placeholder || 'הכנס שם קבוצה...'}
-                  disabled={isLoading}
+                  disabled={isSaving}
                   required
                 />
                 {error && (
@@ -507,7 +507,7 @@ const ProductGroupModal = ({
                   onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${theme.primary_color}40`}
                   onBlur={(e) => e.target.style.boxShadow = 'none'}
                   placeholder={strings.description_placeholder || 'הכנס תיאור קבוצה...'}
-                  disabled={isLoading}
+                  disabled={isSaving}
                 />
               </div>
 
@@ -524,7 +524,7 @@ const ProductGroupModal = ({
                   value={formData.type}
                   onChange={handleTypeChange}
                   placeholder={strings.type_placeholder || 'בחר סוג...'}
-                  disabled={isLoading}
+                  disabled={isSaving}
                   width="w-full"
                 />
               </div>
@@ -550,7 +550,7 @@ const ProductGroupModal = ({
                             type="button"
                             onClick={() => handleRemoveItem(item.id)}
                             className="mr-2 hover:opacity-75"
-                            disabled={isLoading}
+                            disabled={isSaving}
                             style={{ color: theme.primary_color }}
                           >
                             ×
@@ -570,10 +570,10 @@ const ProductGroupModal = ({
                     ? (strings.select_ingredient || 'בחר מרכיב...')
                     : (strings.select_product || 'בחר מוצר...')
                   }
-                  disabled={isLoading || itemDropdownOptions.length === 0}
+                  disabled={isSaving || isItemsLoading || itemDropdownOptions.length === 0}
                 />
 
-                {itemDropdownOptions.length === 0 && !isLoading && (
+                {itemDropdownOptions.length === 0 && !isItemsLoading && (
                   <p className="text-sm mt-1 text-right" style={{ color: theme.text_secondary }}>
                     {formData.type === 'ingredient'
                       ? (strings.all_ingredients_selected || 'כל המרכיבים נבחרו')
@@ -603,7 +603,7 @@ const ProductGroupModal = ({
                     onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${theme.primary_color}40`}
                     onBlur={(e) => e.target.style.boxShadow = 'none'}
                     placeholder="0"
-                    disabled={isLoading}
+                    disabled={isSaving}
                   />
                   <p className="text-xs mt-1 text-right" style={{ color: theme.text_secondary }}>
                     0 = אופציונלי
@@ -627,7 +627,7 @@ const ProductGroupModal = ({
                     onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${theme.primary_color}40`}
                     onBlur={(e) => e.target.style.boxShadow = 'none'}
                     placeholder="0"
-                    disabled={isLoading}
+                    disabled={isSaving}
                   />
                   <p className="text-xs mt-1 text-right" style={{ color: theme.text_secondary }}>
                     0 = ללא הגבלה
@@ -652,7 +652,7 @@ const ProductGroupModal = ({
                       style={{
                         accentColor: theme.primary_color,
                       }}
-                      disabled={isLoading}
+                      disabled={isSaving}
                     />
                     <span className="text-sm font-medium" style={{ color: theme.text_primary }}>
                       {strings.select_all_branches || 'בחר את כל הסניפים'}
@@ -676,7 +676,7 @@ const ProductGroupModal = ({
                         style={{
                           accentColor: theme.primary_color,
                         }}
-                        disabled={isLoading}
+                        disabled={isSaving}
                       />
                       <span className="text-sm" style={{ color: theme.text_secondary }}>{branch.name}</span>
                     </label>
@@ -699,7 +699,7 @@ const ProductGroupModal = ({
               }}
               onMouseEnter={(e) => e.target.style.backgroundColor = theme.background_primary}
               onMouseLeave={(e) => e.target.style.backgroundColor = theme.background_secondary}
-              disabled={isLoading}
+              disabled={isSaving}
             >
               {strings.cancel || 'ביטול'}
             </button>
@@ -714,9 +714,9 @@ const ProductGroupModal = ({
               }}
               onMouseEnter={(e) => e.target.style.opacity = '0.9'}
               onMouseLeave={(e) => e.target.style.opacity = '1'}
-              disabled={isLoading}
+              disabled={isSaving}
             >
-              {isLoading
+              {isSaving
                 ? (strings.saving || 'שומר...')
                 : (strings.save || 'שמור')
               }
