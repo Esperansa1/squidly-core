@@ -38,7 +38,7 @@ const TabContent = ({
         error={error}
         branches={branches}
         selectedBranchId={selectedBranchId}
-        onProductGroupChange={() => {}}
+        onProductGroupChange={onGroupChange}
       />
     </div>
   );
@@ -55,7 +55,7 @@ const TabContent = ({
         error={error}
         branches={branches}
         selectedBranchId={selectedBranchId}
-        onProductChange={() => {}}
+        onProductChange={onGroupChange}
         productGroups={[
           ...productGroups,
           ...ingredientGroups
@@ -76,7 +76,7 @@ const TabContent = ({
         error={error}
         branches={branches}
         selectedBranchId={selectedBranchId}
-        onIngredientChange={() => {}}
+        onIngredientChange={onGroupChange}
       />
     </div>
   );
