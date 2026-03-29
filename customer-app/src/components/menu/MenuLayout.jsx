@@ -373,7 +373,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
                   fontWeight: 600,
                   color: theme.colors.text.primary,
                   margin: 0,
-                  flexShrink: 0,
+                  flex: 1,
                   transition: 'opacity 0.25s ease',
                   opacity: showSearch ? 0.4 : 1,
                 }}
@@ -384,7 +384,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
               {/* Expanding search input */}
               <div style={{
                 flex: showSearch ? 1 : 0,
-                maxWidth: showSearch ? '100%' : 0,
+                maxWidth: showSearch ? '100px' : 0,
                 overflow: 'hidden',
                 transition: 'flex 0.3s ease, max-width 0.3s ease, opacity 0.3s ease',
                 opacity: showSearch ? 1 : 0,
@@ -396,6 +396,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
                     value={searchQuery}
                     onChange={(e) => handleSearch(e.target.value)}
                     autoFocus={showSearch}
+                    className="focus:ring-0 focus:ring-offset-0"
                     style={{
                       width: '100%',
                       padding: `${theme.spacing.mobile.xs} ${theme.spacing.mobile.md}`,
@@ -407,10 +408,11 @@ export default function MenuLayout({ branchId, onCheckout }) {
                       color: theme.colors.text.primary,
                       textAlign: 'right',
                       outline: 'none',
+                      boxShadow: 'none',
                       boxSizing: 'border-box',
                       transition: 'border-color 0.2s ease',
                     }}
-                    onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
+                    onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; e.target.style.boxShadow = 'none'; }}
                     onBlur={(e) => { e.target.style.borderColor = theme.colors.border; }}
                   />
                   {searchQuery && (
@@ -548,7 +550,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
                     fontWeight: 'bold',
                     color: theme.colors.text.primary,
                     margin: 0,
-                    flexShrink: 0,
+                    flex: 1,
                     transition: 'opacity 0.25s ease',
                     opacity: showSearch ? 0.4 : 1,
                   }}
@@ -559,7 +561,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
                 {/* Expanding search input */}
                 <div style={{
                   flex: showSearch ? 1 : 0,
-                  maxWidth: showSearch ? '100%' : 0,
+                  maxWidth: showSearch ? '100px' : 0,
                   overflow: 'hidden',
                   transition: 'flex 0.3s ease, max-width 0.3s ease, opacity 0.3s ease',
                   opacity: showSearch ? 1 : 0,
@@ -571,6 +573,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
                       value={searchQuery}
                       onChange={(e) => handleSearch(e.target.value)}
                       autoFocus={showSearch}
+                      className="focus:ring-0 focus:ring-offset-0"
                       style={{
                         width: '100%',
                         padding: `${theme.spacing.xs} ${theme.spacing.md}`,
@@ -582,10 +585,11 @@ export default function MenuLayout({ branchId, onCheckout }) {
                         color: theme.colors.text.primary,
                         textAlign: 'right',
                         outline: 'none',
+                        boxShadow: 'none',
                         boxSizing: 'border-box',
                         transition: 'border-color 0.2s ease',
                       }}
-                      onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
+                      onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; e.target.style.boxShadow = 'none'; }}
                       onBlur={(e) => { e.target.style.borderColor = theme.colors.border; }}
                     />
                     {searchQuery && (
