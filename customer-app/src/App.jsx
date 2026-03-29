@@ -5,12 +5,13 @@ import { CartProvider } from './contexts/CartContext';
 import { ToastProvider } from './contexts/ToastContext';
 import BranchSelectionModal from './components/branches/BranchSelectionModal';
 import MenuLayout from './components/menu/MenuLayout';
-import CheckoutFlow from './components/checkout/CheckoutFlow';
+import CheckoutModal from './components/checkout/CheckoutModal';
 import OrderTracker from './components/orders/OrderTracker';
 import './styles/animations.css';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('menu');
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [apiStatus, setApiStatus] = useState({ initialized: false, error: null, config: null });
   const { selectedBranch } = useBranch();
 
@@ -29,43 +30,33 @@ function AppContent() {
     const paymentReturn = window.wpConfig?.paymentReturn;
 
     if (paymentReturn?.isReturn && paymentReturn?.orderId) {
-      // Check if we have a saved tracking token
       const savedOrderId = sessionStorage.getItem('squidly_order_id');
       const savedToken = sessionStorage.getItem('squidly_tracking_token');
 
       if (savedOrderId && savedToken && parseInt(savedOrderId) === paymentReturn.orderId) {
-        // Auto-navigate to tracking view
         setCurrentView('tracking');
       }
     }
   }, []);
-
-  // Handle checkout
-  const handleCheckout = () => {
-    setCurrentView('checkout');
-  };
 
   return (
     <div className="min-h-screen">
       {/* Branch Selection Modal - opens when no branch selected */}
       <BranchSelectionModal isOpen={!selectedBranch} />
 
+      {/* Checkout Modal - overlay on top of menu */}
+      <CheckoutModal
+        isOpen={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+      />
+
       {/* Main Content */}
       <main>
         {currentView === 'menu' && (
           <MenuLayout
             branchId={selectedBranch?.id}
-            onCheckout={handleCheckout}
+            onCheckout={() => setCheckoutOpen(true)}
           />
-        )}
-
-        {currentView === 'checkout' && (
-          <div className="container mx-auto px-4 py-8">
-            <CheckoutFlow
-              onBack={() => setCurrentView('menu')}
-              branchId={selectedBranch?.id}
-            />
-          </div>
         )}
 
         {currentView === 'tracking' && (

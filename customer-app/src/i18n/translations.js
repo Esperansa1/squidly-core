@@ -188,6 +188,17 @@ const translations = {
     accessAt: 'Access this at',
     currentView: 'Current view',
 
+    // Checkout Modal (single-step)
+    checkoutTitle: 'Complete Your Order',
+    orderSummary: 'Order Summary',
+    contactDetails: 'Contact Details',
+    deliveryMethod: 'How would you like to receive it?',
+    scheduledTime: 'Scheduled Time',
+    orderNotes: 'Order Notes',
+    orderNotesPlaceholder: 'Add special instructions for the courier or kitchen...',
+    requiredField: 'Required',
+    vatLabel: 'VAT (17%)',
+
     // Branch Selection Modal
     branchModalTitle: 'Eaten with us before?',
     branchModalLogin: 'Login',
@@ -386,6 +397,17 @@ const translations = {
     accessAt: 'גש ב',
     currentView: 'תצוגה נוכחית',
 
+    // Checkout Modal (single-step)
+    checkoutTitle: 'השלמת הזמנה',
+    orderSummary: 'סיכום ההזמנה',
+    contactDetails: 'פרטי יצירת קשר',
+    deliveryMethod: 'איך תרצה לקבל את ההזמנה?',
+    scheduledTime: 'מועד הזמנה',
+    orderNotes: 'הערות להזמנה',
+    orderNotesPlaceholder: 'הוסף הוראות מיוחדות לשליח או למטבח...',
+    requiredField: 'שדה חובה',
+    vatLabel: 'מע"מ (17%)',
+
     // Branch Selection Modal
     branchModalTitle: 'כבר אכלנו יחד?',
     branchModalLogin: 'התחבר',
@@ -583,6 +605,17 @@ const translations = {
     developmentStatus: 'حالة التطوير',
     accessAt: 'الوصول في',
     currentView: 'العرض الحالي',
+
+    // Checkout Modal (single-step)
+    checkoutTitle: 'إتمام الطلب',
+    orderSummary: 'ملخص الطلب',
+    contactDetails: 'بيانات الاتصال',
+    deliveryMethod: 'كيف تريد استلام طلبك؟',
+    scheduledTime: 'وقت الطلب',
+    orderNotes: 'ملاحظات الطلب',
+    orderNotesPlaceholder: 'أضف تعليمات خاصة للمندوب أو المطبخ...',
+    requiredField: 'مطلوب',
+    vatLabel: 'ضريبة القيمة المضافة (17%)',
 
     // Branch Selection Modal
     branchModalTitle: 'أكلنا معًا من قبل؟',
