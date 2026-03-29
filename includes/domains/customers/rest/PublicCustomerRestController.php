@@ -173,7 +173,8 @@ class PublicCustomerRestController extends WP_REST_Controller
         }
 
         // Validate phone format (will be validated by CustomerRepository too, but check early)
-        $phone = trim((string) $data['phone']);
+        // Strip non-digit chars (except +) before validation to handle dashes/spaces
+        $phone = preg_replace('/[^\d+]/', '', trim((string) $data['phone']));
         if (!preg_match('/^(\+972|0)[2-9]\d{7,8}$/', $phone)) {
             throw new InvalidArgumentException('Phone number must be a valid Israeli phone number');
         }
