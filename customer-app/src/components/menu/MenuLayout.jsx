@@ -71,9 +71,6 @@ export default function MenuLayout({ branchId, onCheckout }) {
   const [sidebarExpanded, setSidebarExpanded] = useState(isDesktop);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedBadges, setSelectedBadges] = useState([]);
-  const [sortOption, setSortOption] = useState('default');
   const [recentSearches, setRecentSearches] = useState([]);
 
   // Load products and categories when branch is selected
@@ -210,46 +207,13 @@ export default function MenuLayout({ branchId, onCheckout }) {
     );
   };
 
-  // Extract unique badges from all products
-  const availableBadges = [...new Set(products.flatMap((product) => product.badges || []))];
-
-  // Count active filters
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (activeCategory) count++;
-    count += selectedBadges.length;
-    return count;
-  };
-
-  // Clear all filters
-  const clearAllFilters = () => {
-    setActiveCategory(null);
-    setSelectedBadges([]);
-    setSortOption('default');
-  };
-
-  // Filter and sort products
-  let filteredProducts = products.filter((product) => {
+  // Filter products by category and search
+  const filteredProducts = products.filter((product) => {
     const productCategory = product.category || 'ללא קטגוריה';
     const matchesCategory = !activeCategory || productCategory === activeCategory;
     const matchesSearch = !searchQuery || product.name.toLowerCase().includes(searchQuery.toLowerCase());
-
-    // Badge filters - product must have ALL selected badges
-    const matchesBadges = selectedBadges.length === 0 || selectedBadges.every((badge) => product.badges?.includes(badge));
-
-    return matchesCategory && matchesSearch && matchesBadges;
+    return matchesCategory && matchesSearch;
   });
-
-  // Sort products
-  if (sortOption === 'price-low') {
-    filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
-  } else if (sortOption === 'price-high') {
-    filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);
-  } else if (sortOption === 'name') {
-    filteredProducts = [...filteredProducts].sort((a, b) => a.name.localeCompare(b.name, 'he'));
-  } else if (sortOption === 'popular') {
-    filteredProducts = [...filteredProducts].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-  }
 
   // Handle add to cart
   const handleAddToCart = (product) => {
@@ -358,14 +322,6 @@ export default function MenuLayout({ branchId, onCheckout }) {
     }
   };
 
-  // Toggle badge filter
-  const toggleBadgeFilter = (badge) => {
-    setSelectedBadges((prev) =>
-      prev.includes(badge)
-        ? prev.filter((b) => b !== badge)
-        : [...prev, badge]
-    );
-  };
 
   return (
     <>
@@ -399,162 +355,106 @@ export default function MenuLayout({ branchId, onCheckout }) {
               <HeroBanner imageUrl={selectedBranch?.banner_image_url} />
             </div>
 
-            {/* "Our Menu" header with search/filter buttons */}
+            {/* "Our Menu" header with inline expanding search */}
             <div
               style={{
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
+                gap: theme.spacing.mobile.sm,
                 padding: theme.spacing.mobile.md,
                 paddingTop: theme.spacing.mobile.lg,
                 paddingBottom: theme.spacing.mobile.sm,
               }}
             >
-              {/* Our Menu Label - Right Side */}
+              {/* Our Menu Label - shrinks when search opens */}
               <h2
                 style={{
                   fontSize: theme.typography.mobile.h2,
                   fontWeight: 600,
                   color: theme.colors.text.primary,
                   margin: 0,
+                  flexShrink: 0,
+                  transition: 'opacity 0.25s ease',
+                  opacity: showSearch ? 0.4 : 1,
                 }}
               >
                 התפריט שלנו
               </h2>
 
-              {/* Search and Filter Buttons - Left Side */}
-              <div style={{ display: 'flex', gap: theme.spacing.mobile.sm }}>
-                <button
-                  onClick={() => setShowSearch(!showSearch)}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    backgroundColor: showSearch ? theme.colors.primary : theme.colors.cardBg,
-                    border: 'none',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: theme.shadows.sm,
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={showSearch ? '#FFFFFF' : theme.colors.text.secondary}
-                    strokeWidth="2"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="M21 21l-4.35-4.35" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  style={{
-                    position: 'relative',
-                    width: '40px',
-                    height: '40px',
-                    backgroundColor: showFilters ? theme.colors.primary : theme.colors.cardBg,
-                    border: 'none',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: theme.shadows.sm,
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={showFilters ? '#FFFFFF' : theme.colors.text.secondary}
-                    strokeWidth="2"
-                  >
-                    <path d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                  </svg>
-                  {getActiveFilterCount() > 0 && (
-                    <span style={{
-                      position: 'absolute',
-                      top: '-4px',
-                      right: '-4px',
-                      backgroundColor: '#DC2626',
-                      color: '#FFFFFF',
-                      borderRadius: '50%',
-                      width: '18px',
-                      height: '18px',
-                      fontSize: '0.625rem',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                      {getActiveFilterCount()}
-                    </span>
+              {/* Expanding search input */}
+              <div style={{
+                flex: showSearch ? 1 : 0,
+                maxWidth: showSearch ? '100%' : 0,
+                overflow: 'hidden',
+                transition: 'flex 0.3s ease, max-width 0.3s ease, opacity 0.3s ease',
+                opacity: showSearch ? 1 : 0,
+              }}>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    placeholder="חפש מוצרים..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    autoFocus={showSearch}
+                    style={{
+                      width: '100%',
+                      padding: `${theme.spacing.mobile.xs} ${theme.spacing.mobile.md}`,
+                      paddingLeft: '2rem',
+                      fontSize: theme.typography.mobile.small,
+                      border: `1.5px solid ${theme.colors.border}`,
+                      borderRadius: theme.borderRadius.full,
+                      backgroundColor: theme.colors.cardBg,
+                      color: theme.colors.text.primary,
+                      textAlign: 'right',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      transition: 'border-color 0.2s ease',
+                    }}
+                    onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
+                    onBlur={(e) => { e.target.style.borderColor = theme.colors.border; }}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => { setSearchQuery(''); }}
+                      style={{
+                        position: 'absolute', left: '6px', top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: theme.colors.text.muted, padding: '2px', lineHeight: 1,
+                        fontSize: '0.75rem',
+                      }}
+                    >✕</button>
                   )}
-                </button>
+                </div>
               </div>
+
+              {/* Search toggle button */}
+              <button
+                onClick={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  backgroundColor: showSearch ? theme.colors.primary : theme.colors.cardBg,
+                  border: 'none',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: theme.shadows.sm,
+                  transition: 'background-color 0.2s ease',
+                  flexShrink: 0,
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke={showSearch ? '#FFFFFF' : theme.colors.text.secondary} strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+                </svg>
+              </button>
             </div>
 
-            {/* Search Input - Conditional */}
-            {showSearch && (
-              <div style={{ padding: `0 ${theme.spacing.mobile.md}`, marginBottom: theme.spacing.mobile.md }}>
-                <input
-                  type="text"
-                  placeholder="חפש מוצרים..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  autoFocus
-                  style={{
-                    width: '100%',
-                    padding: `${theme.spacing.mobile.sm} ${theme.spacing.mobile.md}`,
-                    fontSize: theme.typography.mobile.body,
-                    border: `1px solid ${theme.colors.border}`,
-                    borderRadius: theme.borderRadius.lg,
-                    backgroundColor: '#FFFFFF',
-                    textAlign: 'right',
-                    outline: 'none',
-                  }}
-                />
-                {/* Search Suggestions */}
-                {!searchQuery && recentSearches.length > 0 && (
-                  <div style={{
-                    marginTop: theme.spacing.mobile.xs,
-                    padding: theme.spacing.mobile.sm,
-                    backgroundColor: '#FFFFFF',
-                    borderRadius: theme.borderRadius.md,
-                    boxShadow: theme.shadows.sm,
-                  }}>
-                    <div style={{ fontSize: theme.typography.mobile.small, color: theme.colors.text.secondary, marginBottom: theme.spacing.mobile.xs }}>
-                      חיפושים אחרונים:
-                    </div>
-                    {recentSearches.map((search, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => setSearchQuery(search)}
-                        style={{
-                          padding: `${theme.spacing.mobile.xs} 0`,
-                          cursor: 'pointer',
-                          fontSize: theme.typography.mobile.body,
-                          color: theme.colors.text.primary,
-                        }}
-                      >
-                        🔍 {search}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Filter Panel - Conditional */}
-            {showFilters && (
+            {/* Filter Panel removed */}
+            {false && (
               <div style={{
                 padding: theme.spacing.mobile.md,
                 backgroundColor: '#FFFFFF',
@@ -725,8 +625,8 @@ export default function MenuLayout({ branchId, onCheckout }) {
                 products={filteredProducts}
                 onAddToCart={handleAddToCart}
                 loading={loading}
-                hasActiveFilters={getActiveFilterCount() > 0}
-                onClearFilters={clearAllFilters}
+                hasActiveFilters={false}
+                onClearFilters={() => setActiveCategory(null)}
               />
             </div>
           </div>
@@ -790,139 +690,104 @@ export default function MenuLayout({ branchId, onCheckout }) {
                 <HeroBanner imageUrl={selectedBranch?.banner_image_url} />
               </div>
 
-              {/* Our Menu Header with Search and Filter - Static */}
+              {/* Our Menu Header with inline expanding search */}
               <div
                 style={{
                   display: 'flex',
-                  justifyContent: 'space-between',
                   alignItems: 'center',
+                  gap: theme.spacing.sm,
                   marginBottom: theme.spacing.md,
                   flexShrink: 0,
                 }}
               >
-                {/* Our Menu Label - Right Side */}
                 <h2
                   style={{
                     fontSize: '1.5rem',
                     fontWeight: 'bold',
                     color: theme.colors.text.primary,
                     margin: 0,
+                    flexShrink: 0,
+                    transition: 'opacity 0.25s ease',
+                    opacity: showSearch ? 0.4 : 1,
                   }}
                 >
                   התפריט שלנו
                 </h2>
 
-                {/* Search and Filter Buttons - Left Side */}
-                <div
+                {/* Expanding search input */}
+                <div style={{
+                  flex: showSearch ? 1 : 0,
+                  maxWidth: showSearch ? '100%' : 0,
+                  overflow: 'hidden',
+                  transition: 'flex 0.3s ease, max-width 0.3s ease, opacity 0.3s ease',
+                  opacity: showSearch ? 1 : 0,
+                }}>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      placeholder="חפש מוצרים..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      autoFocus={showSearch}
+                      style={{
+                        width: '100%',
+                        padding: `${theme.spacing.xs} ${theme.spacing.md}`,
+                        paddingLeft: '2rem',
+                        fontSize: theme.typography.desktop.small,
+                        border: `1.5px solid ${theme.colors.border}`,
+                        borderRadius: theme.borderRadius.full,
+                        backgroundColor: theme.colors.cardBg,
+                        color: theme.colors.text.primary,
+                        textAlign: 'right',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        transition: 'border-color 0.2s ease',
+                      }}
+                      onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
+                      onBlur={(e) => { e.target.style.borderColor = theme.colors.border; }}
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        style={{
+                          position: 'absolute', left: '8px', top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          color: theme.colors.text.muted, padding: '2px', lineHeight: 1,
+                          fontSize: '0.75rem',
+                        }}
+                      >✕</button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Search toggle button */}
+                <button
+                  onClick={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
                   style={{
+                    width: '36px',
+                    height: '36px',
+                    backgroundColor: showSearch ? theme.colors.primary : theme.colors.cardBg,
+                    border: 'none',
+                    borderRadius: '50%',
                     display: 'flex',
-                    gap: theme.spacing.sm,
                     alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: theme.shadows.sm,
+                    transition: 'background-color 0.2s ease',
+                    flexShrink: 0,
                   }}
                 >
-                  <button
-                    onClick={() => setShowSearch(!showSearch)}
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      backgroundColor: showSearch ? theme.colors.primary : theme.colors.cardBg,
-                      border: 'none',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      boxShadow: theme.shadows.sm,
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={showSearch ? '#FFFFFF' : theme.colors.text.secondary}
-                      strokeWidth="2"
-                    >
-                      <circle cx="11" cy="11" r="8" />
-                      <path d="M21 21l-4.35-4.35" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    style={{
-                      position: 'relative',
-                      width: '40px',
-                      height: '40px',
-                      backgroundColor: showFilters ? theme.colors.primary : theme.colors.cardBg,
-                      border: 'none',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      boxShadow: theme.shadows.sm,
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={showFilters ? '#FFFFFF' : theme.colors.text.secondary}
-                      strokeWidth="2"
-                    >
-                      <path d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                    </svg>
-                    {getActiveFilterCount() > 0 && (
-                      <span style={{
-                        position: 'absolute',
-                        top: '-4px',
-                        right: '-4px',
-                        backgroundColor: '#DC2626',
-                        color: '#FFFFFF',
-                        borderRadius: '50%',
-                        width: '18px',
-                        height: '18px',
-                        fontSize: '0.625rem',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}>
-                        {getActiveFilterCount()}
-                      </span>
-                    )}
-                  </button>
-                </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke={showSearch ? '#FFFFFF' : theme.colors.text.secondary} strokeWidth="2">
+                    <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+                  </svg>
+                </button>
               </div>
 
-              {/* Search Input - Conditional (Desktop) */}
-              {showSearch && (
-                <div style={{ marginBottom: theme.spacing.md, flexShrink: 0 }}>
-                  <input
-                    type="text"
-                    placeholder="חפש מוצרים..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    autoFocus
-                    style={{
-                      width: '100%',
-                      padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-                      fontSize: '1rem',
-                      border: `1px solid ${theme.colors.border}`,
-                      borderRadius: theme.borderRadius.lg,
-                      backgroundColor: '#FFFFFF',
-                      textAlign: 'right',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Filter Panel - Conditional (Desktop) */}
-              {showFilters && (
+              {/* Filter Panel removed */}
+              {false && (
                 <div style={{
                   padding: theme.spacing.md,
                   backgroundColor: '#FFFFFF',
