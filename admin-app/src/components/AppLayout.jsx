@@ -17,57 +17,59 @@ const AppLayout = ({
     const handleResize = () => {
       const mobile = window.innerWidth < MOBILE_BREAKPOINT;
       setIsMobile(mobile);
-      // Auto-collapse sidebar when switching to mobile
-      if (mobile) {
-        setSidebarExpanded(false);
-      }
+      if (mobile) setSidebarExpanded(false);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const handleNavigation = (itemId, itemLabel) => {
-    if (onNavigate) {
-      onNavigate(itemId, itemLabel);
-    }
-    // Close sidebar on mobile after navigation
-    if (isMobile) {
-      setSidebarExpanded(false);
-    }
+    if (onNavigate) onNavigate(itemId, itemLabel);
+    if (isMobile) setSidebarExpanded(false);
   };
 
-  const contentMargin = isMobile ? '0px' : (sidebarExpanded ? '280px' : '70px');
-
   return (
-    <div className={`h-screen flex ${className}`} dir="rtl">
-      {/* Sidebar */}
-      <Sidebar
-        activeItem={activeNavItem}
-        onNavigate={handleNavigation}
-        onToggle={setSidebarExpanded}
-        isExpanded={sidebarExpanded}
-        isMobile={isMobile}
-      />
-
-      {/* Main Content Area */}
-      <div
-        className="flex-1 transition-all duration-300 ease-out overflow-auto"
-        style={{ marginRight: contentMargin }}
-      >
-        {/* Mobile hamburger button */}
-        {isMobile && !sidebarExpanded && (
+    // h-screen + flex-col: total height = 100vh, split between mobile bar and content
+    <div className={`h-screen flex flex-col ${className}`} dir="rtl">
+      {/* Mobile Top Bar — in-flow so it takes up real space from 100vh */}
+      {isMobile && (
+        <div
+          className="flex-shrink-0 bg-white border-b border-gray-200 shadow-sm z-30 flex items-center justify-between px-4"
+          style={{ height: '56px' }}
+        >
+          <span className="text-lg font-bold text-gray-900">DeliGO</span>
           <button
             onClick={() => setSidebarExpanded(true)}
-            className="fixed top-4 right-4 z-40 w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-md border border-gray-200"
+            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg"
             aria-label="פתח תפריט"
           >
-            <Bars3Icon className="w-5 h-5 text-gray-600" />
+            <Bars3Icon className="w-6 h-6" />
           </button>
-        )}
+        </div>
+      )}
 
-        <main className="h-full w-full">
-          {children}
-        </main>
+      {/* Content area: sidebar (fixed, out-of-flow) + main content */}
+      <div className="flex-1 min-h-0">
+        {/* Sidebar (position:fixed — doesn't participate in flow) */}
+        <Sidebar
+          activeItem={activeNavItem}
+          onNavigate={handleNavigation}
+          onToggle={setSidebarExpanded}
+          isExpanded={sidebarExpanded}
+          isMobile={isMobile}
+        />
+
+        {/* Main content — full width on mobile, offset by sidebar on desktop */}
+        <div
+          className="h-full transition-all duration-300 ease-out"
+          style={{
+            marginRight: isMobile ? '0px' : (sidebarExpanded ? '280px' : '70px'),
+          }}
+        >
+          <main className="h-full w-full">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );

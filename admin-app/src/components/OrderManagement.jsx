@@ -401,17 +401,19 @@ const OrderManagement = () => {
     <div className="h-full flex flex-col" dir="rtl">
       {/* Fixed Header */}
       <div className="flex-shrink-0 px-6 pt-6">
-        {/* Single Row: Tabs + Filters */}
-        <div className="flex justify-between items-center mb-6">
-          {/* Left Side: Primary Navigation Tabs */}
-          <TabSelector
-            tabs={mainTabs}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
+        {/* Tabs + Filters — stack on mobile */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-4">
+          {/* Primary Navigation Tabs */}
+          <div className="overflow-x-auto max-w-full">
+            <TabSelector
+              tabs={mainTabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          </div>
 
-          {/* Right Side: Branch + Conditional Dropdown */}
-          <div className="flex items-center gap-4">
+          {/* Branch + Conditional Dropdown */}
+          <div className="flex flex-wrap items-center gap-3">
             {/* Branch Selector - Always visible */}
             <BranchSelector
               branches={branches}
@@ -428,12 +430,14 @@ const OrderManagement = () => {
                 onChange={setDeliveryType}
               />
             ) : (
-              <TabSelector
-                tabs={timeframeTabs}
-                activeTab={timeframe}
-                onTabChange={handleTimeframeChange}
-                className="w-auto"
-              />
+              <div className="overflow-x-auto max-w-full">
+                <TabSelector
+                  tabs={timeframeTabs}
+                  activeTab={timeframe}
+                  onTabChange={handleTimeframeChange}
+                  className="w-auto"
+                />
+              </div>
             )}
           </div>
         </div>

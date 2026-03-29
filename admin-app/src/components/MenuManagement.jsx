@@ -95,13 +95,15 @@ const MenuManagement = () => {
       {/* Fixed Header */}
       <div className="flex-shrink-0 px-6 pt-6">
         {/* Page Header Controls */}
-        <div className="flex justify-between items-center mb-6">
-          {/* Tab Selector */}
-          <TabSelector
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-4">
+          {/* Tab Selector — scrollable on mobile if tabs overflow */}
+          <div className="overflow-x-auto max-w-full">
+            <TabSelector
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          </div>
 
           {/* Branch Selector */}
           <BranchSelector
