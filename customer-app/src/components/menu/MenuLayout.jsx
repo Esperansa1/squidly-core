@@ -384,7 +384,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
               {/* Expanding search input */}
               <div style={{
                 flex: showSearch ? 1 : 0,
-                maxWidth: showSearch ? '100px' : 0,
+                maxWidth: showSearch ? '40vw' : 0,
                 overflow: 'hidden',
                 transition: 'flex 0.3s ease, max-width 0.3s ease, opacity 0.3s ease',
                 opacity: showSearch ? 1 : 0,
@@ -561,7 +561,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
                 {/* Expanding search input */}
                 <div style={{
                   flex: showSearch ? 1 : 0,
-                  maxWidth: showSearch ? '100px' : 0,
+                  maxWidth: showSearch ? '40vw' : 0,
                   overflow: 'hidden',
                   transition: 'flex 0.3s ease, max-width 0.3s ease, opacity 0.3s ease',
                   opacity: showSearch ? 1 : 0,
