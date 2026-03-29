@@ -23,6 +23,7 @@ const Sidebar = ({
   onNavigate = () => {},
   onToggle = () => {},
   isExpanded = true,
+  isMobile = false,
   className = ''
 }) => {
   const theme = DEFAULT_THEME;
@@ -111,9 +112,9 @@ const Sidebar = ({
     <div className={`${className}`}>
       <div
         className={`fixed top-0 right-0 h-full bg-white border-l border-gray-200 shadow-sm transition-all duration-300 ease-out z-50 ${
-          isExpanded ? 'w-280' : 'w-18'
+          isMobile && !isExpanded ? 'translate-x-full' : 'translate-x-0'
         }`}
-        style={{ width: isExpanded ? '280px' : '70px' }}
+        style={{ width: isMobile ? '280px' : (isExpanded ? '280px' : '70px') }}
       >
         {/* Toggle Button */}
         <button
@@ -230,10 +231,10 @@ const Sidebar = ({
         </div>
       </div>
 
-      {/* Overlay for mobile */}
-      {isExpanded && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+      {/* Overlay for mobile - covers content when sidebar is open */}
+      {isMobile && isExpanded && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={toggleSidebar}
         />
       )}
