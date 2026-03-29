@@ -13,6 +13,11 @@ assets/main.css
 # Claude / AI tooling
 CLAUDE.md
 .claude/
+.claude-flow/
+.mcp.json
+
+# Planning debug artifacts
+.planning/debug/
 
 # IDE and Editor files
 .vscode/
