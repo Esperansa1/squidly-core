@@ -72,14 +72,19 @@ const ThemedRadioButton = ({
           }
         }}
       >
-        {/* White dot in center when checked */}
+        {/* White dot — absolutely centered to avoid RTL/flex interference */}
         {checked && (
           <div
             style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
               width: '6px',
               height: '6px',
               borderRadius: '50%',
-              backgroundColor: theme.bg_white
+              backgroundColor: theme.bg_white,
+              pointerEvents: 'none'
             }}
           />
         )}
