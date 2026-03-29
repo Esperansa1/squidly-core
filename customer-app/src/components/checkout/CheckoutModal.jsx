@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useCart } from '../../contexts/CartContext';
 import { useBranch } from '../../contexts/BranchContext';
 import { t, getCurrentLanguage } from '../../i18n/translations';
@@ -11,21 +11,47 @@ import {
   ShoppingBagIcon,
   CheckCircleIcon,
   ArrowPathIcon,
+  PencilSquareIcon,
 } from '@heroicons/react/24/outline';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PHONE_REGEX = /^(\+972|0)[2-9]\d{7,8}$/;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CUSTOMER_STORAGE_KEY = 'squidly_customer_info';
 
-// ─── Helper: section heading style ────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function formatAddress(addr) {
+  if (!addr) return '';
+  if (typeof addr === 'string') return addr;
+  const parts = [addr.street, addr.houseNumber, addr.city].filter(Boolean);
+  return parts.join(' ');
+}
+
+function formatDatetime(value) {
+  if (!value) return '';
+  try {
+    return new Date(value).toLocaleString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return value;
+  }
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
 function SectionHeading({ children }) {
   return (
     <p
       style={{
-        fontSize: '0.8125rem',
+        fontSize: '0.75rem',
         fontWeight: '700',
         textTransform: 'uppercase',
-        letterSpacing: '0.07em',
+        letterSpacing: '0.08em',
         color: theme.colors.text.muted,
         margin: `0 0 ${theme.spacing.sm}`,
       }}
@@ -35,7 +61,6 @@ function SectionHeading({ children }) {
   );
 }
 
-// ─── Helper: input field ──────────────────────────────────────────────────────
 function Field({ label, required, error, hint, children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -44,6 +69,7 @@ function Field({ label, required, error, hint, children }) {
           fontSize: '0.875rem',
           fontWeight: '600',
           color: theme.colors.text.primary,
+          display: 'block',
         }}
       >
         {label}
@@ -62,15 +88,14 @@ function Field({ label, required, error, hint, children }) {
   );
 }
 
-// ─── Shared input styles ──────────────────────────────────────────────────────
-function inputStyle(hasError) {
+function inputStyle(hasError = false) {
   return {
     width: '100%',
     padding: `${theme.spacing.sm} ${theme.spacing.md}`,
     fontSize: '0.9375rem',
     fontFamily: theme.fonts.primary,
     color: theme.colors.text.primary,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.cardBg,
     border: `1.5px solid ${hasError ? theme.colors.error : theme.colors.border}`,
     borderRadius: theme.borderRadius.md,
     outline: 'none',
@@ -79,59 +104,99 @@ function inputStyle(hasError) {
   };
 }
 
-// ─── Delivery type card ───────────────────────────────────────────────────────
-function DeliveryCard({ icon, label, selected, onClick, isMobile }) {
+// Order context summary card (read-only)
+function OrderContextCard({ selectedBranch, orderType, deliveryAddress, pickupTime, onEdit, isMobile }) {
+  const isDelivery = orderType === 'delivery';
+  const icon = isDelivery
+    ? <TruckIcon style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+    : <ShoppingBagIcon style={{ width: '18px', height: '18px', flexShrink: 0 }} />;
+
+  const methodLabel = isDelivery ? t('delivery') : t('pickup');
+  const detail = isDelivery
+    ? formatAddress(deliveryAddress)
+    : pickupTime
+      ? formatDatetime(pickupTime)
+      : null;
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <div
       style={{
-        flex: 1,
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: theme.spacing.xs,
-        padding: isMobile ? theme.spacing.md : theme.spacing.lg,
-        backgroundColor: selected ? 'rgba(220, 38, 38, 0.05)' : theme.colors.cardBg,
-        border: `2px solid ${selected ? theme.colors.primary : theme.colors.border}`,
+        justifyContent: 'space-between',
+        gap: theme.spacing.md,
+        padding: `${theme.spacing.sm} ${theme.spacing.md}`,
+        backgroundColor: theme.colors.background,
         borderRadius: theme.borderRadius.lg,
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        minHeight: isMobile ? '80px' : '96px',
-      }}
-      onMouseEnter={(e) => {
-        if (!selected) {
-          e.currentTarget.style.borderColor = theme.colors.primary;
-          e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.03)';
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!selected) {
-          e.currentTarget.style.borderColor = theme.colors.border;
-          e.currentTarget.style.backgroundColor = theme.colors.cardBg;
-        }
+        border: `1px solid ${theme.colors.border}`,
       }}
     >
-      <div style={{ color: selected ? theme.colors.primary : theme.colors.text.muted }}>
-        {icon}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: theme.spacing.sm, flex: 1, minWidth: 0 }}>
+        <div style={{ color: theme.colors.primary, marginTop: '1px' }}>{icon}</div>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: '0.9375rem', fontWeight: '600', color: theme.colors.text.primary }}>
+            {methodLabel}
+            {selectedBranch?.name && (
+              <span style={{ fontWeight: '400', color: theme.colors.text.secondary, marginInlineStart: '6px' }}>
+                — {selectedBranch.name}
+              </span>
+            )}
+          </p>
+          {detail && (
+            <p
+              style={{
+                margin: `2px 0 0`,
+                fontSize: '0.8125rem',
+                color: theme.colors.text.secondary,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {detail}
+            </p>
+          )}
+        </div>
       </div>
-      <span
+      <button
+        type="button"
+        onClick={onEdit}
         style={{
-          fontSize: '0.875rem',
-          fontWeight: '600',
-          color: selected ? theme.colors.primary : theme.colors.text.primary,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          padding: `4px ${theme.spacing.sm}`,
+          fontSize: '0.8125rem',
+          fontWeight: '500',
+          color: theme.colors.text.secondary,
+          backgroundColor: 'transparent',
+          border: `1px solid ${theme.colors.border}`,
+          borderRadius: theme.borderRadius.md,
+          cursor: 'pointer',
+          flexShrink: 0,
+          transition: 'all 0.15s ease',
+          whiteSpace: 'nowrap',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = theme.colors.primary;
+          e.currentTarget.style.color = theme.colors.primary;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = theme.colors.border;
+          e.currentTarget.style.color = theme.colors.text.secondary;
         }}
       >
-        {label}
-      </span>
-    </button>
+        <PencilSquareIcon style={{ width: '14px', height: '14px' }} />
+        {t('edit')}
+      </button>
+    </div>
   );
 }
 
-// ─── Cart item row ────────────────────────────────────────────────────────────
+// Cart item row
 function CartRow({ item }) {
-  const price = ((item.final_price || item.unit_price || 0) * (item.quantity || 1));
+  const unitPrice = item.final_price || item.unit_price || 0;
+  const total = unitPrice * (item.quantity || 1);
   return (
     <div
       style={{
@@ -139,7 +204,7 @@ function CartRow({ item }) {
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         gap: theme.spacing.sm,
-        padding: `${theme.spacing.sm} 0`,
+        padding: `10px 0`,
         borderBottom: `1px solid ${theme.colors.border}`,
       }}
     >
@@ -150,50 +215,55 @@ function CartRow({ item }) {
             fontWeight: '600',
             color: theme.colors.text.primary,
             margin: 0,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
           }}
         >
-          {item.product_name || item.name}
           {item.quantity > 1 && (
             <span
               style={{
-                marginInlineStart: '6px',
-                fontSize: '0.8125rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '22px',
+                height: '22px',
+                padding: '0 5px',
+                backgroundColor: theme.colors.primary,
+                color: '#fff',
+                borderRadius: theme.borderRadius.full,
+                fontSize: '0.75rem',
                 fontWeight: '700',
-                color: theme.colors.primary,
+                flexShrink: 0,
               }}
             >
-              ×{item.quantity}
+              {item.quantity}
             </span>
           )}
+          <span
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {item.product_name || item.name}
+          </span>
         </p>
         {item.customizations && Object.keys(item.customizations).length > 0 && (
           <p
             style={{
               fontSize: '0.75rem',
               color: theme.colors.text.muted,
-              margin: `2px 0 0`,
+              margin: `3px 0 0`,
+              paddingInlineStart: item.quantity > 1 ? '28px' : '0',
             }}
           >
             {Object.values(item.customizations)
               .flat()
               .map((c) => c.name)
               .filter(Boolean)
-              .join(', ')}
-          </p>
-        )}
-        {(item.special_instructions || item.notes) && (
-          <p
-            style={{
-              fontSize: '0.75rem',
-              color: theme.colors.text.secondary,
-              margin: `2px 0 0`,
-              fontStyle: 'italic',
-            }}
-          >
-            {item.special_instructions || item.notes}
+              .join(' · ')}
           </p>
         )}
       </div>
@@ -204,22 +274,48 @@ function CartRow({ item }) {
           color: theme.colors.text.primary,
           whiteSpace: 'nowrap',
           flexShrink: 0,
+          paddingTop: '1px',
         }}
       >
-        ₪{price.toFixed(2)}
+        ₪{total.toFixed(2)}
       </span>
     </div>
   );
 }
 
-// ─── Processing overlay ───────────────────────────────────────────────────────
-function ProcessingState({ stage, orderResult }) {
-  const stageMessages = {
-    creating_customer: t('creatingCustomer'),
-    creating_order: t('creatingOrder'),
-    redirecting: t('redirectingToPayment'),
-  };
+function PriceSummary({ subtotal, deliveryFee, taxAmount, totalAmount }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: theme.spacing.sm }}>
+      {[
+        [t('subtotal'), `₪${subtotal.toFixed(2)}`],
+        [t('deliveryFee'), deliveryFee > 0 ? `₪${deliveryFee.toFixed(2)}` : t('free')],
+        [t('tax'), `₪${taxAmount.toFixed(2)}`],
+      ].map(([label, value]) => (
+        <div
+          key={label}
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: '0.875rem',
+            color: theme.colors.text.secondary,
+          }}
+        >
+          <span>{label}</span>
+          <span>{value}</span>
+        </div>
+      ))}
+      <div style={{ height: '1px', backgroundColor: theme.colors.divider, margin: `4px 0` }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span style={{ fontSize: '1rem', fontWeight: '700', color: theme.colors.text.primary }}>{t('total')}</span>
+        <span style={{ fontSize: '1.25rem', fontWeight: '700', color: theme.colors.primary, letterSpacing: '-0.02em' }}>
+          ₪{totalAmount.toFixed(2)}
+        </span>
+      </div>
+    </div>
+  );
+}
 
+function ProcessingState({ stage, orderResult }) {
   if (stage === 'complete' && orderResult && !orderResult.payment_url) {
     return (
       <div
@@ -228,12 +324,12 @@ function ProcessingState({ stage, orderResult }) {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: theme.spacing.xl,
-          gap: theme.spacing.md,
+          padding: theme.spacing['2xl'],
+          gap: theme.spacing.lg,
           textAlign: 'center',
         }}
       >
-        <CheckCircleIcon style={{ width: '64px', height: '64px', color: theme.colors.success }} />
+        <CheckCircleIcon style={{ width: '72px', height: '72px', color: theme.colors.success }} />
         <h3
           style={{
             fontSize: '1.5rem',
@@ -248,24 +344,30 @@ function ProcessingState({ stage, orderResult }) {
           style={{
             backgroundColor: theme.colors.background,
             borderRadius: theme.borderRadius.lg,
-            padding: theme.spacing.md,
+            padding: theme.spacing.lg,
             width: '100%',
             maxWidth: '320px',
           }}
         >
-          <p style={{ fontSize: '0.875rem', color: theme.colors.text.secondary, margin: `0 0 ${theme.spacing.xs}` }}>
+          <p style={{ fontSize: '0.875rem', color: theme.colors.text.secondary, margin: `0 0 6px` }}>
             {t('orderNumber')}: <strong>#{orderResult.order_id}</strong>
           </p>
-          <p style={{ fontSize: '0.875rem', color: theme.colors.text.secondary, margin: `0 0 ${theme.spacing.xs}` }}>
+          <p style={{ fontSize: '0.875rem', color: theme.colors.text.secondary, margin: `0 0 6px` }}>
             {t('total')}: <strong>₪{orderResult.total_price?.toFixed(2)}</strong>
           </p>
-          <p style={{ fontSize: '0.75rem', color: theme.colors.text.muted, margin: 0 }}>
-            {t('trackingToken')}: <code>{orderResult.tracking_token}</code>
+          <p style={{ fontSize: '0.8125rem', color: theme.colors.text.muted, margin: 0, fontFamily: 'monospace' }}>
+            {orderResult.tracking_token}
           </p>
         </div>
       </div>
     );
   }
+
+  const messages = {
+    creating_customer: t('creatingCustomer'),
+    creating_order: t('creatingOrder'),
+    redirecting: t('redirectingToPayment'),
+  };
 
   return (
     <div
@@ -281,42 +383,40 @@ function ProcessingState({ stage, orderResult }) {
     >
       <div
         style={{
-          width: '56px',
-          height: '56px',
+          width: '52px',
+          height: '52px',
           borderRadius: '50%',
           border: `4px solid ${theme.colors.primary}`,
           borderTopColor: 'transparent',
-          animation: 'spin 0.8s linear infinite',
+          animation: 'checkoutSpin 0.8s linear infinite',
         }}
       />
       <div>
-        <p
-          style={{
-            fontSize: '1.125rem',
-            fontWeight: '600',
-            color: theme.colors.text.primary,
-            margin: `0 0 ${theme.spacing.xs}`,
-          }}
-        >
-          {stageMessages[stage] || t('loading')}
+        <p style={{ fontSize: '1.125rem', fontWeight: '600', color: theme.colors.text.primary, margin: `0 0 6px` }}>
+          {messages[stage] || t('loading')}
         </p>
-        <p style={{ fontSize: '0.875rem', color: theme.colors.text.muted, margin: 0 }}>
-          {stage === 'redirecting' ? t('doNotCloseWindow') : ''}
-        </p>
+        {stage === 'redirecting' && (
+          <p style={{ fontSize: '0.875rem', color: theme.colors.text.muted, margin: 0 }}>
+            {t('doNotCloseWindow')}
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
-export default function CheckoutModal({ isOpen, onClose }) {
+export default function CheckoutModal({ isOpen, onClose, onEditOrderDetails }) {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
-  const { cart, getTotal, clearCart } = useCart();
-  const { selectedBranch } = useBranch();
-  const branchId = selectedBranch?.id;
+  const { cart, getTotal } = useCart();
+  const {
+    selectedBranch,
+    orderType,
+    deliveryAddress,
+    pickupTime,
+  } = useBranch();
 
-  // Direction detection
   const [direction, setDirection] = useState('rtl');
   useEffect(() => {
     if (isOpen) {
@@ -325,154 +425,113 @@ export default function CheckoutModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
-  // Form data
-  const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    email: '',
-    deliveryType: 'pickup',
-    deliveryAddress: '',
-    deliveryTime: '',
-    notes: '',
-  });
+  // Form state — only what's still needed
+  const [form, setForm] = useState({ firstName: '', lastName: '', phone: '', email: '', notes: '' });
   const [errors, setErrors] = useState({});
 
-  // Delivery fee state
-  const [deliveryFee, setDeliveryFee] = useState(0);
-  const [feeInfo, setFeeInfo] = useState(null);
-  const [feeError, setFeeError] = useState(null);
-  const [calculatingFee, setCalculatingFee] = useState(false);
+  // Time override — editable even if pre-filled
+  const [scheduledTime, setScheduledTime] = useState('');
 
-  // Checkout process state
+  // Delivery fee
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [feeLoading, setFeeLoading] = useState(false);
+
+  // Checkout state
   const [processingStage, setProcessingStage] = useState('idle');
   const [orderResult, setOrderResult] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Delivery fee debounce ref
-  const feeDebounceRef = useRef(null);
-
-  // Reset on open
+  // Reset and pre-fill on open
   useEffect(() => {
-    if (isOpen) {
-      setForm({
-        firstName: '',
-        lastName: '',
-        phone: '',
-        email: '',
-        deliveryType: 'pickup',
-        deliveryAddress: '',
-        deliveryTime: '',
-        notes: '',
-      });
-      setErrors({});
-      setDeliveryFee(0);
-      setFeeInfo(null);
-      setFeeError(null);
-      setProcessingStage('idle');
-      setOrderResult(null);
-      setSubmitError(null);
-      setIsSubmitting(false);
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
 
-  // Auto-calculate delivery fee when address changes
+    // Restore saved customer info
+    const saved = (() => {
+      try { return JSON.parse(sessionStorage.getItem(CUSTOMER_STORAGE_KEY) || '{}'); }
+      catch { return {}; }
+    })();
+
+    setForm({
+      firstName: saved.firstName || '',
+      lastName: saved.lastName || '',
+      phone: saved.phone || '',
+      email: saved.email || '',
+      notes: '',
+    });
+
+    // Pre-fill time from BranchContext
+    setScheduledTime(pickupTime || '');
+
+    setErrors({});
+    setProcessingStage('idle');
+    setOrderResult(null);
+    setSubmitError(null);
+    setIsSubmitting(false);
+  }, [isOpen, pickupTime]);
+
+  // Calculate delivery fee when context address is set
   useEffect(() => {
-    if (form.deliveryType !== 'delivery' || !form.deliveryAddress.trim()) {
+    if (!isOpen || orderType !== 'delivery') {
       setDeliveryFee(0);
-      setFeeInfo(null);
-      setFeeError(null);
       return;
     }
+    const addr = formatAddress(deliveryAddress);
+    if (!addr) return;
 
-    if (feeDebounceRef.current) clearTimeout(feeDebounceRef.current);
+    let cancelled = false;
+    setFeeLoading(true);
 
-    feeDebounceRef.current = setTimeout(async () => {
-      try {
-        setCalculatingFee(true);
-        setFeeError(null);
-        const subtotal = getTotal();
-        const result = await publicApi.getDeliveryFee(branchId, form.deliveryAddress, subtotal);
-        if (!result.is_deliverable) {
-          setFeeError(t('addressNotDeliverable'));
-          setDeliveryFee(0);
-          setFeeInfo(null);
-        } else {
-          setFeeInfo(result);
-          setDeliveryFee(result.delivery_fee || 0);
-        }
-      } catch {
-        setFeeError(t('failedToCalculateFee'));
-        setDeliveryFee(0);
-        setFeeInfo(null);
-      } finally {
-        setCalculatingFee(false);
-      }
-    }, 700);
+    publicApi.getDeliveryFee(selectedBranch?.id, addr, getTotal())
+      .then((result) => {
+        if (cancelled) return;
+        setDeliveryFee(result.is_deliverable ? (result.delivery_fee || 0) : 0);
+      })
+      .catch(() => {
+        if (!cancelled) setDeliveryFee(0);
+      })
+      .finally(() => {
+        if (!cancelled) setFeeLoading(false);
+      });
 
-    return () => {
-      if (feeDebounceRef.current) clearTimeout(feeDebounceRef.current);
-    };
-  }, [form.deliveryAddress, form.deliveryType, branchId]);
+    return () => { cancelled = true; };
+  }, [isOpen, orderType, deliveryAddress, selectedBranch?.id]);
 
-  // Field change handler
   const handleChange = useCallback((field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
+    if (errors[field]) setErrors((prev) => { const n = { ...prev }; delete n[field]; return n; });
   }, [errors]);
 
-  // Delivery type toggle
-  const handleDeliveryTypeChange = useCallback((type) => {
-    setForm((prev) => ({
-      ...prev,
-      deliveryType: type,
-      deliveryAddress: type === 'pickup' ? '' : prev.deliveryAddress,
-    }));
-    setDeliveryFee(0);
-    setFeeInfo(null);
-    setFeeError(null);
-  }, []);
-
-  // Validate form
   const validate = () => {
     const next = {};
     if (!form.firstName.trim()) next.firstName = t('requiredField');
     if (!form.lastName.trim()) next.lastName = t('requiredField');
     if (!form.phone.trim()) {
       next.phone = t('requiredField');
-    } else {
-      const cleaned = form.phone.replace(/[-\s]/g, '');
-      if (!PHONE_REGEX.test(cleaned)) next.phone = t('invalidPhone');
+    } else if (!PHONE_REGEX.test(form.phone.replace(/[-\s]/g, ''))) {
+      next.phone = t('invalidPhone');
     }
     if (form.email && !EMAIL_REGEX.test(form.email)) next.email = t('invalidEmail');
-    if (form.deliveryType === 'delivery' && !form.deliveryAddress.trim()) {
-      next.deliveryAddress = t('requiredField');
-    }
-    if (!form.deliveryTime) next.deliveryTime = t('requiredField');
+    if (!scheduledTime) next.scheduledTime = t('requiredField');
     return next;
   };
 
-  // Submit checkout
   const handleSubmit = async () => {
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+
+    // Persist customer info for next time
+    sessionStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify({
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      phone: form.phone.replace(/[-\s]/g, '').trim(),
+      email: form.email?.trim() || '',
+    }));
 
     try {
       setIsSubmitting(true);
       setSubmitError(null);
-      const cartData = cart;
 
-      // Step 1: Create guest customer
       setProcessingStage('creating_customer');
       const customerResponse = await publicApi.createGuestCustomer({
         first_name: form.firstName.trim(),
@@ -480,15 +539,14 @@ export default function CheckoutModal({ isOpen, onClose }) {
         phone: form.phone.replace(/[-\s]/g, '').trim(),
         email: form.email?.trim() || null,
       });
-      const customerId = customerResponse.customer_id;
 
-      // Step 2: Create order via cart checkout
       setProcessingStage('creating_order');
-      const orderResponse = await publicApi.checkoutCart(cartData.token, {
-        customer_id: customerId,
-        delivery_type: form.deliveryType,
-        delivery_address: form.deliveryType === 'delivery' ? form.deliveryAddress.trim() : '',
-        delivery_time: form.deliveryTime,
+      const formattedAddress = formatAddress(deliveryAddress);
+      const orderResponse = await publicApi.checkoutCart(cart.token, {
+        customer_id: customerResponse.customer_id,
+        delivery_type: orderType || 'pickup',
+        delivery_address: orderType === 'delivery' ? formattedAddress : '',
+        delivery_time: scheduledTime,
         payment_method: 'woocommerce',
         delivery_fee: deliveryFee,
         notes: form.notes.trim(),
@@ -500,9 +558,7 @@ export default function CheckoutModal({ isOpen, onClose }) {
         setProcessingStage('redirecting');
         sessionStorage.setItem('squidly_tracking_token', orderResponse.tracking_token);
         sessionStorage.setItem('squidly_order_id', orderResponse.order_id.toString());
-        setTimeout(() => {
-          window.location.href = orderResponse.payment_url;
-        }, 1500);
+        setTimeout(() => { window.location.href = orderResponse.payment_url; }, 1500);
       } else {
         setProcessingStage('complete');
       }
@@ -517,7 +573,6 @@ export default function CheckoutModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  // Cart calculations
   const items = cart?.items || [];
   const subtotal = getTotal();
   const taxAmount = subtotal * 0.17;
@@ -525,53 +580,51 @@ export default function CheckoutModal({ isOpen, onClose }) {
   const isEmpty = items.length === 0;
 
   const isProcessing = isSubmitting || (processingStage !== 'idle' && processingStage !== 'complete');
-  const isDone = processingStage === 'complete' || (orderResult && orderResult.payment_url && processingStage === 'redirecting');
+  const isDone = processingStage === 'complete' || (orderResult?.payment_url && processingStage === 'redirecting');
 
-  // Min datetime = now
-  const minDatetime = new Date().toISOString().slice(0, 16);
+  const sidebarWidth = '280px';
 
-  // Sizes
-  const modalWidth = isMobile ? '100%' : isTablet ? '90%' : '880px';
-  const modalHeight = isMobile ? '100%' : '90vh';
-  const sidebarWidth = isMobile ? '100%' : '280px';
+  const inputFocus = (e) => { e.target.style.borderColor = theme.colors.primary; };
+  const inputBlur = (hasErr) => (e) => {
+    e.target.style.borderColor = hasErr ? theme.colors.error : theme.colors.border;
+  };
 
   return (
     <>
-      {/* Spin keyframes */}
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`@keyframes checkoutSpin { to { transform: rotate(360deg); } }`}</style>
 
-      {/* Overlay */}
+      {/* Backdrop */}
       <div
         style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.55)',
+          backgroundColor: 'rgba(0,0,0,0.5)',
           zIndex: 10000,
           display: 'flex',
           alignItems: isMobile ? 'flex-end' : 'center',
           justifyContent: 'center',
           padding: isMobile ? 0 : theme.spacing.md,
         }}
-        onClick={(e) => {
-          if (e.target === e.currentTarget && !isProcessing) onClose();
-        }}
+        onClick={(e) => { if (e.target === e.currentTarget && !isProcessing) onClose(); }}
       >
-        {/* Modal container */}
+        {/* Modal */}
         <div
           style={{
             backgroundColor: theme.colors.cardBg,
-            borderRadius: isMobile ? `${theme.borderRadius.xl} ${theme.borderRadius.xl} 0 0` : theme.borderRadius.xl,
-            width: modalWidth,
-            maxWidth: isMobile ? '100%' : '880px',
-            height: modalHeight,
-            maxHeight: isMobile ? '96vh' : '90vh',
+            borderRadius: isMobile
+              ? `${theme.borderRadius.xl} ${theme.borderRadius.xl} 0 0`
+              : theme.borderRadius.xl,
+            width: isMobile ? '100%' : isTablet ? '92%' : '820px',
+            maxWidth: isMobile ? '100%' : '820px',
+            height: isMobile ? '96vh' : '88vh',
+            maxHeight: isMobile ? '96vh' : '88vh',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+            boxShadow: '0 24px 56px rgba(0,0,0,0.28)',
             direction: direction,
             fontFamily: theme.fonts.primary,
-            ...(isMobile && { position: 'fixed', bottom: 0, left: 0, right: 0, borderRadius: `${theme.borderRadius.xl} ${theme.borderRadius.xl} 0 0` }),
+            ...(isMobile && { position: 'fixed', bottom: 0, left: 0, right: 0 }),
           }}
         >
           {/* ── Header ── */}
@@ -588,7 +641,7 @@ export default function CheckoutModal({ isOpen, onClose }) {
             <h2
               style={{
                 margin: 0,
-                fontSize: isMobile ? '1.125rem' : '1.375rem',
+                fontSize: isMobile ? '1.0625rem' : '1.25rem',
                 fontWeight: '700',
                 color: theme.colors.text.primary,
               }}
@@ -602,24 +655,17 @@ export default function CheckoutModal({ isOpen, onClose }) {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  padding: theme.spacing.xs,
+                  padding: '6px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
                   borderRadius: theme.borderRadius.full,
                   color: theme.colors.text.muted,
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.15s ease',
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = theme.colors.background;
-                  e.currentTarget.style.color = theme.colors.text.primary;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = theme.colors.text.muted;
-                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = theme.colors.background; e.currentTarget.style.color = theme.colors.text.primary; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.colors.text.muted; }}
               >
-                <XMarkIcon style={{ width: '22px', height: '22px' }} />
+                <XMarkIcon style={{ width: '20px', height: '20px' }} />
               </button>
             )}
           </div>
@@ -638,7 +684,7 @@ export default function CheckoutModal({ isOpen, onClose }) {
                 overflow: 'hidden',
               }}
             >
-              {/* ── Form column ── */}
+              {/* ── Form ── */}
               <div
                 style={{
                   flex: 1,
@@ -651,18 +697,21 @@ export default function CheckoutModal({ isOpen, onClose }) {
                   msOverflowStyle: 'none',
                 }}
               >
-                {/* Section: Contact Details */}
+                {/* Order context: method + branch + address/time — read-only */}
+                <OrderContextCard
+                  selectedBranch={selectedBranch}
+                  orderType={orderType}
+                  deliveryAddress={deliveryAddress}
+                  pickupTime={pickupTime}
+                  onEdit={() => { onClose(); if (onEditOrderDetails) onEditOrderDetails(); }}
+                  isMobile={isMobile}
+                />
+
+                {/* Contact Details */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
                   <SectionHeading>{t('contactDetails')}</SectionHeading>
 
-                  {/* Name row */}
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr',
-                      gap: theme.spacing.md,
-                    }}
-                  >
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: theme.spacing.md }}>
                     <Field label={t('firstName')} required error={errors.firstName}>
                       <input
                         type="text"
@@ -670,8 +719,8 @@ export default function CheckoutModal({ isOpen, onClose }) {
                         onChange={(e) => handleChange('firstName', e.target.value)}
                         placeholder={t('enterFirstName')}
                         style={inputStyle(!!errors.firstName)}
-                        onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
-                        onBlur={(e) => { e.target.style.borderColor = errors.firstName ? theme.colors.error : theme.colors.border; }}
+                        onFocus={inputFocus}
+                        onBlur={inputBlur(!!errors.firstName)}
                       />
                     </Field>
                     <Field label={t('lastName')} required error={errors.lastName}>
@@ -681,143 +730,63 @@ export default function CheckoutModal({ isOpen, onClose }) {
                         onChange={(e) => handleChange('lastName', e.target.value)}
                         placeholder={t('enterLastName')}
                         style={inputStyle(!!errors.lastName)}
-                        onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
-                        onBlur={(e) => { e.target.style.borderColor = errors.lastName ? theme.colors.error : theme.colors.border; }}
+                        onFocus={inputFocus}
+                        onBlur={inputBlur(!!errors.lastName)}
                       />
                     </Field>
                   </div>
 
-                  {/* Phone */}
-                  <Field
-                    label={t('phone')}
-                    required
-                    error={errors.phone}
-                    hint={t('phoneUsedForOrderUpdates')}
-                  >
+                  <Field label={t('phone')} required error={errors.phone} hint={t('phoneUsedForOrderUpdates')}>
                     <input
                       type="tel"
                       value={form.phone}
                       onChange={(e) => handleChange('phone', e.target.value)}
                       placeholder="050-000-0000"
                       style={inputStyle(!!errors.phone)}
-                      onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
-                      onBlur={(e) => { e.target.style.borderColor = errors.phone ? theme.colors.error : theme.colors.border; }}
+                      onFocus={inputFocus}
+                      onBlur={inputBlur(!!errors.phone)}
                     />
                   </Field>
 
-                  {/* Email */}
-                  <Field
-                    label={`${t('email')} (${t('optional')})`}
-                    error={errors.email}
-                    hint={t('emailForReceipt')}
-                  >
+                  <Field label={`${t('email')} (${t('optional')})`} error={errors.email} hint={t('emailForReceipt')}>
                     <input
                       type="email"
                       value={form.email}
                       onChange={(e) => handleChange('email', e.target.value)}
                       placeholder="email@example.com"
                       style={inputStyle(!!errors.email)}
-                      onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
-                      onBlur={(e) => { e.target.style.borderColor = errors.email ? theme.colors.error : theme.colors.border; }}
+                      onFocus={inputFocus}
+                      onBlur={inputBlur(!!errors.email)}
                     />
                   </Field>
                 </div>
 
-                {/* Section: Delivery Method */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
-                  <SectionHeading>{t('deliveryMethod')}</SectionHeading>
-
-                  <div style={{ display: 'flex', gap: theme.spacing.md }}>
-                    <DeliveryCard
-                      icon={<ShoppingBagIcon style={{ width: '28px', height: '28px' }} />}
-                      label={t('pickup')}
-                      selected={form.deliveryType === 'pickup'}
-                      onClick={() => handleDeliveryTypeChange('pickup')}
-                      isMobile={isMobile}
-                    />
-                    <DeliveryCard
-                      icon={<TruckIcon style={{ width: '28px', height: '28px' }} />}
-                      label={t('delivery')}
-                      selected={form.deliveryType === 'delivery'}
-                      onClick={() => handleDeliveryTypeChange('delivery')}
-                      isMobile={isMobile}
-                    />
-                  </div>
-
-                  {/* Delivery address (only for delivery) */}
-                  {form.deliveryType === 'delivery' && (
-                    <Field
-                      label={t('deliveryAddress')}
-                      required
-                      error={errors.deliveryAddress || feeError}
-                      hint={t('includeStreetCityApt')}
-                    >
-                      <textarea
-                        value={form.deliveryAddress}
-                        onChange={(e) => handleChange('deliveryAddress', e.target.value)}
-                        placeholder={t('enterFullAddress')}
-                        rows={3}
-                        style={{
-                          ...inputStyle(!!errors.deliveryAddress || !!feeError),
-                          resize: 'vertical',
-                          lineHeight: '1.5',
-                        }}
-                        onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
-                        onBlur={(e) => { e.target.style.borderColor = (errors.deliveryAddress || feeError) ? theme.colors.error : theme.colors.border; }}
-                      />
-                      {/* Fee calculation status */}
-                      {calculatingFee && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem', color: theme.colors.text.muted }}>
-                          <ArrowPathIcon style={{ width: '14px', height: '14px', animation: 'spin 0.8s linear infinite' }} />
-                          {t('calculatingDeliveryFee')}
-                        </div>
-                      )}
-                      {feeInfo && !feeError && !calculatingFee && (
-                        <div
-                          style={{
-                            padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
-                            backgroundColor: 'rgba(16, 185, 129, 0.08)',
-                            border: `1px solid rgba(16, 185, 129, 0.3)`,
-                            borderRadius: theme.borderRadius.md,
-                            fontSize: '0.8125rem',
-                            color: '#065f46',
-                          }}
-                        >
-                          {feeInfo.is_free_delivery
-                            ? t('freeDelivery')
-                            : `${t('deliveryFee')}: ₪${feeInfo.delivery_fee.toFixed(2)}`}
-                        </div>
-                      )}
-                    </Field>
-                  )}
-                </div>
-
-                {/* Section: Scheduled Time */}
+                {/* Scheduled Time — pre-filled, editable */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
                   <SectionHeading>{t('scheduledTime')}</SectionHeading>
                   <Field
-                    label={form.deliveryType === 'delivery' ? t('deliveryTime') : t('pickupTime')}
+                    label={orderType === 'delivery' ? t('deliveryTime') : t('pickupTime')}
                     required
-                    error={errors.deliveryTime}
-                    hint={form.deliveryType === 'delivery' ? t('selectPreferredDeliveryTime') : t('selectPreferredPickupTime')}
+                    error={errors.scheduledTime}
+                    hint={orderType === 'delivery' ? t('selectPreferredDeliveryTime') : t('selectPreferredPickupTime')}
                   >
                     <input
                       type="datetime-local"
-                      value={form.deliveryTime}
-                      onChange={(e) => handleChange('deliveryTime', e.target.value)}
-                      min={minDatetime}
-                      style={{
-                        ...inputStyle(!!errors.deliveryTime),
-                        colorScheme: 'light',
+                      value={scheduledTime}
+                      onChange={(e) => {
+                        setScheduledTime(e.target.value);
+                        if (errors.scheduledTime) setErrors((p) => { const n = { ...p }; delete n.scheduledTime; return n; });
                       }}
-                      onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
-                      onBlur={(e) => { e.target.style.borderColor = errors.deliveryTime ? theme.colors.error : theme.colors.border; }}
+                      min={new Date().toISOString().slice(0, 16)}
+                      style={{ ...inputStyle(!!errors.scheduledTime), colorScheme: 'light' }}
+                      onFocus={inputFocus}
+                      onBlur={inputBlur(!!errors.scheduledTime)}
                     />
                   </Field>
                 </div>
 
-                {/* Section: Notes */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
+                {/* Notes */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
                   <SectionHeading>{`${t('orderNotes')} (${t('optional')})`}</SectionHeading>
                   <textarea
                     value={form.notes}
@@ -829,12 +798,12 @@ export default function CheckoutModal({ isOpen, onClose }) {
                       resize: 'vertical',
                       lineHeight: '1.5',
                     }}
-                    onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; }}
+                    onFocus={inputFocus}
                     onBlur={(e) => { e.target.style.borderColor = theme.colors.border; }}
                   />
                 </div>
 
-                {/* Mobile: cart summary inline */}
+                {/* Mobile: cart summary */}
                 {isMobile && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
                     <SectionHeading>{t('orderSummary')}</SectionHeading>
@@ -852,13 +821,18 @@ export default function CheckoutModal({ isOpen, onClose }) {
                       ) : (
                         items.map((item, i) => <CartRow key={i} item={item} />)
                       )}
-                      <PriceSummary subtotal={subtotal} deliveryFee={deliveryFee} taxAmount={taxAmount} totalAmount={totalAmount} />
+                      <PriceSummary
+                        subtotal={subtotal}
+                        deliveryFee={deliveryFee}
+                        taxAmount={taxAmount}
+                        totalAmount={totalAmount}
+                      />
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* ── Cart sidebar (desktop/tablet only) ── */}
+              {/* ── Cart sidebar (desktop / tablet) ── */}
               {!isMobile && (
                 <div
                   style={{
@@ -871,17 +845,11 @@ export default function CheckoutModal({ isOpen, onClose }) {
                     backgroundColor: theme.colors.background,
                   }}
                 >
-                  {/* Cart header */}
-                  <div
-                    style={{
-                      padding: `${theme.spacing.lg} ${theme.spacing.lg} ${theme.spacing.md}`,
-                      flexShrink: 0,
-                    }}
-                  >
+                  <div style={{ padding: `${theme.spacing.lg} ${theme.spacing.lg} ${theme.spacing.sm}`, flexShrink: 0 }}>
                     <SectionHeading>{t('orderSummary')}</SectionHeading>
                   </div>
 
-                  {/* Cart items - scrollable */}
+                  {/* Items */}
                   <div
                     style={{
                       flex: 1,
@@ -905,9 +873,30 @@ export default function CheckoutModal({ isOpen, onClose }) {
                       padding: theme.spacing.lg,
                       flexShrink: 0,
                       borderTop: `1px solid ${theme.colors.border}`,
+                      backgroundColor: theme.colors.cardBg,
                     }}
                   >
-                    <PriceSummary subtotal={subtotal} deliveryFee={deliveryFee} taxAmount={taxAmount} totalAmount={totalAmount} />
+                    {feeLoading && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '0.75rem',
+                          color: theme.colors.text.muted,
+                          marginBottom: theme.spacing.xs,
+                        }}
+                      >
+                        <ArrowPathIcon style={{ width: '12px', height: '12px', animation: 'checkoutSpin 0.8s linear infinite' }} />
+                        {t('calculatingDeliveryFee')}
+                      </div>
+                    )}
+                    <PriceSummary
+                      subtotal={subtotal}
+                      deliveryFee={deliveryFee}
+                      taxAmount={taxAmount}
+                      totalAmount={totalAmount}
+                    />
                   </div>
                 </div>
               )}
@@ -921,19 +910,18 @@ export default function CheckoutModal({ isOpen, onClose }) {
                 padding: `${theme.spacing.md} ${theme.spacing.lg}`,
                 borderTop: `1px solid ${theme.colors.border}`,
                 flexShrink: 0,
+                backgroundColor: theme.colors.cardBg,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: theme.spacing.sm,
-                backgroundColor: theme.colors.cardBg,
               }}
             >
-              {/* Error message */}
               {submitError && (
                 <div
                   style={{
                     padding: `${theme.spacing.sm} ${theme.spacing.md}`,
-                    backgroundColor: 'rgba(239,68,68,0.08)',
-                    border: `1px solid rgba(239,68,68,0.3)`,
+                    backgroundColor: 'rgba(239,68,68,0.07)',
+                    border: `1px solid rgba(239,68,68,0.25)`,
                     borderRadius: theme.borderRadius.md,
                     fontSize: '0.875rem',
                     color: theme.colors.error,
@@ -942,8 +930,6 @@ export default function CheckoutModal({ isOpen, onClose }) {
                   {submitError}
                 </div>
               )}
-
-              {/* Place Order button */}
               <button
                 type="button"
                 onClick={handleSubmit}
@@ -966,23 +952,18 @@ export default function CheckoutModal({ isOpen, onClose }) {
                   transition: 'background-color 0.2s ease',
                   letterSpacing: '-0.01em',
                 }}
-                onMouseEnter={(e) => {
-                  if (!isEmpty && !isSubmitting) e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
-                }}
-                onMouseLeave={(e) => {
-                  if (!isEmpty && !isSubmitting) e.currentTarget.style.backgroundColor = theme.colors.primary;
-                }}
+                onMouseEnter={(e) => { if (!isEmpty && !isSubmitting) e.currentTarget.style.backgroundColor = theme.colors.primaryHover; }}
+                onMouseLeave={(e) => { if (!isEmpty && !isSubmitting) e.currentTarget.style.backgroundColor = theme.colors.primary; }}
               >
                 {isSubmitting ? (
                   <>
                     <div
                       style={{
-                        width: '16px',
-                        height: '16px',
+                        width: '16px', height: '16px',
                         borderRadius: '50%',
                         border: '2px solid rgba(255,255,255,0.4)',
                         borderTopColor: '#fff',
-                        animation: 'spin 0.8s linear infinite',
+                        animation: 'checkoutSpin 0.8s linear infinite',
                       }}
                     />
                     {t('loading')}
@@ -990,14 +971,17 @@ export default function CheckoutModal({ isOpen, onClose }) {
                 ) : (
                   <>
                     <span>{t('placeOrder')}</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14M12 5l7 7-7 7" style={{ transform: direction === 'rtl' ? 'scaleX(-1)' : 'none', transformOrigin: 'center' }} />
+                    <svg
+                      width="16" height="16" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" strokeWidth="2.5"
+                      strokeLinecap="round" strokeLinejoin="round"
+                      style={{ transform: direction === 'rtl' ? 'scaleX(-1)' : 'none' }}
+                    >
+                      <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
                   </>
                 )}
               </button>
-
-              {/* Terms notice */}
               <p
                 style={{
                   fontSize: '0.75rem',
@@ -1013,13 +997,7 @@ export default function CheckoutModal({ isOpen, onClose }) {
 
           {/* Done footer */}
           {isDone && processingStage === 'complete' && (
-            <div
-              style={{
-                padding: `${theme.spacing.md} ${theme.spacing.lg}`,
-                borderTop: `1px solid ${theme.colors.border}`,
-                flexShrink: 0,
-              }}
-            >
+            <div style={{ padding: `${theme.spacing.md} ${theme.spacing.lg}`, borderTop: `1px solid ${theme.colors.border}`, flexShrink: 0 }}>
               <button
                 type="button"
                 onClick={onClose}
@@ -1043,54 +1021,5 @@ export default function CheckoutModal({ isOpen, onClose }) {
         </div>
       </div>
     </>
-  );
-}
-
-// ─── Price summary sub-component ──────────────────────────────────────────────
-function PriceSummary({ subtotal, deliveryFee, taxAmount, totalAmount }) {
-  const rows = [
-    { label: t('subtotal'), value: `₪${subtotal.toFixed(2)}` },
-    { label: t('deliveryFee'), value: deliveryFee > 0 ? `₪${deliveryFee.toFixed(2)}` : t('free') },
-    { label: t('tax'), value: `₪${taxAmount.toFixed(2)}` },
-  ];
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: theme.spacing.sm }}>
-      {rows.map(({ label, value }) => (
-        <div
-          key={label}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: '0.875rem',
-            color: theme.colors.text.secondary,
-          }}
-        >
-          <span>{label}</span>
-          <span>{value}</span>
-        </div>
-      ))}
-      <div
-        style={{
-          height: '1px',
-          backgroundColor: theme.colors.border,
-          margin: `${theme.spacing.xs} 0`,
-        }}
-      />
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-        }}
-      >
-        <span style={{ fontSize: '1rem', fontWeight: '700', color: theme.colors.text.primary }}>
-          {t('total')}
-        </span>
-        <span style={{ fontSize: '1.25rem', fontWeight: '700', color: theme.colors.primary, letterSpacing: '-0.02em' }}>
-          ₪{totalAmount.toFixed(2)}
-        </span>
-      </div>
-    </div>
   );
 }

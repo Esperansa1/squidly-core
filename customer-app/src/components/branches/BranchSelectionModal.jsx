@@ -21,7 +21,7 @@ import { TruckIcon, ShoppingBagIcon, ArrowRightIcon, ArrowLeftIcon } from '@hero
  *
  * Pattern: Follows ProductCustomizationModal (full-screen mobile, 420px desktop)
  */
-export default function BranchSelectionModal({ isOpen }) {
+export default function BranchSelectionModal({ isOpen, onClose }) {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const { branches, selectBranchForDelivery, selectBranchForPickup, loading: branchesLoading } = useBranch();
@@ -79,8 +79,8 @@ export default function BranchSelectionModal({ isOpen }) {
 
   // Handle delivery address submission (called from DeliveryAddressForm with found branch)
   const handleDeliverySubmit = (branch, address, distance) => {
-    // Branch found by DeliveryAddressForm - select it
     selectBranchForDelivery(branch.id, address);
+    if (onClose) onClose();
   };
 
   // Handle pickup branch selection
@@ -93,6 +93,7 @@ export default function BranchSelectionModal({ isOpen }) {
   const handlePickupConfirm = () => {
     if (selectedPickupBranchId && pickupTime) {
       selectBranchForPickup(selectedPickupBranchId, pickupTime);
+      if (onClose) onClose();
     }
   };
 

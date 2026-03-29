@@ -12,6 +12,7 @@ import './styles/animations.css';
 function AppContent() {
   const [currentView, setCurrentView] = useState('menu');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [branchEditOpen, setBranchEditOpen] = useState(false);
   const [apiStatus, setApiStatus] = useState({ initialized: false, error: null, config: null });
   const { selectedBranch } = useBranch();
 
@@ -41,13 +42,14 @@ function AppContent() {
 
   return (
     <div className="min-h-screen">
-      {/* Branch Selection Modal - opens when no branch selected */}
-      <BranchSelectionModal isOpen={!selectedBranch} />
+      {/* Branch Selection Modal - opens when no branch selected, or when user wants to edit */}
+      <BranchSelectionModal isOpen={!selectedBranch || branchEditOpen} onClose={() => setBranchEditOpen(false)} />
 
       {/* Checkout Modal - overlay on top of menu */}
       <CheckoutModal
         isOpen={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
+        onEditOrderDetails={() => setBranchEditOpen(true)}
       />
 
       {/* Main Content */}
