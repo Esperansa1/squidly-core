@@ -77,6 +77,7 @@ function inputStyle(hasError = false) {
     border: `1.5px solid ${hasError ? theme.colors.error : theme.colors.border}`,
     borderRadius: theme.borderRadius.md,
     outline: 'none',
+    boxShadow: 'none',
     boxSizing: 'border-box',
     transition: 'border-color 0.15s ease',
   };
@@ -470,7 +471,7 @@ export default function CheckoutModal({ isOpen, onClose, onEditOrderDetails }) {
   const isProcessing = isSubmitting || (processingStage !== 'idle' && processingStage !== 'complete');
   const isDone = processingStage === 'complete' || (orderResult?.payment_url && processingStage === 'redirecting');
 
-  const onFocus = (e) => { e.target.style.borderColor = theme.colors.primary; };
+  const onFocus = (e) => { e.target.style.borderColor = theme.colors.primary; e.target.style.boxShadow = 'none'; e.target.style.outline = 'none'; };
   const onBlurFor = (field) => (e) => { e.target.style.borderColor = errors[field] ? theme.colors.error : theme.colors.border; };
 
   return (
