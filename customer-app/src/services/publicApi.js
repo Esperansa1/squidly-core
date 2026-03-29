@@ -3,12 +3,46 @@
  * Handles all communication with the WordPress REST API public endpoints
  */
 
+// Simple in-memory TTL cache to avoid redundant GET requests within a session
+class ApiCache {
+  constructor() {
+    this._store = new Map();
+  }
+
+  get(key) {
+    const entry = this._store.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) {
+      this._store.delete(key);
+      return null;
+    }
+    return entry.value;
+  }
+
+  set(key, value, ttlMs) {
+    this._store.set(key, { value, expiresAt: Date.now() + ttlMs });
+  }
+
+  invalidate(prefix) {
+    for (const key of this._store.keys()) {
+      if (key.startsWith(prefix)) this._store.delete(key);
+    }
+  }
+}
+
+const TTL = {
+  BRANCHES:  5 * 60 * 1000,  // 5 min — branches rarely change
+  PRODUCTS:  2 * 60 * 1000,  // 2 min — products may change
+  CUSTOMIZE: 5 * 60 * 1000,  // 5 min — product groups rarely change
+};
+
 class PublicApiService {
   constructor() {
     // API configuration from WordPress
     this.baseUrl = window.wpConfig?.publicApiUrl || '/wp-json/squidly/v1/public/';
     this.config = null;
     this._initPromise = null;
+    this._cache = new ApiCache();
   }
 
   /**
@@ -83,14 +117,28 @@ class PublicApiService {
    */
   async getProducts(filters = {}, includePaginationHeaders = false) {
     const params = new URLSearchParams(filters);
-    return await this.fetch(`products?${params}`, { includePaginationHeaders });
+    const cacheKey = `products?${params}`;
+    if (!includePaginationHeaders) {
+      const cached = this._cache.get(cacheKey);
+      if (cached) return cached;
+    }
+    const result = await this.fetch(`products?${params}`, { includePaginationHeaders });
+    if (!includePaginationHeaders) {
+      this._cache.set(cacheKey, result, TTL.PRODUCTS);
+    }
+    return result;
   }
 
   /**
    * Get single product by ID
    */
   async getProduct(id) {
-    return await this.fetch(`products/${id}`);
+    const cacheKey = `products/${id}`;
+    const cached = this._cache.get(cacheKey);
+    if (cached) return cached;
+    const result = await this.fetch(cacheKey);
+    this._cache.set(cacheKey, result, TTL.PRODUCTS);
+    return result;
   }
 
   /**
@@ -98,7 +146,12 @@ class PublicApiService {
    * @param {number} id Product ID
    */
   async getProductWithGroups(id) {
-    return await this.fetch(`products/${id}/customize`);
+    const cacheKey = `products/${id}/customize`;
+    const cached = this._cache.get(cacheKey);
+    if (cached) return cached;
+    const result = await this.fetch(cacheKey);
+    this._cache.set(cacheKey, result, TTL.CUSTOMIZE);
+    return result;
   }
 
   // ===== Branches API =====
@@ -109,7 +162,12 @@ class PublicApiService {
    */
   async getBranches(filters = {}) {
     const params = new URLSearchParams(filters);
-    return await this.fetch(`branches${params.toString() ? '?' + params : ''}`);
+    const cacheKey = `branches${params.toString() ? '?' + params : ''}`;
+    const cached = this._cache.get(cacheKey);
+    if (cached) return cached;
+    const result = await this.fetch(cacheKey);
+    this._cache.set(cacheKey, result, TTL.BRANCHES);
+    return result;
   }
 
   // ===== Guest Customers API =====

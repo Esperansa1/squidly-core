@@ -129,6 +129,7 @@ class PublicBranchRestController extends PublicRestController
             $response = new WP_REST_Response($data, 200);
             $response->header('X-WP-Total', (string)$total);
             $response->header('X-WP-TotalPages', (string)ceil($total / $pagination['per_page']));
+            $response->header('Cache-Control', 'public, max-age=300');
 
             return $response;
 
@@ -164,7 +165,9 @@ class PublicBranchRestController extends PublicRestController
                 ], 404);
             }
 
-            return new WP_REST_Response($branch->toArray(), 200);
+            $response = new WP_REST_Response($branch->toArray(), 200);
+            $response->header('Cache-Control', 'public, max-age=300');
+            return $response;
 
         } catch (Exception $e) {
             return new WP_REST_Response([

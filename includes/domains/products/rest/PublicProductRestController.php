@@ -144,16 +144,17 @@ class PublicProductRestController extends PublicRestController
                 $pagination['per_page']
             );
 
+            // Fetch branch once (outside the loop) to avoid N+1 queries
+            $branch = isset($filters['branch_id'])
+                ? $this->branchRepository->get($filters['branch_id'])
+                : null;
+
             // Convert to arrays and enrich with availability data
-            $data = array_map(function($product) use ($filters) {
+            $data = array_map(function($product) use ($branch) {
                 $product_data = $product->toArray();
 
-                // Add availability info if branch filter is applied
-                if (isset($filters['branch_id'])) {
-                    $branch = $this->branchRepository->get($filters['branch_id']);
-                    if ($branch) {
-                        $product_data['available_at_branch'] = $branch->isProductAvailable($product->id);
-                    }
+                if ($branch) {
+                    $product_data['available_at_branch'] = $branch->isProductAvailable($product->id);
                 }
 
                 return $product_data;
@@ -162,6 +163,7 @@ class PublicProductRestController extends PublicRestController
             $response = new WP_REST_Response($data, 200);
             $response->header('X-WP-Total', (string)$total);
             $response->header('X-WP-TotalPages', (string)ceil($total / $pagination['per_page']));
+            $response->header('Cache-Control', 'public, max-age=60');
 
             return $response;
 
@@ -208,7 +210,9 @@ class PublicProductRestController extends PublicRestController
                 }
             }
 
-            return new WP_REST_Response($product_data, 200);
+            $response = new WP_REST_Response($product_data, 200);
+            $response->header('Cache-Control', 'public, max-age=60');
+            return $response;
 
         } catch (Exception $e) {
             return new WP_REST_Response([
@@ -250,7 +254,9 @@ class PublicProductRestController extends PublicRestController
                 new IngredientRepository()
             );
 
-            return new WP_REST_Response($productData, 200);
+            $response = new WP_REST_Response($productData, 200);
+            $response->header('Cache-Control', 'public, max-age=300');
+            return $response;
 
         } catch (Exception $e) {
             return new WP_REST_Response([

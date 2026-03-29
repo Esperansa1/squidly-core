@@ -30,7 +30,7 @@ export default defineConfig({
     },
     target: 'es2015',
     minify: 'esbuild',
-    sourcemap: true
+    sourcemap: false
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)

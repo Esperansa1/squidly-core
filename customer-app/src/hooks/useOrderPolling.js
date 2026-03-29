@@ -69,7 +69,7 @@ export function useOrderPolling(orderId, trackingToken, autoStart = true) {
     // Then poll every 10 seconds
     pollingIntervalRef.current = setInterval(() => {
       fetchOrderStatus();
-    }, 10000); // 10 seconds
+    }, 15000); // 15 seconds
   };
 
   // Stop polling
