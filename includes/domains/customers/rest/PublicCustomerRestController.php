@@ -110,7 +110,9 @@ class PublicCustomerRestController extends WP_REST_Controller
             // If non-guest customer exists with this phone, reject
             if ($existing_customer && !$existing_customer->is_guest) {
                 return new WP_REST_Response([
-                    'error' => 'A registered customer already exists with this phone number. Please log in.'
+                    'error' => 'A registered customer already exists with this phone number. Please log in.',
+                    'message' => 'A registered customer already exists with this phone number. Please log in.',
+                    'code' => 'customer_exists',
                 ], 400);
             }
 
