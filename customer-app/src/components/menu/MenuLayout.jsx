@@ -11,6 +11,7 @@ import MobileUserHeader from './MobileUserHeader';
 import MobileCheckoutBar from './MobileCheckoutBar';
 import MobileCartSheet from './MobileCartSheet';
 import CategoryBadgeButtons from './CategoryBadgeButtons';
+import MenuSearchHeader from './MenuSearchHeader';
 import { useCart } from '../../contexts/CartContext';
 import { useBranch } from '../../contexts/BranchContext';
 
@@ -356,104 +357,13 @@ export default function MenuLayout({ branchId, onCheckout }) {
             </div>
 
             {/* "Our Menu" header with inline expanding search */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: theme.spacing.mobile.sm,
-                padding: theme.spacing.mobile.md,
-                paddingTop: theme.spacing.mobile.lg,
-                paddingBottom: theme.spacing.mobile.sm,
-              }}
-            >
-              {/* Our Menu Label - shrinks when search opens */}
-              <h2
-                style={{
-                  fontSize: theme.typography.mobile.h2,
-                  fontWeight: 600,
-                  color: theme.colors.text.primary,
-                  margin: 0,
-                  flex: 1,
-                  transition: 'opacity 0.25s ease',
-                  opacity: showSearch ? 0.4 : 1,
-                }}
-              >
-                התפריט שלנו
-              </h2>
-
-              {/* Expanding search input */}
-              <div style={{
-                flex: showSearch ? 1 : 0,
-                maxWidth: showSearch ? '40vw' : 0,
-                overflow: 'hidden',
-                transition: 'flex 0.3s ease, max-width 0.3s ease, opacity 0.3s ease',
-                opacity: showSearch ? 1 : 0,
-              }}>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="text"
-                    placeholder="חפש מוצרים..."
-                    value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    autoFocus={showSearch}
-                    className="focus:ring-0 focus:ring-offset-0"
-                    style={{
-                      width: '100%',
-                      padding: `${theme.spacing.mobile.xs} ${theme.spacing.mobile.md}`,
-                      paddingLeft: '2rem',
-                      fontSize: theme.typography.mobile.small,
-                      border: `1.5px solid ${theme.colors.border}`,
-                      borderRadius: theme.borderRadius.full,
-                      backgroundColor: theme.colors.cardBg,
-                      color: theme.colors.text.primary,
-                      textAlign: 'right',
-                      outline: 'none',
-                      boxShadow: 'none',
-                      boxSizing: 'border-box',
-                      transition: 'border-color 0.2s ease',
-                    }}
-                    onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; e.target.style.boxShadow = 'none'; }}
-                    onBlur={(e) => { e.target.style.borderColor = theme.colors.border; }}
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => { setSearchQuery(''); }}
-                      style={{
-                        position: 'absolute', left: '6px', top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        color: theme.colors.text.muted, padding: '2px', lineHeight: 1,
-                        fontSize: '0.75rem',
-                      }}
-                    >✕</button>
-                  )}
-                </div>
-              </div>
-
-              {/* Search toggle button */}
-              <button
-                onClick={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  backgroundColor: showSearch ? theme.colors.primary : theme.colors.cardBg,
-                  border: 'none',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: theme.shadows.sm,
-                  transition: 'background-color 0.2s ease',
-                  flexShrink: 0,
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke={showSearch ? '#FFFFFF' : theme.colors.text.secondary} strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
-                </svg>
-              </button>
-            </div>
+            <MenuSearchHeader
+              showSearch={showSearch}
+              onToggleSearch={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
+              searchQuery={searchQuery}
+              onSearch={handleSearch}
+              isMobile
+            />
 
 
             {/* Category badge buttons (inline, scrollable) */}
@@ -535,102 +445,12 @@ export default function MenuLayout({ branchId, onCheckout }) {
               </div>
 
               {/* Our Menu Header with inline expanding search */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: theme.spacing.sm,
-                  marginBottom: theme.spacing.md,
-                  flexShrink: 0,
-                }}
-              >
-                <h2
-                  style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    color: theme.colors.text.primary,
-                    margin: 0,
-                    flex: 1,
-                    transition: 'opacity 0.25s ease',
-                    opacity: showSearch ? 0.4 : 1,
-                  }}
-                >
-                  התפריט שלנו
-                </h2>
-
-                {/* Expanding search input */}
-                <div style={{
-                  flex: showSearch ? 1 : 0,
-                  maxWidth: showSearch ? '40vw' : 0,
-                  overflow: 'hidden',
-                  transition: 'flex 0.3s ease, max-width 0.3s ease, opacity 0.3s ease',
-                  opacity: showSearch ? 1 : 0,
-                }}>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type="text"
-                      placeholder="חפש מוצרים..."
-                      value={searchQuery}
-                      onChange={(e) => handleSearch(e.target.value)}
-                      autoFocus={showSearch}
-                      className="focus:ring-0 focus:ring-offset-0"
-                      style={{
-                        width: '100%',
-                        padding: `${theme.spacing.xs} ${theme.spacing.md}`,
-                        paddingLeft: '2rem',
-                        fontSize: theme.typography.desktop.small,
-                        border: `1.5px solid ${theme.colors.border}`,
-                        borderRadius: theme.borderRadius.full,
-                        backgroundColor: theme.colors.cardBg,
-                        color: theme.colors.text.primary,
-                        textAlign: 'right',
-                        outline: 'none',
-                        boxShadow: 'none',
-                        boxSizing: 'border-box',
-                        transition: 'border-color 0.2s ease',
-                      }}
-                      onFocus={(e) => { e.target.style.borderColor = theme.colors.primary; e.target.style.boxShadow = 'none'; }}
-                      onBlur={(e) => { e.target.style.borderColor = theme.colors.border; }}
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        style={{
-                          position: 'absolute', left: '8px', top: '50%',
-                          transform: 'translateY(-50%)',
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          color: theme.colors.text.muted, padding: '2px', lineHeight: 1,
-                          fontSize: '0.75rem',
-                        }}
-                      >✕</button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Search toggle button */}
-                <button
-                  onClick={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    backgroundColor: showSearch ? theme.colors.primary : theme.colors.cardBg,
-                    border: 'none',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: theme.shadows.sm,
-                    transition: 'background-color 0.2s ease',
-                    flexShrink: 0,
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke={showSearch ? '#FFFFFF' : theme.colors.text.secondary} strokeWidth="2">
-                    <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
-                  </svg>
-                </button>
-              </div>
+              <MenuSearchHeader
+                showSearch={showSearch}
+                onToggleSearch={() => { setShowSearch(!showSearch); if (showSearch) setSearchQuery(''); }}
+                searchQuery={searchQuery}
+                onSearch={handleSearch}
+              />
 
 
               {/* Product Grid - Scrollable */}
