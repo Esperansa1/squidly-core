@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import theme from '../../config/theme';
+import publicApi from '../../services/publicApi';
 
 /**
  * MenuSidebar - Navigation sidebar matching admin-app style
@@ -7,6 +8,10 @@ import theme from '../../config/theme';
  * Features: Logo, search, category navigation, toggle functionality
  */
 const MenuSidebar = React.memo(function MenuSidebar({ activeCategory, onCategoryChange, categories, isExpanded = true, onToggle }) {
+  const branding = publicApi.config?.theme || {};
+  const restaurantName = branding.restaurant_name || '';
+  const logoUrl = branding.logo_url || '';
+
   const toggleSidebar = useCallback(() => {
     if (onToggle) {
       onToggle(!isExpanded);
@@ -130,33 +135,25 @@ const MenuSidebar = React.memo(function MenuSidebar({ activeCategory, onCategory
               style={{
                 width: '40px',
                 height: '40px',
-                backgroundColor: theme.colors.primary,
+                backgroundColor: logoUrl ? 'transparent' : theme.colors.primary,
                 borderRadius: theme.borderRadius.md,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
+                overflow: 'hidden',
               }}
             >
-              <div
-                style={{
-                  width: '24px',
-                  height: '2px',
-                  backgroundColor: 'white',
-                  transform: 'rotate(45deg)',
-                }}
-              />
-              <div
-                style={{
-                  width: '24px',
-                  height: '2px',
-                  backgroundColor: 'white',
-                  transform: 'rotate(-45deg)',
-                  marginLeft: '-24px',
-                }}
-              />
+              {logoUrl ? (
+                <img src={logoUrl} alt={restaurantName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <>
+                  <div style={{ width: '24px', height: '2px', backgroundColor: 'white', transform: 'rotate(45deg)' }} />
+                  <div style={{ width: '24px', height: '2px', backgroundColor: 'white', transform: 'rotate(-45deg)', marginLeft: '-24px' }} />
+                </>
+              )}
             </div>
-            {isExpanded && (
+            {isExpanded && restaurantName && (
               <span
                 style={{
                   fontSize: '1.25rem',
@@ -164,7 +161,7 @@ const MenuSidebar = React.memo(function MenuSidebar({ activeCategory, onCategory
                   color: theme.colors.text.primary,
                 }}
               >
-                DeliGO
+                {restaurantName}
               </span>
             )}
           </div>
