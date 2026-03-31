@@ -1,3 +1,17 @@
+// Flat theme defaults used for CSS variable generation
+export const DEFAULT_THEME = {
+  primary_color:   '#D12525',
+  secondary_color: '#F2F2F2',
+  accent_color:    '#D12525',
+};
+
+// Generates { '--theme-primary_color': '#D12525', ... } for document.documentElement
+export const generateCSSVariables = (theme) => {
+  return Object.fromEntries(
+    Object.entries(theme).map(([key, value]) => [`--theme-${key}`, value])
+  );
+};
+
 /**
  * Theme Configuration for Customer App
  * Centralized colors, spacing, and styling values

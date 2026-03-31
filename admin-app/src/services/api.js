@@ -425,6 +425,29 @@ class ApiService {
     });
   }
 
+  // ===== SETTINGS API =====
+
+  async getSettings() {
+    return await this.fetch('settings');
+  }
+
+  async updateSettings(data) {
+    return await this.fetch('settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async uploadLogo(file) {
+    const formData = new FormData();
+    formData.append('logo', file);
+    return await this.fetch('settings/logo', {
+      method: 'POST',
+      headers: { 'X-WP-Nonce': this.nonce },
+      body: formData,
+    });
+  }
+
   // ===== UTILITY METHODS =====
 
   getConfig() {

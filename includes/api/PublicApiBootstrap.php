@@ -101,13 +101,19 @@ class PublicApiBootstrap
                 'guest_checkout' => (bool) get_option('squidly_allow_guest_checkout', true),
                 'online_ordering' => (bool) get_option('squidly_enable_online_ordering', true),
             ],
-            'theme' => [
-                'primary_color' => '#D12525',
-                'secondary_color' => '#F2F2F2',
-                'success_color' => '#10B981',
-                'warning_color' => '#F59E0B',
-                'danger_color' => '#EF4444',
-            ],
+            'theme' => (function () {
+                $saved = get_option('squidly_branding', []);
+                return [
+                    'primary_color'   => $saved['primary_color']   ?? '#D12525',
+                    'secondary_color' => $saved['secondary_color'] ?? '#F2F2F2',
+                    'accent_color'    => $saved['accent_color']    ?? '#D12525',
+                    'success_color'   => '#10B981',
+                    'warning_color'   => '#F59E0B',
+                    'danger_color'    => '#EF4444',
+                    'restaurant_name' => $saved['restaurant_name'] ?? get_bloginfo('name'),
+                    'logo_url'        => $saved['logo_url']        ?? '',
+                ];
+            })(),
             'strings' => [
                 // English strings (can be extended for i18n)
                 'branches' => 'Branches',

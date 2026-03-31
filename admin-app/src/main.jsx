@@ -4,6 +4,7 @@ import App from './App.jsx';
 import './fonts.css';
 import { loadLiaDiplomatFonts } from './fontLoader.js';
 import { DEFAULT_THEME, generateCSSVariables } from './config/theme.js';
+import api from './services/api.js';
 
 // Load fonts first
 loadLiaDiplomatFonts();
@@ -30,8 +31,13 @@ const setBackgroundImage = () => {
   }
 };
 
-// Apply default theme immediately
+// Apply default theme immediately (prevents flash)
 applyTheme(DEFAULT_THEME);
+
+// Re-apply server-saved theme once API is ready (non-blocking)
+api.init()
+  .then(() => { applyTheme(api.getTheme()); })
+  .catch(() => { /* DEFAULT_THEME already applied above */ });
 
 // Initialize the app when DOM is ready
 const initializeApp = () => {

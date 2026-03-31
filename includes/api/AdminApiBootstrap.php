@@ -69,6 +69,23 @@ class AdminApiBootstrap
             'callback' => [self::class, 'get_admin_config'],
             'permission_callback' => [self::class, 'admin_permissions_check'],
         ]);
+
+        // Settings endpoints
+        register_rest_route('squidly/v1', '/settings', [
+            'methods'             => \WP_REST_Server::READABLE,
+            'callback'            => [self::class, 'get_settings'],
+            'permission_callback' => [self::class, 'admin_permissions_check'],
+        ]);
+        register_rest_route('squidly/v1', '/settings', [
+            'methods'             => \WP_REST_Server::EDITABLE,
+            'callback'            => [self::class, 'update_settings'],
+            'permission_callback' => [self::class, 'admin_permissions_check'],
+        ]);
+        register_rest_route('squidly/v1', '/settings/logo', [
+            'methods'             => \WP_REST_Server::CREATABLE,
+            'callback'            => [self::class, 'upload_logo'],
+            'permission_callback' => [self::class, 'admin_permissions_check'],
+        ]);
     }
 
     public static function setup_cors(): void
@@ -129,12 +146,7 @@ class AdminApiBootstrap
     public static function get_admin_config($request)
     {
         return new \WP_REST_Response([
-            'theme' => [
-                'primary_color' => '#D12525',
-                'secondary_color' => '#F2F2F2',
-                'success_color' => '#10B981',
-                'danger_color' => '#EF4444',
-            ],
+            'theme' => self::get_branding_theme(),
             'api' => [
                 'base_url' => rest_url('squidly/v1/'),
                 'nonce' => wp_create_nonce('wp_rest'),
@@ -171,5 +183,64 @@ class AdminApiBootstrap
     public static function admin_permissions_check($request)
     {
         return current_user_can('manage_options');
+    }
+
+    private static function get_branding_theme(): array
+    {
+        $saved = get_option('squidly_branding', []);
+        return [
+            'primary_color'   => $saved['primary_color']   ?? '#D12525',
+            'secondary_color' => $saved['secondary_color'] ?? '#F2F2F2',
+            'accent_color'    => $saved['accent_color']    ?? '#D12525',
+            'success_color'   => '#10B981',
+            'danger_color'    => '#EF4444',
+        ];
+    }
+
+    public static function get_settings($request)
+    {
+        $saved = get_option('squidly_branding', []);
+        return new \WP_REST_Response([
+            'restaurant_name' => $saved['restaurant_name'] ?? get_bloginfo('name'),
+            'logo_url'        => $saved['logo_url']        ?? '',
+            'primary_color'   => $saved['primary_color']   ?? '#D12525',
+            'secondary_color' => $saved['secondary_color'] ?? '#F2F2F2',
+            'accent_color'    => $saved['accent_color']    ?? '#D12525',
+        ], 200);
+    }
+
+    public static function update_settings($request)
+    {
+        $params  = $request->get_json_params();
+        $current = get_option('squidly_branding', []);
+        $allowed_keys = ['restaurant_name', 'logo_url', 'primary_color', 'secondary_color', 'accent_color'];
+        foreach ($allowed_keys as $key) {
+            if (isset($params[$key])) {
+                $current[$key] = sanitize_text_field($params[$key]);
+            }
+        }
+        update_option('squidly_branding', $current);
+        return new \WP_REST_Response(['success' => true, 'data' => $current], 200);
+    }
+
+    public static function upload_logo($request)
+    {
+        if (!function_exists('media_handle_upload')) {
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/media.php';
+        }
+        if (empty($_FILES['logo'])) {
+            return new \WP_REST_Response(['error' => 'No file uploaded'], 400);
+        }
+        $attachment_id = media_handle_upload('logo', 0);
+        if (is_wp_error($attachment_id)) {
+            return new \WP_REST_Response(['error' => $attachment_id->get_error_message()], 500);
+        }
+        $logo_url = wp_get_attachment_url($attachment_id);
+        $current = get_option('squidly_branding', []);
+        $current['logo_url'] = esc_url_raw($logo_url);
+        update_option('squidly_branding', $current);
+        return new \WP_REST_Response(['logo_url' => $logo_url], 200);
     }
 }

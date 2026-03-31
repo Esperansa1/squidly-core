@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import TabSelector from './ui/TabSelector.jsx';
 import ProfileSection from './settings/ProfileSection.jsx';
 import UserManagement from './settings/UserManagement.jsx';
+import AppearanceSection from './settings/AppearanceSection.jsx';
 import api from '../services/api.js';
 
 const Settings = () => {
@@ -29,7 +30,7 @@ const Settings = () => {
     <div className="h-full flex flex-col" dir="rtl">
       <div className="flex-shrink-0 px-6 pt-6">
         <TabSelector
-          tabs={['הפרופיל שלי', 'ניהול משתמשים']}
+          tabs={['הפרופיל שלי', 'ניהול משתמשים', 'מראה']}
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
@@ -50,6 +51,9 @@ const Settings = () => {
             )}
             {activeTab === 'ניהול משתמשים' && (
               <UserManagement />
+            )}
+            {activeTab === 'מראה' && (
+              <AppearanceSection />
             )}
           </>
         )}
