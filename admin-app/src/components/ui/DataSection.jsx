@@ -328,7 +328,7 @@ const DataSection = ({
           <div className="flex gap-2 flex-shrink-0">
             <ActionButton
               icon={TrashIcon}
-              variant="error"
+              variant="secondary"
               disabled={!selectedItem}
               onClick={handleDeleteClick}
               tooltip={strings.delete || 'מחק'}

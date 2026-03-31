@@ -78,6 +78,7 @@ const AppearanceSection = () => {
       setUploadingLogo(true);
       const result = await api.uploadLogo(file);
       setFormData((prev) => ({ ...prev, logo_url: result.logo_url }));
+      window.dispatchEvent(new CustomEvent('squidly:settings-updated'));
       displayToast('הלוגו עודכן בהצלחה');
     } catch (error) {
       console.error('Error uploading logo:', error);

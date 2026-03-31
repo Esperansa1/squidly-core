@@ -436,12 +436,13 @@ class ApiService {
       method: 'PUT',
       body: JSON.stringify(data),
     });
-    // Keep in-memory config in sync so getRestaurantName() reflects the new value immediately
+    // Keep in-memory config in sync so getRestaurantName() / getLogoUrl() reflect new values immediately
     if (this.config && this.config.theme) {
       if (data.restaurant_name !== undefined) this.config.theme.restaurant_name = data.restaurant_name;
       if (data.primary_color !== undefined) this.config.theme.primary_color = data.primary_color;
       if (data.secondary_color !== undefined) this.config.theme.secondary_color = data.secondary_color;
       if (data.accent_color !== undefined) this.config.theme.accent_color = data.accent_color;
+      if (data.logo_url !== undefined) this.config.theme.logo_url = data.logo_url;
     }
     return result;
   }
@@ -449,11 +450,17 @@ class ApiService {
   async uploadLogo(file) {
     const formData = new FormData();
     formData.append('logo', file);
-    return await this.fetch('settings/logo', {
+    const result = await this.fetch('settings/logo', {
       method: 'POST',
       headers: { 'X-WP-Nonce': this.nonce },
       body: formData,
     });
+    // Sync logo_url into in-memory config so getLogoUrl() reflects it immediately
+    if (result && result.logo_url && this.config) {
+      if (!this.config.theme) this.config.theme = {};
+      this.config.theme.logo_url = result.logo_url;
+    }
+    return result;
   }
 
   // ===== UTILITY METHODS =====
@@ -468,6 +475,10 @@ class ApiService {
 
   getRestaurantName() {
     return this.config?.theme?.restaurant_name || '';
+  }
+
+  getLogoUrl() {
+    return this.config?.theme?.logo_url || '';
   }
 
   getStrings() {

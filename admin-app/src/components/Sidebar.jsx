@@ -32,18 +32,26 @@ const Sidebar = ({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef(null);
   const [restaurantName, setRestaurantName] = useState(() => api.getRestaurantName());
+  const [logoUrl, setLogoUrl] = useState(() => api.getLogoUrl());
 
   useEffect(() => {
     const name = api.getRestaurantName();
     if (name) {
       setRestaurantName(name);
+      setLogoUrl(api.getLogoUrl());
     } else {
       // api.init() may not have resolved yet; poll briefly
-      const timer = setTimeout(() => setRestaurantName(api.getRestaurantName()), 1500);
+      const timer = setTimeout(() => {
+        setRestaurantName(api.getRestaurantName());
+        setLogoUrl(api.getLogoUrl());
+      }, 1500);
       return () => clearTimeout(timer);
     }
 
-    const handleSettingsUpdate = () => setRestaurantName(api.getRestaurantName());
+    const handleSettingsUpdate = () => {
+      setRestaurantName(api.getRestaurantName());
+      setLogoUrl(api.getLogoUrl());
+    };
     window.addEventListener('squidly:settings-updated', handleSettingsUpdate);
     return () => window.removeEventListener('squidly:settings-updated', handleSettingsUpdate);
   }, []);
@@ -150,10 +158,18 @@ const Sidebar = ({
           <div className="flex-grow">
             {/* Logo Area */}
             <div className={`flex items-center gap-3 mb-6 ${isExpanded ? '' : 'justify-center'}`}>
-              <div className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style={{backgroundColor: 'var(--theme-primary-color)'}}>
-                <div className="w-6 h-0.5 bg-white transform rotate-45"></div>
-                <div className="w-6 h-0.5 bg-white transform -rotate-45 -ml-6"></div>
-              </div>
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={restaurantName || 'לוגו'}
+                  className="w-10 h-10 rounded object-contain flex-shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style={{backgroundColor: 'var(--theme-primary-color)'}}>
+                  <div className="w-6 h-0.5 bg-white transform rotate-45"></div>
+                  <div className="w-6 h-0.5 bg-white transform -rotate-45 -ml-6"></div>
+                </div>
+              )}
               {isExpanded && (
                 <span className="text-xl font-bold text-gray-900" style={{ fontWeight: 800 }}>{restaurantName || 'Squidly'}</span>
               )}
