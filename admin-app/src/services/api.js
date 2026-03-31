@@ -432,10 +432,18 @@ class ApiService {
   }
 
   async updateSettings(data) {
-    return await this.fetch('settings', {
+    const result = await this.fetch('settings', {
       method: 'PUT',
       body: JSON.stringify(data),
     });
+    // Keep in-memory config in sync so getRestaurantName() reflects the new value immediately
+    if (this.config && this.config.theme) {
+      if (data.restaurant_name !== undefined) this.config.theme.restaurant_name = data.restaurant_name;
+      if (data.primary_color !== undefined) this.config.theme.primary_color = data.primary_color;
+      if (data.secondary_color !== undefined) this.config.theme.secondary_color = data.secondary_color;
+      if (data.accent_color !== undefined) this.config.theme.accent_color = data.accent_color;
+    }
+    return result;
   }
 
   async uploadLogo(file) {
@@ -456,6 +464,10 @@ class ApiService {
 
   getTheme() {
     return this.config?.theme || DEFAULT_THEME;
+  }
+
+  getRestaurantName() {
+    return this.config?.theme?.restaurant_name || '';
   }
 
   getStrings() {

@@ -17,6 +17,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useRouter } from '../router.jsx';
 import { DEFAULT_THEME } from '../config/theme.js';
+import api from '../services/api.js';
 
 const Sidebar = ({
   activeItem = 'menu-management',
@@ -30,6 +31,22 @@ const Sidebar = ({
   const { navigate } = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef(null);
+  const [restaurantName, setRestaurantName] = useState(() => api.getRestaurantName());
+
+  useEffect(() => {
+    const name = api.getRestaurantName();
+    if (name) {
+      setRestaurantName(name);
+    } else {
+      // api.init() may not have resolved yet; poll briefly
+      const timer = setTimeout(() => setRestaurantName(api.getRestaurantName()), 1500);
+      return () => clearTimeout(timer);
+    }
+
+    const handleSettingsUpdate = () => setRestaurantName(api.getRestaurantName());
+    window.addEventListener('squidly:settings-updated', handleSettingsUpdate);
+    return () => window.removeEventListener('squidly:settings-updated', handleSettingsUpdate);
+  }, []);
 
   const toggleSidebar = () => {
     onToggle(!isExpanded);
@@ -138,7 +155,7 @@ const Sidebar = ({
                 <div className="w-6 h-0.5 bg-white transform -rotate-45 -ml-6"></div>
               </div>
               {isExpanded && (
-                <span className="text-xl font-bold text-gray-900" style={{ fontWeight: 800 }}>DeliGO</span>
+                <span className="text-xl font-bold text-gray-900" style={{ fontWeight: 800 }}>{restaurantName || 'Squidly'}</span>
               )}
             </div>
 
@@ -150,7 +167,7 @@ const Sidebar = ({
                   <input
                     type="text"
                     placeholder="חיפוש"
-                    className="w-full pl-4 pr-10 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-red-500"
+                    className="w-full pl-4 pr-10 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 placeholder-gray-500 outline-none focus:bg-white focus:border focus:border-[color:var(--theme-primary-color)]"
                   />
                 </div>
               ) : (

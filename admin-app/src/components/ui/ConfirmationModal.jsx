@@ -9,7 +9,7 @@ const ConfirmationModal = ({
   message,
   confirmText = 'כן',
   cancelText = 'ביטול',
-  confirmButtonClass = 'bg-red-600 hover:bg-red-700 text-white',
+  confirmButtonClass = '',
   loading = false
 }) => {
   if (!isOpen) return null;
@@ -29,7 +29,7 @@ const ConfirmationModal = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <ExclamationTriangleIcon className="w-6 h-6 text-red-500" />
+            <ExclamationTriangleIcon className="w-6 h-6" style={{ color: 'var(--theme-danger-color)' }} />
             <h2 className="text-lg font-semibold text-gray-900">
               {title}
             </h2>
@@ -62,7 +62,8 @@ const ConfirmationModal = ({
           <button
             onClick={onConfirm}
             disabled={loading}
-            className={`px-4 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${confirmButtonClass}`}
+            className={`px-4 py-2 text-sm font-medium rounded-md outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${confirmButtonClass}`}
+            style={{ backgroundColor: 'var(--theme-danger-color)', color: 'white' }}
           >
             {loading ? 'מוחק...' : confirmText}
           </button>

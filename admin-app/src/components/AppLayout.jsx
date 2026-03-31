@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import Sidebar from './Sidebar.jsx';
+import api from '../services/api.js';
 
 const MOBILE_BREAKPOINT = 1024;
 
@@ -12,6 +13,21 @@ const AppLayout = ({
 }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT);
   const [sidebarExpanded, setSidebarExpanded] = useState(window.innerWidth >= MOBILE_BREAKPOINT);
+  const [restaurantName, setRestaurantName] = useState(() => api.getRestaurantName());
+
+  useEffect(() => {
+    const name = api.getRestaurantName();
+    if (name) {
+      setRestaurantName(name);
+    } else {
+      const timer = setTimeout(() => setRestaurantName(api.getRestaurantName()), 1500);
+      return () => clearTimeout(timer);
+    }
+
+    const handleSettingsUpdate = () => setRestaurantName(api.getRestaurantName());
+    window.addEventListener('squidly:settings-updated', handleSettingsUpdate);
+    return () => window.removeEventListener('squidly:settings-updated', handleSettingsUpdate);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -37,7 +53,7 @@ const AppLayout = ({
           className="flex-shrink-0 bg-white border-b border-gray-200 shadow-sm z-30 flex items-center justify-between px-4"
           style={{ height: '56px' }}
         >
-          <span className="text-lg font-bold text-gray-900">DeliGO</span>
+          <span className="text-lg font-bold text-gray-900">{restaurantName || 'Squidly'}</span>
           <button
             onClick={() => setSidebarExpanded(true)}
             className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg"

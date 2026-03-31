@@ -130,7 +130,7 @@ const Pagination = ({
               id="page-size"
               value={itemsPerPage}
               onChange={handlePageSizeChange}
-              className="block rounded-md border-gray-300 py-1.5 pr-8 pl-3 text-sm focus:border-red-500 focus:ring-red-500"
+              className="block rounded-md border-gray-300 py-1.5 pr-8 pl-3 text-sm outline-none focus:border-[color:var(--theme-primary-color)]"
               style={{
                 borderColor: theme.border_color,
                 color: theme.text_primary

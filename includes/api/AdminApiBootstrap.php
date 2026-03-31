@@ -189,11 +189,13 @@ class AdminApiBootstrap
     {
         $saved = get_option('squidly_branding', []);
         return [
-            'primary_color'   => $saved['primary_color']   ?? '#D12525',
-            'secondary_color' => $saved['secondary_color'] ?? '#F2F2F2',
-            'accent_color'    => $saved['accent_color']    ?? '#D12525',
-            'success_color'   => '#10B981',
-            'danger_color'    => '#EF4444',
+            'primary_color'     => $saved['primary_color']     ?? '#D12525',
+            'secondary_color'   => $saved['secondary_color']   ?? '#F2F2F2',
+            'accent_color'      => $saved['accent_color']      ?? '#D12525',
+            'success_color'     => '#10B981',
+            'danger_color'      => '#EF4444',
+            'restaurant_name'   => $saved['restaurant_name']   ?? get_bloginfo('name'),
+            'logo_url'          => $saved['logo_url']          ?? '',
         ];
     }
 

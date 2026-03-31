@@ -51,6 +51,7 @@ const AppearanceSection = () => {
         logo_url:        formData.logo_url,
       });
       applyTheme(formData);
+      window.dispatchEvent(new CustomEvent('squidly:settings-updated'));
       displayToast('הגדרות המראה נשמרו בהצלחה');
     } catch (error) {
       console.error('Error saving appearance settings:', error);

@@ -455,7 +455,7 @@ const OrderManagement = () => {
                   type="date"
                   value={customDateFrom}
                   onChange={(e) => setCustomDateFrom(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-[color:var(--theme-primary-color)]"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -464,7 +464,7 @@ const OrderManagement = () => {
                   type="date"
                   value={customDateTo}
                   onChange={(e) => setCustomDateTo(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-[color:var(--theme-primary-color)]"
                 />
               </div>
               <Button
