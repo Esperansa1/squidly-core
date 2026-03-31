@@ -67,49 +67,50 @@ const Button = React.forwardRef(({
 
   const iconSize = iconSizeMap[size] || 'w-5 h-5';
 
-  // Variant styles (using inline styles for theme colors)
+  // Variant styles — use CSS variable references so colors update live
+  // without requiring a React re-render when the theme changes.
   const getVariantStyle = () => {
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: theme.primary_color,
+          backgroundColor: 'var(--theme-primary-color)',
           color: 'white'
         };
       case 'secondary':
         return {
           backgroundColor: 'transparent',
-          color: theme.primary_color,
-          border: `1px solid ${theme.primary_color}`
+          color: 'var(--theme-primary-color)',
+          border: '1px solid var(--theme-primary-color)'
         };
       case 'outline':
         return {
-          backgroundColor: theme.bg_white,
-          color: theme.text_primary,
-          border: `1px solid ${theme.border_color}`
+          backgroundColor: 'var(--theme-bg-white)',
+          color: 'var(--theme-text-primary)',
+          border: '1px solid var(--theme-border-color)'
         };
       case 'ghost':
         return {
           backgroundColor: 'transparent',
-          color: theme.text_secondary
+          color: 'var(--theme-text-secondary)'
         };
       case 'success':
         return {
-          backgroundColor: theme.success_color,
+          backgroundColor: 'var(--theme-success-color)',
           color: 'white'
         };
       case 'warning':
         return {
-          backgroundColor: theme.warning_color,
+          backgroundColor: 'var(--theme-warning-color)',
           color: 'white'
         };
       case 'error':
         return {
-          backgroundColor: theme.danger_color,
+          backgroundColor: 'var(--theme-danger-color)',
           color: 'white'
         };
       default:
         return {
-          backgroundColor: theme.primary_color,
+          backgroundColor: 'var(--theme-primary-color)',
           color: 'white'
         };
     }

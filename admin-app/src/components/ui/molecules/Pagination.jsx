@@ -154,7 +154,7 @@ const Pagination = ({
           disabled={currentPage === 1}
           className="p-2 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           style={{
-            color: currentPage === 1 ? theme.text_muted : theme.primary_color
+            color: currentPage === 1 ? 'var(--theme-text-muted)' : 'var(--theme-primary-color)'
           }}
           aria-label="עמוד קודם"
         >
@@ -185,9 +185,9 @@ const Pagination = ({
                 onClick={() => handlePageClick(page)}
                 className="px-3 py-1 text-sm font-medium rounded-md transition-colors"
                 style={{
-                  backgroundColor: isActive ? theme.primary_color : 'transparent',
-                  color: isActive ? '#FFFFFF' : theme.text_secondary,
-                  border: isActive ? 'none' : `1px solid ${theme.border_light}`
+                  backgroundColor: isActive ? 'var(--theme-primary-color)' : 'transparent',
+                  color: isActive ? '#FFFFFF' : 'var(--theme-text-secondary)',
+                  border: isActive ? 'none' : '1px solid var(--theme-border-light)'
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
@@ -214,7 +214,7 @@ const Pagination = ({
           disabled={currentPage === totalPages}
           className="p-2 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           style={{
-            color: currentPage === totalPages ? theme.text_muted : theme.primary_color
+            color: currentPage === totalPages ? 'var(--theme-text-muted)' : 'var(--theme-primary-color)'
           }}
           aria-label="עמוד הבא"
         >

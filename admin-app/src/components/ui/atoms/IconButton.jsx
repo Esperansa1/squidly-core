@@ -58,25 +58,25 @@ const IconButton = React.forwardRef(({
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: theme.primary_color,
+          backgroundColor: 'var(--theme-primary-color)',
           color: 'white'
         };
       case 'secondary':
         return {
           backgroundColor: 'transparent',
-          color: theme.primary_color,
-          border: `1px solid ${theme.primary_color}`
+          color: 'var(--theme-primary-color)',
+          border: '1px solid var(--theme-primary-color)'
         };
       case 'outline':
         return {
-          backgroundColor: theme.bg_white,
-          color: theme.text_primary,
-          border: `1px solid ${theme.border_color}`
+          backgroundColor: 'var(--theme-bg-white)',
+          color: 'var(--theme-text-primary)',
+          border: '1px solid var(--theme-border-color)'
         };
       case 'ghost':
         return {
           backgroundColor: 'transparent',
-          color: theme.text_secondary
+          color: 'var(--theme-text-secondary)'
         };
       case 'success':
         return {

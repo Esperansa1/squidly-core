@@ -28,7 +28,7 @@ const TabSelector = ({
       const rightOffset = containerRect.right - buttonRect.right;
 
       setBackgroundStyle({
-        backgroundColor: theme.primary_color,
+        backgroundColor: 'var(--theme-primary-color)',
         width: `${buttonRect.width}px`,
         right: `${rightOffset}px`,
         top: '0px',
@@ -58,7 +58,7 @@ const TabSelector = ({
               : ''
           }`}
           style={{
-            color: activeTab === tab ? 'white' : theme.text_secondary,
+            color: activeTab === tab ? 'white' : 'var(--theme-text-secondary)',
             height: '40px'
           }}
         >

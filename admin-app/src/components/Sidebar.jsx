@@ -82,10 +82,10 @@ const Sidebar = ({
   const NavItem = ({ item, isActive }) => {
     const IconComponent = item.icon;
     
-    // Clean navigation item style
+    // Clean navigation item style — CSS variable references update live
     const getNavItemStyle = () => ({
-      backgroundColor: isActive ? theme.primary_color : 'transparent',
-      color: isActive ? 'white' : theme.text_primary
+      backgroundColor: isActive ? 'var(--theme-primary-color)' : 'transparent',
+      color: isActive ? 'white' : 'var(--theme-text-primary)'
     });
     
     return (
@@ -133,7 +133,7 @@ const Sidebar = ({
           <div className="flex-grow">
             {/* Logo Area */}
             <div className={`flex items-center gap-3 mb-6 ${isExpanded ? '' : 'justify-center'}`}>
-              <div className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style={{backgroundColor: theme.primary_color}}>
+              <div className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style={{backgroundColor: 'var(--theme-primary-color)'}}>
                 <div className="w-6 h-0.5 bg-white transform rotate-45"></div>
                 <div className="w-6 h-0.5 bg-white transform -rotate-45 -ml-6"></div>
               </div>
@@ -199,8 +199,8 @@ const Sidebar = ({
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="w-full flex items-center gap-3 px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors rounded-lg"
                 >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: `${theme.primary_color}20`}}>
-                    <span className="text-sm" style={{ fontWeight: 800, color: theme.primary_color }}>נ</span>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: 'var(--theme-primary-color-20)'}}>
+                    <span className="text-sm" style={{ fontWeight: 800, color: 'var(--theme-primary-color)' }}>נ</span>
                   </div>
                   <div className="flex-1 text-right">
                     <div className="text-sm text-gray-900" style={{ fontWeight: 800 }}>ניסים דיין</div>
@@ -209,8 +209,8 @@ const Sidebar = ({
                   <ChevronDownIcon className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
                 </button>
               ) : (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{backgroundColor: `${theme.primary_color}20`}}>
-                  <span className="text-sm" style={{ fontWeight: 800, color: theme.primary_color }}>נ</span>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{backgroundColor: 'var(--theme-primary-color-20)'}}>
+                  <span className="text-sm" style={{ fontWeight: 800, color: 'var(--theme-primary-color)' }}>נ</span>
                 </div>
               )}
             </div>

@@ -9,9 +9,9 @@ const ActionButton = ({ icon: Icon, variant, onClick, disabled = false, title })
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: disabled ? theme.bg_gray_100 : theme.primary_color,
-          color: disabled ? theme.text_disabled : theme.bg_white,
-          borderColor: disabled ? theme.border_light : theme.primary_color
+          backgroundColor: disabled ? 'var(--theme-bg-gray-100)' : 'var(--theme-primary-color)',
+          color: disabled ? 'var(--theme-text-disabled)' : 'var(--theme-bg-white)',
+          borderColor: disabled ? 'var(--theme-border-light)' : 'var(--theme-primary-color)'
         };
       case 'secondary':
         return {
