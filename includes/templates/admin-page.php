@@ -45,6 +45,7 @@
     
     <script>
         // Provide WordPress config to the React app
+        <?php $squidly_branding = get_option('squidly_branding', []); ?>
         window.wpConfig = {
             apiUrl: '<?php echo rest_url('squidly/v1/'); ?>',
             nonce: '<?php echo wp_create_nonce('wp_rest'); ?>',
@@ -54,6 +55,13 @@
             user: {
                 id: <?php echo get_current_user_id(); ?>,
                 can_manage: <?php echo current_user_can('manage_options') ? 'true' : 'false'; ?>
+            },
+            theme: {
+                primary_color:   '<?php echo esc_js($squidly_branding['primary_color']   ?? '#D12525'); ?>',
+                secondary_color: '<?php echo esc_js($squidly_branding['secondary_color'] ?? '#F2F2F2'); ?>',
+                accent_color:    '<?php echo esc_js($squidly_branding['accent_color']    ?? '#D12525'); ?>',
+                restaurant_name: '<?php echo esc_js($squidly_branding['restaurant_name'] ?? get_bloginfo('name')); ?>',
+                logo_url:        '<?php echo esc_js($squidly_branding['logo_url']        ?? ''); ?>'
             }
         };
         

@@ -27,11 +27,15 @@ const setBackgroundImage = () => {
 // Set background image
 setBackgroundImage();
 
-// Apply default theme immediately, then re-apply server-saved theme (non-blocking)
-applyTheme({});
+// Apply theme synchronously from wpConfig (embedded by PHP, no async fetch needed)
+// Falls back to DEFAULT_THEME if wpConfig.theme is unavailable
+const wpTheme = window.wpConfig?.theme;
+applyTheme(wpTheme || {});
+
+// Re-apply after publicApi.init() in case theme was updated since page load
 publicApi.init()
   .then((config) => { if (config?.theme) applyTheme(config.theme); })
-  .catch(() => { /* DEFAULT_THEME already applied */ });
+  .catch(() => { /* already applied above */ });
 
 ReactDOM.createRoot(document.getElementById('squidly-customer-app')).render(
   <React.StrictMode>

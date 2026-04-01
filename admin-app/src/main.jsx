@@ -31,13 +31,15 @@ const setBackgroundImage = () => {
   }
 };
 
-// Apply default theme immediately (prevents flash)
-applyTheme(DEFAULT_THEME);
+// Apply theme synchronously from wpConfig (embedded by PHP, no async fetch needed)
+// Falls back to DEFAULT_THEME if wpConfig.theme is unavailable
+const wpTheme = window.wpConfig?.theme;
+applyTheme(wpTheme ? { ...DEFAULT_THEME, ...wpTheme } : DEFAULT_THEME);
 
-// Re-apply server-saved theme once API is ready (non-blocking)
+// Re-apply after api.init() in case theme was updated since page load
 api.init()
   .then(() => { applyTheme(api.getTheme()); })
-  .catch(() => { /* DEFAULT_THEME already applied above */ });
+  .catch(() => { /* already applied above */ });
 
 // Initialize the app when DOM is ready
 const initializeApp = () => {
