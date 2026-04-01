@@ -29,7 +29,7 @@ const ActionButton = ({
         };
       case 'secondary':
         return {
-          variant: 'outline'
+          variant: 'secondary'
         };
       case 'error':
         return {
