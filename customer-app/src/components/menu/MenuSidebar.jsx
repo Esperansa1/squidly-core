@@ -7,10 +7,9 @@ import publicApi from '../../services/publicApi';
  * Dynamically populated with product categories
  * Features: Logo, search, category navigation, toggle functionality
  */
-const MenuSidebar = React.memo(function MenuSidebar({ activeCategory, onCategoryChange, categories, isExpanded = true, onToggle }) {
-  const branding = publicApi.config?.theme || {};
-  const restaurantName = branding.restaurant_name || '';
-  const logoUrl = branding.logo_url || '';
+const MenuSidebar = React.memo(function MenuSidebar({ activeCategory, onCategoryChange, categories, isExpanded = true, onToggle, branding }) {
+  const restaurantName = branding?.restaurant_name || '';
+  const logoUrl = branding?.logo_url || '';
 
   const toggleSidebar = useCallback(() => {
     if (onToggle) {

@@ -58,6 +58,7 @@ function AppContent() {
           <MenuLayout
             branchId={selectedBranch?.id}
             onCheckout={() => setCheckoutOpen(true)}
+            config={apiStatus.config}
           />
         )}
 

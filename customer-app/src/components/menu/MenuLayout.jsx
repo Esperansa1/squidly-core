@@ -21,7 +21,7 @@ import { useBranch } from '../../contexts/BranchContext';
  * Desktop: 3-column grid [Navigation] [Content] [Cart]
  * RTL: Navigation on right, Cart on left
  */
-export default function MenuLayout({ branchId, onCheckout }) {
+export default function MenuLayout({ branchId, onCheckout, config }) {
   // Responsive hooks
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
@@ -428,6 +428,7 @@ export default function MenuLayout({ branchId, onCheckout }) {
               categories={categories}
               isExpanded={sidebarExpanded}
               onToggle={setSidebarExpanded}
+              branding={config?.theme}
             />
 
             {/* Center - Main Content */}
