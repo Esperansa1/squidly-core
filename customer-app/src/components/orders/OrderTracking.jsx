@@ -1,6 +1,7 @@
 import React from 'react';
 import { useOrderPolling } from '../../hooks/useOrderPolling';
 import { t } from '../../i18n/translations';
+import theme from '../../config/theme.js';
 
 /**
  * OrderTracking - Real-time order status display
@@ -30,18 +31,18 @@ export default function OrderTracking({ orderId, trackingToken, onBack }) {
 
   const currentStepIndex = order ? getCurrentStepIndex(order.status) : -1;
 
-  // Status colors
-  const getStatusColor = (status) => {
+  // Status colors — semantic statuses keep their colors; active/in-progress uses theme primary
+  const getStatusBgColor = (status) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-600';
+        return theme.colors.success;
       case 'cancelled':
-        return 'bg-red-600';
+        return theme.colors.error;
       case 'preparing':
       case 'ready':
-        return 'bg-blue-600';
+        return theme.colors.primary;
       default:
-        return 'bg-yellow-600';
+        return theme.colors.warning;
     }
   };
 
@@ -50,7 +51,11 @@ export default function OrderTracking({ orderId, trackingToken, onBack }) {
       {/* Header */}
       <div className="mb-6">
         {onBack && (
-          <button onClick={onBack} className="text-blue-600 mb-4 flex items-center gap-2">
+          <button
+            onClick={onBack}
+            className="mb-4 flex items-center gap-2"
+            style={{ color: theme.colors.primary }}
+          >
             ← {t('enterDifferentOrder')}
           </button>
         )}
@@ -74,7 +79,12 @@ export default function OrderTracking({ orderId, trackingToken, onBack }) {
       {/* Loading State (initial) */}
       {loading && !order && (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
+          <div
+            className="inline-block animate-spin w-12 h-12 border-4 rounded-full mb-4"
+            style={{
+              borderColor: `transparent ${theme.colors.primary} ${theme.colors.primary} ${theme.colors.primary}`,
+            }}
+          ></div>
           <p>{t('loadingOrder')}</p>
         </div>
       )}
@@ -86,7 +96,8 @@ export default function OrderTracking({ orderId, trackingToken, onBack }) {
           <p>{error}</p>
           <button
             onClick={refresh}
-            className="mt-4 px-6 py-2 bg-red-600 text-white hover:bg-red-700"
+            className="mt-4 px-6 py-2 text-white hover:opacity-90"
+            style={{ backgroundColor: theme.colors.error }}
           >
             {t('tryAgain')}
           </button>
@@ -98,17 +109,25 @@ export default function OrderTracking({ orderId, trackingToken, onBack }) {
         <>
           {/* Polling Indicator */}
           {isPolling && (
-            <div className="mb-4 bg-blue-50 border border-blue-200 p-3 flex items-center gap-3 text-sm">
-              <div className="animate-pulse w-2 h-2 bg-blue-600 rounded-full"></div>
+            <div
+              className="mb-4 p-3 border flex items-center gap-3 text-sm"
+              style={{
+                backgroundColor: `${theme.colors.primary}10`,
+                borderColor: `${theme.colors.primary}40`,
+              }}
+            >
+              <div
+                className="animate-pulse w-2 h-2 rounded-full"
+                style={{ backgroundColor: theme.colors.primary }}
+              ></div>
               <span>{t('autoUpdating')}</span>
             </div>
           )}
 
           {/* Current Status Banner */}
           <div
-            className={`${getStatusColor(
-              order.status
-            )} text-white p-6 mb-6 flex items-center justify-between`}
+            className="text-white p-6 mb-6 flex items-center justify-between"
+            style={{ backgroundColor: getStatusBgColor(order.status) }}
           >
             <div>
               <h2 className="text-2xl font-bold mb-1">
@@ -138,9 +157,11 @@ export default function OrderTracking({ orderId, trackingToken, onBack }) {
                     <div key={step.key} className="flex items-center gap-4">
                       {/* Icon/Checkpoint */}
                       <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
-                          isCompleted ? getStatusColor(step.key) : 'bg-gray-200'
-                        }`}
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+                        style={{
+                          backgroundColor: isCompleted ? getStatusBgColor(step.key) : theme.colors.border,
+                          color: isCompleted ? 'white' : 'inherit',
+                        }}
                       >
                         {isCompleted ? '✓' : step.icon}
                       </div>
@@ -148,9 +169,14 @@ export default function OrderTracking({ orderId, trackingToken, onBack }) {
                       {/* Label */}
                       <div className="flex-1">
                         <div
-                          className={`font-bold ${
-                            isCurrent ? 'text-blue-600' : isCompleted ? 'text-gray-700' : 'text-gray-400'
-                          }`}
+                          className="font-bold"
+                          style={{
+                            color: isCurrent
+                              ? theme.colors.primary
+                              : isCompleted
+                              ? theme.colors.text.primary
+                              : theme.colors.text.muted,
+                          }}
                         >
                           {step.label}
                         </div>
@@ -211,9 +237,10 @@ export default function OrderTracking({ orderId, trackingToken, onBack }) {
               <div className="flex justify-between">
                 <span className="text-gray-600">{t('paymentStatus')}:</span>
                 <span
-                  className={`font-bold ${
-                    order.payment_status === 'paid' ? 'text-green-600' : 'text-yellow-600'
-                  }`}
+                  className="font-bold"
+                  style={{
+                    color: order.payment_status === 'paid' ? theme.colors.success : theme.colors.warning,
+                  }}
                 >
                   {t(`paymentStatus_${order.payment_status}`)}
                 </span>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { t } from '../../i18n/translations';
+import theme from '../../config/theme.js';
 import OrderTracking from './OrderTracking';
 
 /**
@@ -64,7 +65,11 @@ export default function OrderTracker({ onBack }) {
       {/* Header */}
       <div className="mb-6">
         {onBack && (
-          <button onClick={onBack} className="text-blue-600 mb-4 flex items-center gap-2">
+          <button
+            onClick={onBack}
+            className="mb-4 flex items-center gap-2"
+            style={{ color: theme.colors.primary }}
+          >
             ← {t('back')}
           </button>
         )}
@@ -78,13 +83,15 @@ export default function OrderTracker({ onBack }) {
           {/* Order ID */}
           <div>
             <label className="block font-bold mb-2">
-              {t('orderNumber')} <span className="text-red-600">*</span>
+              {t('orderNumber')} <span style={{ color: theme.colors.primary }}>*</span>
             </label>
             <input
               type="number"
               value={orderId}
               onChange={(e) => setOrderId(e.target.value)}
-              className="w-full border px-4 py-3 text-lg focus:outline-none focus:border-blue-500"
+              className="w-full border px-4 py-3 text-lg outline-none"
+              onFocus={(e) => (e.target.style.borderColor = theme.colors.primary)}
+              onBlur={(e) => (e.target.style.borderColor = theme.colors.border)}
               placeholder="12345"
               required
             />
@@ -94,13 +101,15 @@ export default function OrderTracker({ onBack }) {
           {/* Tracking Token */}
           <div>
             <label className="block font-bold mb-2">
-              {t('trackingToken')} <span className="text-red-600">*</span>
+              {t('trackingToken')} <span style={{ color: theme.colors.primary }}>*</span>
             </label>
             <input
               type="text"
               value={trackingToken}
               onChange={(e) => setTrackingToken(e.target.value)}
-              className="w-full border px-4 py-3 font-mono text-sm focus:outline-none focus:border-blue-500"
+              className="w-full border px-4 py-3 font-mono text-sm outline-none"
+              onFocus={(e) => (e.target.style.borderColor = theme.colors.primary)}
+              onBlur={(e) => (e.target.style.borderColor = theme.colors.border)}
               placeholder="tk_xxxxxxxxxxxxxxxx"
               required
             />
@@ -117,7 +126,10 @@ export default function OrderTracker({ onBack }) {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 font-bold text-lg hover:bg-blue-700"
+            className="w-full text-white py-3 font-bold text-lg"
+            style={{ backgroundColor: theme.colors.primary }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = theme.colors.primaryHover)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = theme.colors.primary)}
           >
             {t('trackMyOrder')}
           </button>
