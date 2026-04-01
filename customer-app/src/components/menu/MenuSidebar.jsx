@@ -334,7 +334,7 @@ const MenuSidebar = React.memo(function MenuSidebar({ activeCategory, onCategory
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: `${theme.colors.primary}33`,
+                    backgroundColor: 'var(--theme-primary-color-33)',
                     cursor: 'pointer',
                   }}
                   title="הצטרפות למועדון"

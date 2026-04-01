@@ -694,7 +694,7 @@ export default function CheckoutModal({ isOpen, onClose, onEditOrderDetails }) {
                 style={{
                   width: '100%',
                   padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-                  backgroundColor: isEmpty ? `${theme.colors.primary}55` : theme.colors.primary,
+                  backgroundColor: isEmpty ? 'var(--theme-primary-color-55)' : theme.colors.primary,
                   color: '#fff',
                   border: 'none',
                   borderRadius: theme.borderRadius.md,

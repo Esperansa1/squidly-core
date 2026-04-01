@@ -112,8 +112,8 @@ export default function OrderTracking({ orderId, trackingToken, onBack }) {
             <div
               className="mb-4 p-3 border flex items-center gap-3 text-sm"
               style={{
-                backgroundColor: `${theme.colors.primary}10`,
-                borderColor: `${theme.colors.primary}40`,
+                backgroundColor: 'var(--theme-primary-color-10)',
+                borderColor: 'var(--theme-primary-color-40)',
               }}
             >
               <div

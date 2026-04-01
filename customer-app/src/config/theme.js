@@ -5,11 +5,34 @@ export const DEFAULT_THEME = {
   accent_color:    '#D12525',
 };
 
-// Generates { '--theme-primary_color': '#D12525', ... } for document.documentElement
-export const generateCSSVariables = (theme) => {
-  return Object.fromEntries(
-    Object.entries(theme).map(([key, value]) => [`--theme-${key}`, value])
-  );
+const hexToRgba = (hex, opacity) => {
+  const clean = (hex || '').replace('#', '');
+  if (clean.length !== 6) return null;
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return null;
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
+// Generates CSS variables on document.documentElement.
+// Keys use hyphens: primary_color → --theme-primary-color
+// Also generates alpha variants for primary_color so components can use
+// var(--theme-primary-color-10), var(--theme-primary-color-33), etc.
+export const generateCSSVariables = (themeData) => {
+  const cssVars = {};
+  Object.entries(themeData).forEach(([key, value]) => {
+    cssVars[`--theme-${key.replace(/_/g, '-')}`] = value;
+  });
+  const primary = themeData.primary_color;
+  if (primary) {
+    const alphas = { 10: 0.063, 33: 0.20, 40: 0.25, 55: 0.33 };
+    Object.entries(alphas).forEach(([suffix, opacity]) => {
+      const rgba = hexToRgba(primary, opacity);
+      if (rgba) cssVars[`--theme-primary-color-${suffix}`] = rgba;
+    });
+  }
+  return cssVars;
 };
 
 /**
@@ -19,11 +42,11 @@ export const generateCSSVariables = (theme) => {
 
 export const theme = {
   colors: {
-    // Primary brand colors
-    primary: '#DC2626',        // Red - main buttons, selected states
-    primaryHover: '#B91C1C',   // Darker red for hover
-    secondary: '#EA580C',      // Orange-red for add buttons
-    secondaryHover: '#C2410C', // Darker orange for hover
+    // Primary brand colors — CSS vars so they reflect server-saved theme dynamically
+    primary: 'var(--theme-primary-color)',
+    primaryHover: '#B91C1C',   // Fallback hover (slightly darker default red)
+    secondary: 'var(--theme-secondary-color)',
+    secondaryHover: '#C2410C', // Fallback hover
 
     // Background colors
     background: '#FAFAFA',     // Very light gray page background
