@@ -311,6 +311,12 @@ class PublicOrderRestController extends WP_REST_Controller
             ], 403);
         }
 
+        // Compute estimated ready time: order_date + 30 minutes for active orders
+        $estimated_time = null;
+        if (in_array($order->status, ['pending', 'confirmed', 'preparing'])) {
+            $estimated_time = date('Y-m-d H:i:s', strtotime($order->order_date) + 30 * 60);
+        }
+
         // Return complete order data for tracking UI
         return new WP_REST_Response([
             'order' => [
@@ -327,7 +333,12 @@ class PublicOrderRestController extends WP_REST_Controller
                 'delivery_address' => $order->delivery_address ?? '',
                 'pickup_time'     => $order->pickup_time ?? '',
                 'special_instructions' => $order->special_instructions ?? '',
-                'estimated_time'  => $order->estimated_ready_time ?? null,
+                'estimated_time'  => $estimated_time,
+                'confirmed_at'    => $order->confirmed_at,
+                'preparing_at'    => $order->preparing_at,
+                'ready_at'        => $order->ready_at,
+                'completed_at'    => $order->completed_at,
+                'cancelled_at'    => $order->cancelled_at,
                 'items'           => array_map(function($item) {
                     return [
                         'product_id'   => $item->product_id,
