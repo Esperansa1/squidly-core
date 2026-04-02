@@ -108,6 +108,12 @@ const Button = React.forwardRef(({
           backgroundColor: 'var(--theme-danger-color)',
           color: 'white'
         };
+      case 'link':
+        return {
+          backgroundColor: 'transparent',
+          color: 'var(--theme-primary-color)',
+          padding: 0
+        };
       default:
         return {
           backgroundColor: 'var(--theme-primary-color)',

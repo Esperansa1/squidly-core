@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import publicApi from '../../services/publicApi';
 import { t } from '../../i18n/translations';
+import Button from '../ui/Button';
 
 /**
  * PaymentStep - Order creation and payment redirect
@@ -116,12 +117,9 @@ export default function PaymentStep({
         <div className="bg-red-100 border border-red-400 text-red-700 p-4">
           <h3 className="font-bold mb-2">{t('error')}</h3>
           <p>{error}</p>
-          <button
-            onClick={handleCheckout}
-            className="mt-4 px-6 py-2 bg-red-600 text-white hover:bg-red-700"
-          >
+          <Button onClick={handleCheckout} variant="primary" className="mt-4">
             {t('tryAgain')}
-          </button>
+          </Button>
         </div>
       )}
 

@@ -709,8 +709,8 @@ export default function CheckoutModal({ isOpen, onClose, onEditOrderDetails }) {
                   transition: 'background-color 0.2s ease',
                   letterSpacing: '-0.01em',
                 }}
-                onMouseEnter={e => { if (!isEmpty && !isSubmitting) e.currentTarget.style.backgroundColor = theme.colors.primaryHover; }}
-                onMouseLeave={e => { if (!isEmpty && !isSubmitting) e.currentTarget.style.backgroundColor = theme.colors.primary; }}
+                onMouseEnter={e => { if (!isEmpty && !isSubmitting) e.currentTarget.style.filter = 'brightness(0.85)'; }}
+                onMouseLeave={e => { if (!isEmpty && !isSubmitting) e.currentTarget.style.filter = ''; }}
               >
                 {isSubmitting ? (
                   <>

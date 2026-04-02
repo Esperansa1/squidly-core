@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { XMarkIcon, PlusIcon, TrashIcon, MapPinIcon } from '@heroicons/react/24/outline';
-import { DEFAULT_THEME } from '../../config/theme.js';
 import DropdownButton from './DropdownButton.jsx';
+import Button from './atoms/Button.jsx';
+import IconButton from './atoms/IconButton.jsx';
+import Input from './atoms/Input.jsx';
+import FormField from './molecules/FormField.jsx';
 
 const BranchModal = ({
   isOpen,
@@ -10,8 +13,6 @@ const BranchModal = ({
   editingBranch = null,
   isSaving = false
 }) => {
-  const theme = DEFAULT_THEME;
-
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -319,73 +320,46 @@ const BranchModal = ({
               <h3 className="text-lg font-semibold text-gray-900 mb-4">פרטים בסיסיים</h3>
 
               {/* Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  שם הסניף *
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                    errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-500'
-                  }`}
-                  placeholder="הזן שם סניף"
-                />
-                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-              </div>
+              <FormField
+                label="שם הסניף"
+                required
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder="הזן שם סניף"
+                error={errors.name}
+              />
 
               {/* Phone */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  טלפון *
-                </label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                    errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-500'
-                  }`}
-                  style={{ direction: 'ltr', textAlign: 'left' }}
-                  placeholder="מספר טלפון"
-                />
-                {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-              </div>
+              <FormField
+                label="טלפון"
+                required
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                placeholder="מספר טלפון"
+                error={errors.phone}
+                style={{ direction: 'ltr', textAlign: 'left' }}
+              />
 
               {/* City */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  עיר *
-                </label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                    errors.city ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-500'
-                  }`}
-                  placeholder="שם העיר"
-                />
-                {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-              </div>
+              <FormField
+                label="עיר"
+                required
+                value={formData.city}
+                onChange={(e) => handleInputChange('city', e.target.value)}
+                placeholder="שם העיר"
+                error={errors.city}
+              />
 
               {/* Address */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  כתובת *
-                </label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                    errors.address ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-red-500'
-                  }`}
-                  placeholder="כתובת מלאה"
-                />
-                {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
-              </div>
+              <FormField
+                label="כתובת"
+                required
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                placeholder="כתובת מלאה"
+                error={errors.address}
+              />
 
               {/* Status */}
               <div>
@@ -394,7 +368,7 @@ const BranchModal = ({
                     type="checkbox"
                     checked={formData.is_open}
                     onChange={(e) => handleInputChange('is_open', e.target.checked)}
-                    className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                    className="rounded border-gray-300 focus:ring-[var(--theme-primary-color)] accent-[var(--theme-primary-color)]"
                   />
                   <span className="text-sm font-medium text-gray-700">הסניף פעיל</span>
                 </label>
@@ -421,34 +395,36 @@ const BranchModal = ({
                   <label className="text-sm font-medium text-gray-700">
                     מיקום (קואורדינטות)
                   </label>
-                  <button
-                    type="button"
+                  <Button
+                    variant="link"
+                    size="xs"
+                    leftIcon={MapPinIcon}
                     onClick={handleGeolocate}
                     disabled={isGeolocating || (!formData.address.trim() && !formData.city.trim())}
-                    className="flex items-center gap-1 text-xs text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
-                    <MapPinIcon className={`w-4 h-4 ${isGeolocating ? 'animate-pulse' : ''}`} />
                     {isGeolocating ? 'מאתר...' : 'אתר לפי כתובת'}
-                  </button>
+                  </Button>
                 </div>
                 <div className="flex gap-3">
                   <div className="flex-1">
-                    <input
+                    <Input
                       type="text"
                       value={formData.latitude}
                       onChange={(e) => handleInputChange('latitude', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                       placeholder="קו רוחב (lat)"
+                      fullWidth
+                      size="sm"
                       style={{ direction: 'ltr', textAlign: 'left' }}
                     />
                   </div>
                   <div className="flex-1">
-                    <input
+                    <Input
                       type="text"
                       value={formData.longitude}
                       onChange={(e) => handleInputChange('longitude', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                       placeholder="קו אורך (lon)"
+                      fullWidth
+                      size="sm"
                       style={{ direction: 'ltr', textAlign: 'left' }}
                     />
                   </div>
@@ -466,12 +442,13 @@ const BranchModal = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   תמונת באנר (URL)
                 </label>
-                <input
+                <Input
                   type="url"
                   value={formData.banner_image_url}
                   onChange={(e) => handleInputChange('banner_image_url', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                   placeholder="https://example.com/banner.jpg"
+                  fullWidth
+                  size="sm"
                   style={{ direction: 'ltr', textAlign: 'left' }}
                 />
                 <p className="text-gray-500 text-xs mt-1">כתובת URL של תמונת הבאנר שתוצג באפליקציית הלקוחות</p>
@@ -498,7 +475,7 @@ const BranchModal = ({
                     type="checkbox"
                     checked={formData.delivery_enabled}
                     onChange={(e) => handleInputChange('delivery_enabled', e.target.checked)}
-                    className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                    className="rounded border-gray-300 focus:ring-[var(--theme-primary-color)] accent-[var(--theme-primary-color)]"
                   />
                   <span className="text-sm font-medium text-gray-700">משלוחים פעילים</span>
                 </label>
@@ -510,14 +487,15 @@ const BranchModal = ({
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         מרחק משלוח מקסימלי (ק״מ)
                       </label>
-                      <input
+                      <Input
                         type="number"
                         step="0.5"
                         min="0"
                         value={formData.delivery_max_distance}
                         onChange={(e) => handleInputChange('delivery_max_distance', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                         placeholder="למשל: 5"
+                        fullWidth
+                        size="sm"
                         style={{ direction: 'ltr', textAlign: 'left' }}
                       />
                     </div>
@@ -527,14 +505,15 @@ const BranchModal = ({
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         דמי משלוח (₪)
                       </label>
-                      <input
+                      <Input
                         type="number"
                         step="0.5"
                         min="0"
                         value={formData.delivery_base_fee}
                         onChange={(e) => handleInputChange('delivery_base_fee', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                         placeholder="למשל: 15"
+                        fullWidth
+                        size="sm"
                         style={{ direction: 'ltr', textAlign: 'left' }}
                       />
                     </div>
@@ -544,14 +523,15 @@ const BranchModal = ({
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         משלוח חינם מעל (₪)
                       </label>
-                      <input
+                      <Input
                         type="number"
                         step="1"
                         min="0"
                         value={formData.delivery_free_threshold}
                         onChange={(e) => handleInputChange('delivery_free_threshold', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                         placeholder="למשל: 100 (0 = ללא)"
+                        fullWidth
+                        size="sm"
                         style={{ direction: 'ltr', textAlign: 'left' }}
                       />
                     </div>
@@ -561,14 +541,15 @@ const BranchModal = ({
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         הזמנה מינימלית (₪)
                       </label>
-                      <input
+                      <Input
                         type="number"
                         step="1"
                         min="0"
                         value={formData.min_order_amount}
                         onChange={(e) => handleInputChange('min_order_amount', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                         placeholder="למשל: 50 (0 = ללא)"
+                        fullWidth
+                        size="sm"
                         style={{ direction: 'ltr', textAlign: 'left' }}
                       />
                     </div>
@@ -597,24 +578,21 @@ const BranchModal = ({
                               type="text"
                               value={timeSlot}
                               onChange={(e) => updateTimeSlot(day.key, index, e.target.value)}
-                              className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                              className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded outline-none focus:border-[var(--theme-primary-color)]"
                               placeholder="09:00-17:00"
                             />
-                            <button
+                            <IconButton
+                              icon={TrashIcon}
+                              variant="ghost"
+                              size="xs"
                               onClick={() => removeTimeSlot(day.key, index)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <TrashIcon className="w-4 h-4" />
-                            </button>
+                              tooltip="הסר שעות"
+                            />
                           </div>
                         ))}
-                        <button
-                          onClick={() => addTimeSlot(day.key)}
-                          className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
-                        >
-                          <PlusIcon className="w-4 h-4" />
+                        <Button variant="link" size="sm" leftIcon={PlusIcon} onClick={() => addTimeSlot(day.key)}>
                           הוסף שעות
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -635,7 +613,7 @@ const BranchModal = ({
                         type="checkbox"
                         checked={formData.accessibility_list.includes(option)}
                         onChange={(e) => handleAccessibilityChange(option, e.target.checked)}
-                        className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                        className="rounded border-gray-300 focus:ring-[var(--theme-primary-color)] accent-[var(--theme-primary-color)]"
                       />
                       <span className="text-sm text-gray-700">{option}</span>
                     </label>
@@ -648,22 +626,18 @@ const BranchModal = ({
                     אפשרות נגישות מותאמת
                   </label>
                   <div className="flex gap-2">
-                    <input
+                    <Input
                       type="text"
                       value={customAccessibility}
                       onChange={(e) => setCustomAccessibility(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && addCustomAccessibility()}
-                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                       placeholder="הוסף אפשרות נגישות..."
+                      fullWidth
+                      size="sm"
                     />
-                    <button
-                      type="button"
-                      onClick={addCustomAccessibility}
-                      className="px-4 py-2 text-sm text-white rounded-lg transition-colors"
-                      style={{ backgroundColor: theme.primary_color }}
-                    >
+                    <Button variant="primary" size="sm" onClick={addCustomAccessibility}>
                       הוסף
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -680,13 +654,13 @@ const BranchModal = ({
                           className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm"
                         >
                           <span className="text-gray-700">{option}</span>
-                          <button
-                            type="button"
+                          <IconButton
+                            icon={XMarkIcon}
+                            variant="ghost"
+                            size="xs"
                             onClick={() => removeAccessibilityOption(option)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <XMarkIcon className="w-3 h-3" />
-                          </button>
+                            tooltip="הסר"
+                          />
                         </div>
                       ))}
                     </div>
@@ -699,21 +673,12 @@ const BranchModal = ({
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 flex-shrink-0 bg-white">
-          <button
-            onClick={onClose}
-            disabled={isSaving}
-            className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-          >
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>
             ביטול
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="px-6 py-2 text-white rounded-lg transition-colors disabled:opacity-50"
-            style={{ backgroundColor: theme.primary_color }}
-          >
-            {isSaving ? 'שומר...' : (editingBranch ? 'עדכן' : 'שמור')}
-          </button>
+          </Button>
+          <Button variant="primary" onClick={handleSave} disabled={isSaving} loading={isSaving}>
+            {editingBranch ? 'עדכן' : 'שמור'}
+          </Button>
         </div>
       </div>
     </div>
