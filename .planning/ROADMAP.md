@@ -35,7 +35,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Backend: status transition timestamps + estimated ready time in API
+- [x] 01-01-PLAN.md — Backend: status transition timestamps + estimated ready time in API
 - [ ] 01-02-PLAN.md — Frontend: post-checkout tracking handoff + Track Order nav entries
 
 ---
