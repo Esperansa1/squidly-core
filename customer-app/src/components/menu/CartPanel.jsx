@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from 'react';
 import theme from '../../config/theme';
+import Button from '../ui/Button';
 import CartItemDisplay from '../cart/CartItemDisplay';
 import CouponSection from '../cart/CouponSection';
 
@@ -212,40 +213,19 @@ export default function CartPanel({ cart, onCheckout, onClearCart, onItemClick, 
         </div>
 
         {/* Order Now Button */}
-        <button
-          type="button"
-          onClick={onCheckout}
+        <Button
+          variant="primary"
+          fullWidth
           disabled={isEmpty}
-          style={{
-            width: '100%',
-            padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-            marginTop: theme.spacing.sm,
-            backgroundColor: isEmpty ? '#EF444480' : theme.colors.primary,
-            color: theme.colors.text.white,
-            border: 'none',
-            borderRadius: theme.borderRadius.md,
-            fontSize: '1rem',
-            fontWeight: 700,
-            cursor: isEmpty ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: theme.spacing.sm,
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            if (!isEmpty) e.currentTarget.style.backgroundColor = theme.colors.primaryHover;
-          }}
-          onMouseLeave={(e) => {
-            if (!isEmpty) e.currentTarget.style.backgroundColor = theme.colors.primary;
-          }}
+          onClick={onCheckout}
+          style={{ marginTop: theme.spacing.sm }}
         >
           <span>הזמינו עכשיו</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
-        </button>
+        </Button>
       </div>
     </div>
   );
