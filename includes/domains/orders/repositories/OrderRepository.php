@@ -185,7 +185,11 @@ class OrderRepository implements RepositoryInterface
             throw new InvalidArgumentException("Invalid order status: {$status}");
         }
 
-        return update_post_meta($id, '_status', $status) !== false;
+        $result = update_post_meta($id, '_status', $status) !== false;
+        if ($result) {
+            update_post_meta($id, "_{$status}_at", current_time('mysql'));
+        }
+        return $result;
     }
 
     /**

@@ -29,6 +29,13 @@ class Order
     public ?string $pickup_time;
     public ?string $special_instructions;
 
+    // Status transition timestamps
+    public ?string $confirmed_at = null;
+    public ?string $preparing_at = null;
+    public ?string $ready_at = null;
+    public ?string $completed_at = null;
+    public ?string $cancelled_at = null;
+
     // Order statuses
     public const STATUS_PENDING = 'pending';
     public const STATUS_CONFIRMED = 'confirmed';
@@ -74,6 +81,13 @@ class Order
         $order->gateway_transaction_id = get_post_meta($post->ID, '_gateway_transaction_id', true) ?: null;
         $order->pickup_time = get_post_meta($post->ID, '_pickup_time', true) ?: null;
         $order->special_instructions = get_post_meta($post->ID, '_special_instructions', true) ?: null;
+
+        // Load status transition timestamps
+        $order->confirmed_at = get_post_meta($post->ID, '_confirmed_at', true) ?: null;
+        $order->preparing_at = get_post_meta($post->ID, '_preparing_at', true) ?: null;
+        $order->ready_at = get_post_meta($post->ID, '_ready_at', true) ?: null;
+        $order->completed_at = get_post_meta($post->ID, '_completed_at', true) ?: null;
+        $order->cancelled_at = get_post_meta($post->ID, '_cancelled_at', true) ?: null;
 
         // Load order items
         $items_data = get_post_meta($post->ID, '_order_items', true) ?: [];
@@ -187,6 +201,11 @@ class Order
             'tracking_token' => $this->tracking_token,
             'pickup_time' => $this->pickup_time,
             'special_instructions' => $this->special_instructions,
+            'confirmed_at' => $this->confirmed_at,
+            'preparing_at' => $this->preparing_at,
+            'ready_at' => $this->ready_at,
+            'completed_at' => $this->completed_at,
+            'cancelled_at' => $this->cancelled_at,
         ];
     }
 }
