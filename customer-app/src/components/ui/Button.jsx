@@ -14,6 +14,7 @@ const Button = React.forwardRef(({
   fullWidth = false,
   onClick,
   type = 'button',
+  style: styleProp,
   ...props
 }, ref) => {
   const getStyle = () => {
@@ -46,7 +47,7 @@ const Button = React.forwardRef(({
       error: { backgroundColor: 'var(--theme-danger-color, #EF4444)', color: '#fff' },
     };
 
-    return { ...base, ...sizeMap[size], ...variantMap[variant] };
+    return { ...base, ...sizeMap[size], ...variantMap[variant], ...styleProp };
   };
 
   return (
